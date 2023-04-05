@@ -29,7 +29,7 @@ if ($PSVersionTable.PSVersion.Major -lt 5) {
 #啟用powershell遠端管理
 import-module ((split-path $PSCommandPath) + "\Check-EnablePSRemoting.ps1")
 
-check-enablepsremoting
+#check-enablepsremoting
 
 
 #檢查及啟用SMBv1/CIFS功能.
@@ -92,6 +92,12 @@ Import-Module ((Split-Path $PSCommandPath) + "\Enable-DesktopIcons.ps1")
 
 Enable-DesktopIcons 
 
+#設定IE,Edage,Chrome 預設開啟首頁為 "https://eip.vghtc.gov.tw"
+Import-Module ((Split-Path $PSCommandPath) + "\set-HomePage.ps1")
+
+set-HomePage
+
+
 #==安裝================================================================== 
 
 
@@ -121,9 +127,9 @@ install-winNexus
 
 
 # 安裝防毒 Trend Micro Apex One Security Agent
-Import-Module ((Split-Path $PSCommandPath) + "\install-OfficeScan.ps1")
+Import-Module ((Split-Path $PSCommandPath) + "\install-AntiVir.ps1")
 
-install-OfficeScan
+install-antivir
 
 
 #結束, 結束記錄

@@ -1,4 +1,8 @@
 function Get-IPv4Address {
+    <#
+    只能在172.*才能用.
+    #>
+
     $ip = Get-WmiObject -Class Win32_NetworkAdapterConfiguration |
           Where-Object {$_.IPAddress -ne $null -and $_.IPAddress[0] -like "172.*" } |
           Select-Object -ExpandProperty IPAddress |
@@ -7,4 +11,4 @@ function Get-IPv4Address {
     return $ip
 }
 
-Get-IPv4Address
+write-host (Get-IPv4Address)

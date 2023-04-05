@@ -5,12 +5,12 @@ param($runadmin)
 function check-2100env {
     #復制公文安裝檔到 d:\mis 備用.
     $software_path = get-item -Path "\\172.20.5.187\mis\08-2100公文系統\01.2100公文系統安裝包_Standard"
-            if (Test-Path -Path "d:\mis") {
-            $software_copyto_path = "D:\mis"
-        }
-        else {
-            $software_copyto_path = "C:\mis"
-        }
+    if (Test-Path -Path "d:\mis") {
+        $software_copyto_path = "D:\mis"
+    }
+    else {
+        $software_copyto_path = "C:\mis"
+    }
 
     #復制檔案到D:\mis
 
@@ -22,7 +22,7 @@ function check-2100env {
     Write-Output "執行 01公文環境檔.exe 及IE 設定"
     Start-Process -FilePath reg.exe -ArgumentList ("import " + $software_copyto_path + "\" + $software_path.Name + "\reg\IE9setting.reg") -Wait
     Start-Process -FilePath reg.exe -ArgumentList ("import " + $software_copyto_path + "\" + $software_path.Name + "\reg\IE9setting1.reg") -Wait
-    Start-Process -FilePath reg.exe ($software_copyto_path + "\" + $software_path.Name + "\01公文環境檔.exe") -Wait
+    Start-Process -FilePath ($software_copyto_path + "\" + $software_path.Name + "\01公文環境檔.exe") -Wait
 
     
 }
@@ -36,8 +36,8 @@ if ($run_main -eq $null) {
     $check_admin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")
 
     if (!$check_admin -and !$runadmin) {
-    #如果非管理員, 就試著run as admin, 並傳入runadmin 參數1. 因為在網域一般使用者永遠拿不是管理員權限, 會造成無限重跑. 此參數用來輔助判斷只跑一次. 
-    Start-Process powershell.exe -ArgumentList "-FILE `"$PSCommandPath`" -Executionpolicy bypass -NoProfile  -runadmin 1" -Verb Runas; exit
+        #如果非管理員, 就試著run as admin, 並傳入runadmin 參數1. 因為在網域一般使用者永遠拿不是管理員權限, 會造成無限重跑. 此參數用來輔助判斷只跑一次. 
+        Start-Process powershell.exe -ArgumentList "-FILE `"$PSCommandPath`" -Executionpolicy bypass -NoProfile  -runadmin 1" -Verb Runas; exit
     
     }
 

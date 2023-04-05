@@ -37,6 +37,7 @@ function import-module_func ($name) {
         
         $rsession = New-PSSession -ComputerName wcdc2.vhcy.gov.tw -Credential $credential
         Import-Module $name -PSSession $rsession -ErrorAction Stop
+        Disconnect-PSSession -Session $rsession | Out-Null
     }
     
 }
