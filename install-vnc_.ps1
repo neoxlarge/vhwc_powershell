@@ -49,7 +49,7 @@ if ($null -eq $software_is_installed) {
 
     #installing...
     if ($software_exec) {
-        Start-Process -FilePath ($software_copyto_path + "\" + $software_path.Name + "\" + $software_exec) -ArgumentList "/silent /loadinf=installvnc.inf /log=d:\mis\install_vnc.log" -Wait
+        Start-Process -FilePath ($software_copyto_path + "\" + $software_path.Name + "\" + $software_exec) -ArgumentList "/silent /loadinf=installvnc.inf /log=e:\mis\install_vnc.log" -Wait
         Start-Sleep -Seconds 5
     }
               

@@ -22,9 +22,9 @@ function Enable-DesktopIcons {
     Write-host "設定桌面 ."
     #Win10和Win7都相同的設定值改法
 
-     if(!(Test-Path -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\NewStartPanel")) {
+    if (!(Test-Path -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\NewStartPanel")) {
         New-Item -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\NewStartPanel" -Force | out-null
-     }
+    }
 
     #電腦 
     Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\HideDesktopIcons\NewStartPanel" -Name "{20D04FE0-3AEA-1069-A2D8-08002B30309D}" -Value 0
@@ -47,18 +47,30 @@ function Enable-DesktopIcons {
         # 隱藏 搜尋 按鈕(Win10)
         Set-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Search" -Name "SearchboxTaskbarMode" -Value 0
         # 隱藏 新聞和興趣 按鈕(Win10)
-        $reg_path = "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Feeds"
-        if (Test-Path -Path $reg_path) {
-            Set-ItemProperty -Path $reg_path -Name "ShellFeedsTaskbarViewMode" -Value 2 -Force
+        # 參考https://admx.help/?Category=Windows_10_2016&Policy=Microsoft.Policies.Feeds::EnableFeeds
+        if ($check_admin) {
+            #寫入Hotkey local machine 需要管理員權限.
+            $reg_path = "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Windows Feeds"
+            if (Test-Path -Path $reg_path) {
+                Set-ItemProperty -Path $reg_path -Name "EnableFeeds" -Value 0 -Force
+            }
+            else {
+                New-Item -Path $reg_path -force
+                New-ItemProperty -Path $reg_path -Name "EnableFeeds" -Value 0 -PropertyType DWord -force
+            }
         }
     }
 
     #重啟桌面
     Stop-Process -Name "Explorer" -ErrorAction SilentlyContinue
     Start-Sleep -Seconds 5
+    
+    #取消啟動時執行OneDrive.
+    $result = Get-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Run" 
+    if ($result.OneDrive -ne $null) {
+        Set-ItemProperty -Path "HKCU:\Software\Microsoft\Windows\CurrentVersion\Run" -Name "OneDrive" -Value $null
+    }
 }
-
-
 
 
 #檔案獨立執行時會執行函式, 如果是被載入時不會執行函式.

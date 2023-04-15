@@ -27,7 +27,6 @@ function Set-HomePage {
         Set-ItemProperty -Path $reg_path -Name "1" -Value $HomePage
         Set-ItemProperty -Path "HKLM:\Software\Policies\Google\Chrome" -Name "RestoreOnStartup" -Value 4
 
-
         # Modify Internet Explorer home page
         Set-ItemProperty -Path "HKLM:\Software\Microsoft\Internet Explorer\Main" -Name "Start Page" -Value $HomePage
         Set-ItemProperty -Path "HKLM:\Software\Microsoft\Internet Explorer\Main" -Name "Default_Page_URL" -Value $HomePage

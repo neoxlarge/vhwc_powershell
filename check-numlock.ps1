@@ -10,6 +10,7 @@
 #>
 
 param($runadmin)
+
 function check-numlock {
     #先檢查是否己使用機碼修改方式啟用
 

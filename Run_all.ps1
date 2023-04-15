@@ -1,16 +1,23 @@
 # 自動安裝和設定
-param($runadmin)
+param($run_admin)
 $run_main = $true
+
 
 # 以管理員權限執行, Elevate Powershell to Admin
 $check_admin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")
-if (!$check_admin -and !$runadmin) {
-    Start-Process powershell.exe "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`" -runadmin 1" -Verb RunAs; exit
+if (!$check_admin -and !$run_admin) {
+    Start-Process powershell.exe "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`" -run_admin 1" -Verb RunAs; exit
 }
 
-#啟用記錄
-Start-Transcript -Path "d:\mis\$(Get-Date -Format 'yyyy-MM-dd-hh-mm').log" -Append
 
+#啟用記錄
+#存log 檔的資料?
+if ((Test-Path -Path "d:\")) {
+    $log_folder = "d:\mis"
+} else {$log_folder = "c:\mis"}
+Start-Transcript -Path "$log_folder\$(Get-Date -Format 'yyyy-MM-dd-hh-mm').log" -Append
+
+#記錄powershell是用什麼權限執行的
 if ($check_admin) {
     Write-Output "Powershell run as Admin mode."
 }
@@ -29,7 +36,7 @@ if ($PSVersionTable.PSVersion.Major -lt 5) {
 #啟用powershell遠端管理
 import-module ((split-path $PSCommandPath) + "\Check-EnablePSRemoting.ps1")
 
-#check-enablepsremoting
+check-enablepsremoting
 
 
 #檢查及啟用SMBv1/CIFS功能.
@@ -131,6 +138,10 @@ Import-Module ((Split-Path $PSCommandPath) + "\install-AntiVir.ps1")
 
 install-antivir
 
+# 移除不必要的win10 程式
+Import-Module ((Split-Path $PSCommandPath) + "\remove-apps.ps1")
+
+remove-apps
 
 #結束, 結束記錄
 Stop-Transcript

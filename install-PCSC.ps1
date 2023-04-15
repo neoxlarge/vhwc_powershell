@@ -35,8 +35,14 @@ function install-PCSC {
         Start-Sleep -Seconds 5
 
         ## 2.安裝雲端元件
+        
+        # 存log檔的位置
+        if ((Test-Path -Path "d:\")) {
+            $log_folder = "d:\mis"
+        } else {$log_folder = "c:\mis"}
+
         $software_exec = "CMS_CS5.1.5.5\CS5.1.5.5版\gCIE_Setup\gCIE_Setup.msi"
-        Start-Process -FilePath "msiexec.exe" -ArgumentList "/i $($software_copyto_path + "\" + $software_path.Name + "\" + $software_exec) /passive /log d:\mis\install_pcsc.log" -Wait
+        Start-Process -FilePath "msiexec.exe" -ArgumentList "/i $($software_copyto_path + "\" + $software_path.Name + "\" + $software_exec) /passive /log $log_folder\install_pcsc.log" -Wait
     
         ## 3.要跑設定檔 bat檔, 為了不被原本bat內的pause卡住, 重新一次powershell版本.
 

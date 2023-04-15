@@ -38,7 +38,7 @@ function install-AntiVir {
         }
 
         if ($software_exec -ne $null) {
-            Start-Process -FilePath "msiexec.exe" -ArgumentList "/i $($software_copyto_path + "\" + $software_path.Name + "\" + $software_exec) /passive /log d:\mis\install_officescan.log" -Wait
+            Start-Process -FilePath "msiexec.exe" -ArgumentList "/i $($software_copyto_path + "\" + $software_path.Name + "\" + $software_exec) /passive /log $software_copyto_path\install_officescan.log" -Wait
             Start-Sleep -Seconds 5 
         }
         else {

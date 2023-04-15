@@ -22,14 +22,15 @@ SMBv1/CIFS主要須啟用三項功能: "SMB1Protocol-Client","SMB1Protocol-Serve
 param($runadmin)
 
 function import-module_func ($name) {
-#此function會檢查本機上是否有要載入的模組. 如果沒有, 就連線到wcdc2.vhcy.gov上下載. 可能Win7沒有內建該模組. 
+    #此function會檢查本機上是否有要載入的模組. 如果沒有, 就連線到wcdc2.vhcy.gov上下載. 可能Win7沒有內建該模組. 
     $result = get-module -ListAvailable $name
 
     if ($result -ne $null) {
 
         Import-Module -Name $name -ErrorAction Stop
 
-    } else {
+    }
+    else {
         $Username = "vhwcmis"
         $Password = "Mis20190610"
         $securePassword = ConvertTo-SecureString $Password -AsPlainText -Force
@@ -54,14 +55,14 @@ function check-smbcifs {
         $result = Get-WindowsOptionalFeature -Online -FeatureName "SMB1Protocol"
 
         if (
-        !($result -eq $null) -and
-        !(Test-Path -Path "\\172.20.1.14\update" )
+            !($result -eq $null) -and
+            !(Test-Path -Path "\\172.20.1.14\update" )
         ) {
             
             Write-Output "SMBv1/CIFS未啟用或連線失測，進行啟用SMBv1/CIFS, 等待完成後必須重新開機."
 
             # 安裝SMB1.0/CIFS功能
-            Enable-WindowsOptionalFeature -Online -FeatureName "SMB1Protocol-Client","SMB1Protocol-Server","SMB1Protocol" -NoRestart
+            Enable-WindowsOptionalFeature -Online -FeatureName "SMB1Protocol-Client", "SMB1Protocol-Server", "SMB1Protocol" -NoRestart
 
             # 啟用SMB1.0
             Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\LanmanServer\Parameters" -Name "SMB1" -Value "1" -Type DWord
@@ -74,13 +75,15 @@ function check-smbcifs {
 
             # 重啟計算機
             Restart-Computer -Force -Confirm
-        } else {
+        }
+        else {
         
             Write-Output "SMB己安娤且172.20.1.14可連線."
         
         }
 
-    } else {
+    }
+    else {
         Write-Warning "沒有系統管理員權限,無法檢查SMB1.0/CIFS是否有啟用,請以系統管理員身分重新嘗試."
     
     } 
@@ -96,8 +99,8 @@ if ($run_main -eq $null) {
     $check_admin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")
 
     if (!$check_admin -and !$runadmin) {
-    #如果非管理員, 就試著run as admin, 並傳入runadmin 參數1. 因為在網域一般使用者永遠拿不是管理員權限, 會造成無限重跑. 此參數用來輔助判斷只跑一次. 
-    Start-Process powershell.exe -ArgumentList "-FILE `"$PSCommandPath`" -Executionpolicy bypass -NoProfile  -runadmin 1" -Verb Runas; exit
+        #如果非管理員, 就試著run as admin, 並傳入runadmin 參數1. 因為在網域一般使用者永遠拿不是管理員權限, 會造成無限重跑. 此參數用來輔助判斷只跑一次. 
+        Start-Process powershell.exe -ArgumentList "-FILE `"$PSCommandPath`" -Executionpolicy bypass -NoProfile  -runadmin 1" -Verb Runas; exit
     
     }
 
