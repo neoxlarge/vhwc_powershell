@@ -1,0 +1,106 @@
+# 安裝公文系統2100
+# 安裝教學文件 http://172.22.250.179/ii/install/sysdeploy.htm
+
+
+param($runadmin)
+
+Import-Module ((Split-Path $PSCommandPath) + "\get-installedprogramlist.psm1")
+
+function install_msi {
+    #$mode 是msiexec的參數, 預設i是安裝, fa是強制重新裝
+    #msi是安裝的檔名
+    param($mode = "i", $msi)
+    Write-Output $msi
+    Start-Process -FilePath "msiexec.exe" -ArgumentList "/$mode $msi /passive /norestart" -wait
+
+    Start-Sleep -Seconds 3
+}
+
+
+function install-2100 {
+
+    $software_name = "電子公文系統"
+    $software_path = "\\172.20.5.187\mis\08-2100公文系統\01.2100公文系統安裝包_Standard"
+    
+    ## 找出軟體是否己安裝
+
+    $all_installed_program = get-installedprogramlist
+    $software_is_installed = $all_installed_program | Where-Object -FilterScript { $_.DisplayName -like $software_name }
+
+    #復制檔案到本機暫存"
+    $software_path = get-item -Path $software_path
+    Copy-Item -Path $software_path -Destination $env:temp -Recurse -Force
+
+    #要安裝的檔案
+    $package_msi = @(
+        "eDocSetup_Win7.msi",
+        #"HC_Setup.msi", HCA醫事人員憑證驅動程式(提供埔里分院安裝), 這之後也會裝
+        #"HiCOS.msi", #HiCOP之後會再裝, 這裡不裝
+        "IPD21XSetup.msi",
+        "soapsdk.msi",
+        #"SetupXP.msi",  #XP用的不用裝
+        "UniView.msi"
+    )
+
+
+    if ($null -eq $software_is_installed) {
+    
+        Write-Output "Start to insall: $software_name"
+        #安裝MSI檔
+        foreach ($p in $package_msi) {
+            $p_path = $env:temp + "\" + $software_path.Name + "\package\" + $p 
+            install_msi -mode "i" -msi $p_path
+        }
+
+        #安裝tablePC_SDK.exe
+        Start-Process -FilePath ($env:temp + "\" + $software_path.Name + "\package\tablePC_SDK.exe") -ArgumentList "/v/passive" -Wait
+
+    }
+    else {
+        Write-Output "Reinstall $software_name"
+
+        foreach ($p in $package_msi) {
+            $p_path = $env:temp + "\" + $software_path.Name + "\package\" + $p 
+            install_msi -mode "fa" -msi $p_path
+        }
+
+        #安裝tablePC_SDK.exe
+        Start-Process -FilePath ($env:temp + "\" + $software_path.Name + "\package\tablePC_SDK.exe") -ArgumentList "/v/passive" -wait
+
+    }
+
+    #安裝完, 再重新取得安裝資訊
+    $all_installed_program = get-installedprogramlist
+    $software_is_installed = $all_installed_program | Where-Object -FilterScript { $_.DisplayName -like $software_name }
+
+
+    Write-Output ("Software has installed: " + $software_is_installed.DisplayName)
+    Write-Output ("Version: " + $software_is_installed.DisplayVersion)
+
+}
+
+
+
+
+
+#檔案獨立執行時會執行函式, 如果是被載入時不會執行函式.
+if ($run_main -eq $null) {
+
+    #檢查是否管理員
+    $check_admin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")
+
+    if (!$check_admin -and !$runadmin) {
+        #如果非管理員, 就試著run as admin, 並傳入runadmin 參數1. 因為在網域一般使用者永遠拿不是管理員權限, 會造成無限重跑. 此參數用來輔助判斷只跑一次. 
+        Start-Process powershell.exe -ArgumentList "-FILE `"$PSCommandPath`" -Executionpolicy bypass -NoProfile  -runadmin 1" -Verb Runas; exit
+    
+    }
+
+    if ($check_admin) { 
+        install-2100
+        Import-Module ((Split-Path $PSCommandPath) + "\Check-2100env.ps1")    
+    }
+    else {
+        Write-Warning "無法取得管理員權限來安裝軟體, 請以管理員帳號重試."
+    }
+    #pause
+}
