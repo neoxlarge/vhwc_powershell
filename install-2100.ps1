@@ -79,7 +79,51 @@ function install-2100 {
 
 }
 
+function set-2100_env {
 
+    
+
+    #1.
+    Write-Output "復制醫院設定檔ClientSetting.ini"    
+    $path = $env:TEMP + "\01.2100公文系統安裝包_Standard\ClientSetting\ClientSetting_Chiayi.ini"
+    if (Test-Path -Path $path) {
+        copy-item -Path $path -Destination $env:SystemDrive\2100\SSO\ClientSetting.ini -Force
+    } else {
+        Write-Warning "找不到ClientSetting_Chiayi.ini檔案, 請檢查!!"
+    }
+
+    #2.
+    <#
+    hicos3.1版之後，會無法簽核公文的解決方法：
+    請把下列這個檔案HiCOSCSPv32放在到６４位元電腦C:\Windows\SysWOW64，３２位元電腦C:\Windows\System32，另外３.1卡片管理工具裡的「設定」有４個都打勾，再執行一下環境檔，即可解決
+    Hicoscspv32.dll 版本: 
+    #>
+
+    switch ($env:PROCESSOR_ARCHITECTURE) {
+        "amd64" {$dll_path = "$env:windir\SysWoW64"}
+        "x86" {$dll_path = "$env:windir\System32"}
+        default {Write-Warning "Unknown processor architecture."}
+    }
+
+    $dll = Get-ItemPropertyValue -Path "$dll_path\HiCOSCSPv32.dll" -Name "VersionInfo"
+    if ($dll.ProductVersion -ne "3.0.3.21207") {
+        if (Test-Path -Path ($env:temp + "\01.2100公文系統安裝包_Standard\HiCOSCSPv32.dll")) {
+            #覆蓋Hicoscspv32.cll到c:\windows\system32中.
+            Write-Output "覆蓋Hicoscspv32.cll(3.0.3.21207)到$dll_path"
+            copy-item -Path ($software_copyto_path+"\01.2100公文系統安裝包_Standard\HiCOSCSPv32.dll") -Destination $dll_path -Force
+
+        } else {write-warning "找不到正確的HiCOSCSPv32.dll檔案"}
+    }
+
+    #3.
+    Write-Output "執行 01公文環境檔.exe 及IE 設定"
+    Start-Process -FilePath reg.exe -ArgumentList ("import " + $software_copyto_path + "\" + $software_path.Name + "\reg\IE9setting.reg") -Wait
+    Start-Process -FilePath reg.exe -ArgumentList ("import " + $software_copyto_path + "\" + $software_path.Name + "\reg\IE9setting1.reg") -Wait
+    Start-Process -FilePath ($software_copyto_path + "\" + $software_path.Name + "\01公文環境檔.exe") -Wait
+
+    
+
+}
 
 
 
@@ -102,5 +146,7 @@ if ($run_main -eq $null) {
     else {
         Write-Warning "無法取得管理員權限來安裝軟體, 請以管理員帳號重試."
     }
+
+    set-2100_env
     #pause
 }

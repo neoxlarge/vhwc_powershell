@@ -19,6 +19,28 @@ function check-2100env {
         Copy-Item -Path $software_path -Destination $software_copyto_path -Recurse -Force 
     }
 
+    <#
+    hicos3.1版之後，會無法簽核公文的解決方法：
+    請把下列這個檔案HiCOSCSPv32放在到６４位元電腦C:\Windows\SysWOW64，３２位元電腦C:\Windows\System32，另外３.1卡片管理工具裡的「設定」有４個都打勾，再執行一下環境檔，即可解決
+    Hicoscspv32.dll 版本: 
+    #>
+
+    switch ($env:PROCESSOR_ARCHITECTURE) {
+        "amd64" {$dll_path = "$env:windir\SysWoW64"}
+        "x86" {$dll_path = "$env:windir\System32"}
+        default {Write-Warning "Unknown processor architecture."}
+    }
+
+    $dll = Get-ItemPropertyValue -Path "$dll_path\HiCOSCSPv32.dll" -Name "VersionInfo"
+    if ($dll.ProductVersion -ne "3.0.3.21207") {
+        if (Test-Path -Path ($software_copyto_path+"\"+$software_path.Name + "\HiCOSCSPv32.dll")) {
+            #覆蓋Hicoscspv32.cll到c:\windows\system32中.
+            Write-Output "覆蓋Hicoscspv32.cll(3.0.3.21207)到$dll_path"
+            copy-item -Path ($software_copyto_path+"\"+$software_path.Name + "\HiCOSCSPv32.dll") -Destination $dll_path -Force
+
+        } else {write-warning "找不到正確的HiCOSCSPv32.dll檔案"}
+    }
+
     Write-Output "執行 01公文環境檔.exe 及IE 設定"
     Start-Process -FilePath reg.exe -ArgumentList ("import " + $software_copyto_path + "\" + $software_path.Name + "\reg\IE9setting.reg") -Wait
     Start-Process -FilePath reg.exe -ArgumentList ("import " + $software_copyto_path + "\" + $software_path.Name + "\reg\IE9setting1.reg") -Wait

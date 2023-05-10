@@ -4,9 +4,53 @@ param($runadmin)
 
 Import-Module ((Split-Path $PSCommandPath) + "\get-installedprogramlist.psm1")
 
+function set-Java_env {
+    Write-Output "取消JAVA自動檢查更新"
+    
+    #寫入的值是binary型態
+    $binary_value = @(0x01, 0x00, 0x00, 0x00, 0xD0, 0x8C, 0x9D, 0xDF, 0x01, 0x15, 0xD1, 0x11,
+        0x8C, 0x7A, 0x00, 0xC0, 0x4F, 0xC2, 0x97, 0xEB, 0x01, 0x00, 0x00, 0x00,
+        0xC4, 0x0D, 0xE3, 0xD1, 0x21, 0xEC, 0x3B, 0x4B, 0x99, 0x6E, 0xCD, 0x4B,
+        0x90, 0xBB, 0xBD, 0x87, 0x00, 0x00, 0x00, 0x00, 0x1C, 0x00, 0x00, 0x00,
+        0x50, 0x00, 0x61, 0x00, 0x73, 0x00, 0x73, 0x00, 0x77, 0x00, 0x6F, 0x00,
+        0x72, 0x00, 0x64, 0x00, 0x20, 0x00, 0x44, 0x00, 0x61, 0x00, 0x74, 0x00,
+        0x61, 0x00, 0x00, 0x00, 0x03, 0x66, 0x00, 0x00, 0xC0, 0x00, 0x00, 0x00,
+        0x10, 0x00, 0x00, 0x00, 0xA3, 0xA8, 0x42, 0xB2, 0xE9, 0xB3, 0xDE, 0xC6,
+        0x27, 0x52, 0x6E, 0x40, 0x71, 0xCB, 0x34, 0x53, 0x00, 0x00, 0x00, 0x00,
+        0x04, 0x80, 0x00, 0x00, 0xA0, 0x00, 0x00, 0x00, 0x10, 0x00, 0x00, 0x00,
+        0x50, 0x0F, 0x30, 0xFB, 0xEC, 0x55, 0x7D, 0x4B, 0x3E, 0x66, 0xF8, 0xF1,
+        0xF9, 0xCA, 0x76, 0xA9, 0x08, 0x00, 0x00, 0x00, 0x3A, 0x0F, 0xEC, 0x0C,
+        0xAC, 0xB5, 0x35, 0x4B, 0x14, 0x00, 0x00, 0x00, 0x26, 0x4B, 0x3E, 0xA9,
+        0x9F, 0x3F, 0xE2, 0x35, 0x20, 0xF8, 0x53, 0xF2, 0xF4, 0x47, 0x14, 0xF3,
+        0xA1, 0xF7, 0x9F, 0x27)
+    New-Item -Path "HKCU:\SOFTWARE\JavaSoft\Java Update\Policy" -ItemType "Directory" -Force
+    New-ItemProperty -Path "HKCU:\SOFTWARE\JavaSoft\Java Update\Policy" -Name "EnableAutoUpdateCheck" -PropertyType "Binary" -Value $binary_value -Force
+    
+    Write-Output "修改JAVA執行參數,加入-Xmx256m"
+    <# 
+    要自動修改 Java 控制台設定，可以透過 PowerShell 修改 Java 控制台配置文件 deployment.properties。
+    該文件包含了 Java 控制台的各種配置選項，您可以透過修改該文件來自動化更改 Java 控制台的設定。
+    #>
+    $filePath = "$env:USERPROFILE\AppData\LocalLow\Sun\Java\Deployment\deployment.properties"
+
+    # 檢查文件是否存在
+    if (Test-Path $filePath) {
+        # 讀取文件內容
+        $content = Get-Content $filePath -Raw
+    
+        # 將 deployment.javaws.jre.0.args 選項設置為 -Xmx256m
+        $content = $content -replace "deployment.javaws.jre.0.args=.*", "deployment.javaws.jre.0.args=-Xmx256m"
+    
+        # 將修改後的內容寫回文件
+        Set-Content $filePath $content -Force
+    }
+    else {
+        Write-Error "找不到 deployment properties 文件。"
+    }
+}
+
 function install-Java {
 
-    
     $software_name = "Java*"
     $software_path = "\\172.20.5.187\mis\11-中榮系統\01-中榮系統環境設定\中榮系統環境設定\java"
     $software_msi = "jre-6u13-windows-i586-p.exe"
@@ -28,11 +72,7 @@ function install-Java {
         Start-Process -FilePath $($env:temp + "\" + $software_path.Name + "\" + $software_msi) -ArgumentList "/passive" -Wait
         Start-Sleep -Seconds 5 
                     
-        #取消自動檢查更新
-        New-Item -Path "HKCU:\SOFTWARE\JavaSoft\Java Update\Policy" -ItemType "Directory" -Force
-        #New-ItemProperty -Path "HKCU:\SOFTWARE\JavaSoft\Java Update\Policy" -Name "EnableAutoUpdateCheck" -PropertyType "Binary" -Value "01 00 00 00 D0 8C 9D DF 01 15 D1 11 8C 7A 00 C0 4F C2 97 EB 01 00 00 00 C4 0D E3 D1 21 EC 3B 4B 99 6E CD 4B 90 BB BD 87 00 00 00 00 1C 00 00 00 50 00 61 00 73 00 73 00 77 00 6F 00 72 00 64 00 20 00 44 00 61 00 74 00 61 00 00 00 03 66 00 00 C0 00 00 00 10 00 00 00 A3 A8 42 B2 E9 B3 DE C6 27 52 6E 40 71 CB 34 53 00 00 00 00 04 80 00 00 A0 00 00 00 10 00 00 00 50 0F 30 FB EC 55 7D 4B 3E 66 F8 F1 F9 CA 76 A9 08 00 00 00 3A 0F EC 0C AC B5 35 4B 14 00 00 00 26 4B 3E A9 9F 3F E2 35 20 F8 53 F2 F4 47 14 F3 A1 F7 9F 27 "
-
-               
+        
         #安裝完, 再重新取得安裝資訊
         $all_installed_program = get-installedprogramlist
         $software_is_installed = $all_installed_program | Where-Object -FilterScript { $_.DisplayName -like $software_name }
@@ -54,7 +94,6 @@ if ($run_main -eq $null) {
     if (!$check_admin -and !$runadmin) {
         #如果非管理員, 就試著run as admin, 並傳入runadmin 參數1. 因為在網域一般使用者永遠拿不是管理員權限, 會造成無限重跑. 此參數用來輔助判斷只跑一次. 
         Start-Process powershell.exe -ArgumentList "-FILE `"$PSCommandPath`" -Executionpolicy bypass -NoProfile  -runadmin 1" -Verb Runas; exit
-    
     }
 
     if ($check_admin) { 
@@ -63,5 +102,7 @@ if ($run_main -eq $null) {
     else {
         Write-Warning "無法取得管理員權限來安裝軟體, 請以管理員帳號重試."
     }
+    
+    set-Java_env
     pause
 }

@@ -1,4 +1,4 @@
-﻿#check-smbcifs
+﻿#Enable-SMBv1
 <#
 要連線到172.20.1.14, 需要啟用SMBv1/CIFS功能.
 
@@ -43,7 +43,7 @@ function import-module_func ($name) {
     
 }
 
-function check-smbcifs {
+function Enable-SMBv1 {
 
     Write-Output "檢查SMBv1/CIFS是否啟用及測試連線172.20.1.14:"
 
@@ -74,7 +74,9 @@ function check-smbcifs {
             Restart-Service -Name "LanmanServer"
 
             # 重啟計算機
-            Restart-Computer -Force -Confirm
+            #Restart-Computer -Force -Confirm
+
+            start-sleep -Seconds 5
         }
         else {
         
@@ -104,7 +106,7 @@ if ($run_main -eq $null) {
     
     }
 
-    check-smbcifs
+    Enable-SMBv1
     
     pause
 }

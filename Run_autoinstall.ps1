@@ -30,40 +30,12 @@ if ($PSVersionTable.PSVersion.Major -lt 5) {
     Write-Error "Powershell 版本應該要5.1以上, 中止執行." -ErrorAction Stop
 }
 
-#==設定===================================================================
-
-#啟用powershell遠端管理
-import-module ((split-path $PSCommandPath) + "\Check-EnablePSRemoting.ps1")
-
-check-enablepsremoting
-
-#檢查及啟用SMBv1/CIFS功能.
-import-module ((split-path $PSCommandPath) + "\Check-smbcifs.ps1")
-
-check-smbcifs
-
-#啟用NumLock
-import-module ((split-path $PSCommandPath) + "\check-numlock.ps1")
-
-check-numlock
-
-#復制捷徑到公用桌面
-Import-Module ((Split-Path $PSCommandPath) + "\copy-shortcut.ps1")
-
-copy-shortcut
-
-#啟用微軟倉頡輸入法.
-
-Import-Module ((Split-Path $PSCommandPath) + "\Enable-ChangJieinput.ps1")
-
-enable-ChangJieinput
-
-#桌面環境設定,啟用桌面圖示
-Import-Module ((Split-Path $PSCommandPath) + "\Enable-DesktopIcons.ps1")
-
-Enable-DesktopIcons 
-
 #==安裝================================================================== 
+
+#檢查及啟用SMBv1/CIFS功能. 此功能本應該重開機,但先取消重開機,等全部軟體裝完.
+import-module ((split-path $PSCommandPath) + "\Enable-SMBv1.ps1")
+Enable-SMBv1
+
 
 # install 7z
 Import-Module ((Split-Path $PSCommandPath) + "\install-7z.ps1")
@@ -98,10 +70,12 @@ install-vnc
 #install java
 Import-Module ((Split-Path $PSCommandPath) + "\install-Java.ps1")
 install-java
+set-Java_env
 
 #安裝2100
 Import-Module ((Split-Path $PSCommandPath) + "\install-2100.ps1")
 install-2100
+set-2100_env
 
 #install chrome
 Import-Module ((Split-Path $PSCommandPath) + "\install-chrome.ps1")
@@ -117,9 +91,9 @@ install-libreoffice
 
 # 安裝雲端安控元件健保卡讀卡機控制(PCSC)
 Import-Module ((Split-Path $PSCommandPath) + "\install-PCSC.ps1")
-
 install-PCSC
 
+# 復制VGHTC等醫院專用程式.
 Import-Module ((Split-Path $PSCommandPath) + "\copy-vghtc.ps1")
 
 copy-vghtc
@@ -129,7 +103,6 @@ copy-vghtc
 
 #install-winNexus    
 
-
 # 安裝防毒 Trend Micro Apex One Security Agent
 #Import-Module ((Split-Path $PSCommandPath) + "\install-AntiVir.ps1")
 
@@ -137,8 +110,65 @@ copy-vghtc
 
 # 移除不必要的win10 程式
 Import-Module ((Split-Path $PSCommandPath) + "\remove-apps.ps1")
-
 remove-apps
+
+
+####系統設定存######################################################################################
+
+#啟用powershell遠端管理
+import-module ((split-path $PSCommandPath) + "\Check-EnablePSRemoting.ps1")
+check-enablepsremoting
+
+#關閉UAC
+Import-Module ((Split-Path $PSCommandPath) + "\Disable-UAC.ps1")
+Disable-UAC
+
+#復制捷徑到公用桌面
+Import-Module ((Split-Path $PSCommandPath) + "\copy-shortcut.ps1")
+copy-shortcut
+
+#桌面環境設定,啟用桌面圖示
+Import-Module ((Split-Path $PSCommandPath) + "\Enable-DesktopIcons.ps1")
+Enable-DesktopIcons 
+
+#啟用NumLock
+import-module ((split-path $PSCommandPath) + "\check-numlock.ps1")
+check-numlock
+
+#檢查VNC設定檔和服務
+Import-Module ((Split-Path $PSCommandPath) + "\check-VncSetting.ps1")
+Check-VncSetting
+Check-VncService
+
+#檢查firewall 有無開啟5900 5800 埠.
+Import-Module ((Split-Path $PSCommandPath) + "\check-firewallport.ps1")
+check-Firewallport
+
+#檢查firewall 有無開啟VNC程式通過.
+Import-Module ((Split-Path $PSCommandPath) + "\check-firewallsettings.ps1")
+check-FirewallSettings
+
+#執行3個環境設定檔 
+Import-Module ((Split-Path $PSCommandPath) + "\check-VGHTCenv.ps1")
+check-VGHTCenv
+
+#啟用微軟倉頡輸入法.
+Import-Module ((Split-Path $PSCommandPath) + "\Enable-ChangJieinput.ps1")
+enable-ChangJieinput
+
+#設定IE,Edage,Chrome 預設開啟首頁為 "https://eip.vghtc.gov.tw"
+Import-Module ((Split-Path $PSCommandPath) + "\set-HomePage.ps1")
+set-HomePage
+
+#設定PDF不自動更新
+Import-Module ((Split-Path $PSCommandPath) + "\check-pdf.ps1")
+check-pdf
+
+#清理windows 暫存
+Import-Module ((Split-Path $PSCommandPath) + "\Clear-WindowsJunk.ps1")
+Clear-WindowsJunk
+
+
 
 #結束, 結束記錄
 Stop-Transcript

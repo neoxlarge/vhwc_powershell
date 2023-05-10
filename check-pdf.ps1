@@ -13,7 +13,7 @@ Windows Registry Editor Version 5.00
 function check-pdf {
 
     $reg_path = "HKLM:\SOFTWARE\Policies\Adobe\Acrobat Reader\DC\FeatureLockDown"
-    $is_update = Get-ItemProperty -Path $reg_path -Name "bUpdateToSingleApp"
+    $is_update = Get-ItemProperty -Path $reg_path -Name "bUpdateToSingleApp" -ErrorAction SilentlyContinue
 
     if ($is_update.bUpdateToSingleApp -eq 0) {
         Write-Output "Adobe PDF Reader 己設定不自動更新."

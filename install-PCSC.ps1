@@ -7,21 +7,19 @@ Import-Module ((Split-Path $PSCommandPath) + "\get-installedprogramlist.psm1")
 
 function install-PCSC {
     # 安裝雲端安控元件健保卡讀卡機控制(PCSC)
-    ## 1. 先安裝VC++可轉發套件
-
-    $all_installed_program = get-installedprogramlist
 
     $software_name = "健保卡讀卡機控制(PCSC)*"
+    $software_path = get-item -Path "\\172.20.5.187\mis\23-讀卡機控制軟體\CMS_CS5.1.5.5-讀卡機控制軟體"
+    #特別復制到c:\vghtc\00_mis保存.
+    $software_copyto_path = "C:\VGHTC\00_mis" 
+   
+    $all_installed_program = get-installedprogramlist
     $software_is_installed = $all_installed_program | Where-Object -FilterScript { $_.DisplayName -like $software_name }
-
-    
+   
 
     if ($software_is_installed -eq $null) {
     
         Write-Output ("Start to install: " + $software_name)
-
-        $software_path = get-item -Path "\\172.20.1.14\update\Vghtc_Update\00_mis\CMS_CS5.1.5.5-讀卡機控制軟體"
-        $software_copyto_path = "C:\VGHTC\00_mis"
 
         #復制檔案到"C:\VGHTC\00_mis"
         Copy-Item -Path $software_path -Destination $software_copyto_path -Recurse -Force 
@@ -39,12 +37,13 @@ function install-PCSC {
         # 存log檔的位置
         if ((Test-Path -Path "d:\")) {
             $log_folder = "d:\mis"
-        } else {$log_folder = "c:\mis"}
+        }
+        else { $log_folder = "c:\mis" }
 
         $software_exec = "CMS_CS5.1.5.5\CS5.1.5.5版\gCIE_Setup\gCIE_Setup.msi"
-        Start-Process -FilePath "msiexec.exe" -ArgumentList "/i $($software_copyto_path + "\" + $software_path.Name + "\" + $software_exec) /passive /log $log_folder\install_pcsc.log" -Wait
+        Start-Process -FilePath "msiexec.exe" -ArgumentList "/i $($software_copyto_path + "\" + $software_path.Name + "\" + $software_exec) /passive " -Wait
     
-        ## 3.要跑設定檔 bat檔, 為了不被原本bat內的pause卡住, 重新一次powershell版本.
+        ## 3.要跑設定檔 bat檔, 為了不被原本bat內的pause卡住, 重寫一次powershell版本.
 
         Write-Output "跑讀卡機控制軟體的設定bat"
         

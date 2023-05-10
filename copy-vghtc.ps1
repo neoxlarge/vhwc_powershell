@@ -17,7 +17,10 @@ function copy-vghtc {
         Write-Output "復制VGHTC到本機系統."
         foreach ($s in $system_list) {
             Write-Output "Copy $s"
-            Copy-Item -Path $s -Destination "$env:HOMEDRIVE\" -Recurse -Force -Verbose
+            #robocopy.exe 請勿使用/mir, 危險,容易誤刪.
+            Start-Process -FilePath "robocopy.exe" -ArgumentList "$s C:\$($S.split("\")[-1]) /E" -Wait
+            
+            #Copy-Item -Path $s -Destination "$env:HOMEDRIVE\" -Recurse -Force -Verbose
         }
     }
     else {
