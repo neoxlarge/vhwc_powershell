@@ -22,7 +22,7 @@ function install-PCSC {
         Write-Output ("Start to install: " + $software_name)
 
         #´_¨îÀÉ®×¨ì"C:\VGHTC\00_mis"
-        Copy-Item -Path $software_path -Destination $software_copyto_path -Recurse -Force 
+        Copy-Item -Path $software_path.FullName -Destination $software_copyto_path -Recurse -Force 
 
         Write-OutPut ("Start to install software: " + $software_name)
     

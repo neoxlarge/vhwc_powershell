@@ -66,6 +66,7 @@ function check-vncSetting {
 <#
 此函式檢查vnc的設定檔ultravnc.ini內的值對不對. 
 #>
+    Write-Output "檢查vnc的設定檔ultravnc.ini內的值是否正確:"
     $local_vnc_ini = "$env:ProgramFiles\uvnc bvba\UltraVNC\ultravnc.ini"
     if (Test-Path -Path $local_vnc_ini) {
 
@@ -102,9 +103,7 @@ function check-vncSetting {
         
                 Write-Warning "沒有系統管理員權限,檢查VNC設定可能有誤,請以系統管理員身分重新嘗試."
             }
-        
-        
-        
+                
         }
 
 
@@ -120,7 +119,7 @@ function Check-VncService {
 <#
 此函式檢查vnc的服務是否存在及正確. 不存在會建立一個vnc服務.
 #>
-
+    Write-Output "檢查VNC服務設定:"
     $serviceName = 'uvnc_service'
     $serviceDisplayName = 'uvnc_service'
     $serviceDescription = 'UltraVNC 遠端桌面伺服器'
@@ -128,8 +127,7 @@ function Check-VncService {
 
     # 檢查服務是否存在
     $service = Get-Service $serviceName -ErrorAction SilentlyContinue
-    Write-Output "檢查VNC服務設定:"
-
+    
     if ($service -ne $null) {
         #vnc服務存在, 檢查服務設定.
         $service | Format-Table -Property Name, Status, Starttype 

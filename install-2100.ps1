@@ -81,8 +81,6 @@ function install-2100 {
 
 function set-2100_env {
 
-    
-
     #1.
     Write-Output "復制醫院設定檔ClientSetting.ini"    
     $path = $env:TEMP + "\01.2100公文系統安裝包_Standard\ClientSetting\ClientSetting_Chiayi.ini"
@@ -110,18 +108,17 @@ function set-2100_env {
         if (Test-Path -Path ($env:temp + "\01.2100公文系統安裝包_Standard\HiCOSCSPv32.dll")) {
             #覆蓋Hicoscspv32.cll到c:\windows\system32中.
             Write-Output "覆蓋Hicoscspv32.cll(3.0.3.21207)到$dll_path"
-            copy-item -Path ($software_copyto_path+"\01.2100公文系統安裝包_Standard\HiCOSCSPv32.dll") -Destination $dll_path -Force
+            copy-item -Path ($env:temp +"\01.2100公文系統安裝包_Standard\HiCOSCSPv32.dll") -Destination $dll_path -Force
 
         } else {write-warning "找不到正確的HiCOSCSPv32.dll檔案"}
     }
 
     #3.
     Write-Output "執行 01公文環境檔.exe 及IE 設定"
-    Start-Process -FilePath reg.exe -ArgumentList ("import " + $software_copyto_path + "\" + $software_path.Name + "\reg\IE9setting.reg") -Wait
-    Start-Process -FilePath reg.exe -ArgumentList ("import " + $software_copyto_path + "\" + $software_path.Name + "\reg\IE9setting1.reg") -Wait
-    Start-Process -FilePath ($software_copyto_path + "\" + $software_path.Name + "\01公文環境檔.exe") -Wait
-
-    
+    Start-Process -FilePath reg.exe -ArgumentList ("import " + $env:temp + "\01.2100公文系統安裝包_Standard\reg\IE9setting.reg") -Wait
+    Start-Process -FilePath reg.exe -ArgumentList ("import " + $env:temp + "\01.2100公文系統安裝包_Standard\reg\IE9setting1.reg") -Wait
+    Start-Process -FilePath ($env:temp + "\01.2100公文系統安裝包_Standard\01公文環境檔.exe") -Wait
+  
 
 }
 
@@ -141,12 +138,12 @@ if ($run_main -eq $null) {
 
     if ($check_admin) { 
         install-2100
-        Import-Module ((Split-Path $PSCommandPath) + "\Check-2100env.ps1")    
+        #Import-Module ((Split-Path $PSCommandPath) + "\Check-2100env.ps1")    
     }
     else {
         Write-Warning "無法取得管理員權限來安裝軟體, 請以管理員帳號重試."
     }
 
     set-2100_env
-    #pause
+    pause
 }

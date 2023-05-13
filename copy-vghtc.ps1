@@ -20,7 +20,6 @@ function copy-vghtc {
             #robocopy.exe 請勿使用/mir, 危險,容易誤刪.
             Start-Process -FilePath "robocopy.exe" -ArgumentList "$s C:\$($S.split("\")[-1]) /E" -Wait
             
-            #Copy-Item -Path $s -Destination "$env:HOMEDRIVE\" -Recurse -Force -Verbose
         }
     }
     else {

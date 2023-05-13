@@ -19,21 +19,15 @@ function install-HCA {
         Write-Output "Start to install $software_name"
 
         #來源路徑 ,要復制的路徑,and 安裝執行程式名稱
-        $software_path = get-item -Path "\\172.20.5.185\mis\powershell_init\software\HCA"
+        $software_path = get-item -Path "\\172.20.5.187\mis\05-HCAServiSign醫事卡解鎖"
         $software_exec = "HCAServiSignAdapterSetup.exe"
-        if (Test-Path -Path "d:\mis") {
-            $software_copyto_path = "D:\mis"
-        }
-        else {
-            $software_copyto_path = "C:\mis"
-        }
-        
+          
 
-        #復制檔案到D:\mis
-        Copy-Item -Path $software_path -Destination $software_copyto_path -Recurse -Force 
+        #復制檔案到暫存資料夾
+        Copy-Item -Path $software_path -Destination $env:TEMP -Recurse -Force 
 
         #installing...
-        $process_id = Start-Process -FilePath ($software_copyto_path + "\" + $software_path.Name + "\" + $software_exec) -PassThru
+        $process_id = Start-Process -FilePath ($env:TEMP + "\" + $software_path.Name + "\" + $software_exec) -PassThru
     
         #依安裝文件, HCAServiSignMonitor會最後被開啟, 所以檢查到該程序執行後, 表示安裝完成.
         $process_exist = $null
@@ -44,8 +38,6 @@ function install-HCA {
             Start-Sleep -Seconds 5
         }
 
-        #安裝完, 刪除安裝檔案
-        remove-item -Path ($software_copyto_path + "\" + $software_path.Name) -Recurse -Force
 
         #安裝完, 再重新取得安裝資訊
         $all_installed_program = get-installedprogramlist
