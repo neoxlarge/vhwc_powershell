@@ -27,11 +27,11 @@ function install-pdf {
     $all_installed_program = get-installedprogramlist
     $software_is_installed = $all_installed_program | Where-Object -FilterScript { $_.DisplayName -like $software_name }
 
-    if ($software_msi_update -eq $null) {
+    if ($software_is_installed -eq $null) {
 
         if (Test-Path $zip_path) {
             Write-Output "Start to install $software_name"
-            Write-Output "復制且解壓縮檔案 $zip_path"
+            Write-Output "復制且解壓縮檔案: $zip_path"
             expand-archive -Path $zip_path -DestinationPath $env:TEMP\$software_path
         
             Start-Process -FilePath "msiexec.exe" -ArgumentList "/i $env:TEMP\$software_path\$software_msi /passive" -wait
@@ -41,7 +41,7 @@ function install-pdf {
 
         }
         else {
-            Write-Warning "安裝檔路徑不存在,請檢查: $zip_path"
+            Write-Warning "安裝檔路徑不存在,請檢查,: $zip_path"
         }
 
         #安裝完, 再重新取得安裝資訊
@@ -54,21 +54,33 @@ function install-pdf {
 
 function check-pdf {
 
-    $reg_path = "HKLM:\SOFTWARE\Policies\Adobe\Acrobat Acrobat\DC\FeatureLockDown"
-    $is_update = Get-ItemProperty -Path $reg_path -Name "bUpdateToSingleApp" -ErrorAction SilentlyContinue
+    $reg_path = @("HKLM:\SOFTWARE\Policies\Adobe\Adobe Acrobat\DC\FeatureLockDown",
+        "HKLM:\SOFTWARE\Policies\Adobe\Acrobat Reader\DC\FeatureLockDown")
 
-    if ($is_update.bUpdateToSingleApp -eq 0) {
-        Write-Output "Adobe PDF Reader 己設定不自動更新."
-    }
-    else {
-        if ($check_admin) {
-            Write-Output "正在設定Adobe PDF Reader 為不自動新更中."
-            Set-ItemProperty -Path $reg_path -Name "bUpdateToSingleApp" -Value 00000000 -type DWord -Force
+    foreach ($r in $reg_path) {
+        if (Test-Path -Path $r) {
+            $is_update = Get-ItemProperty -Path $r -Name "bUpdateToSingleApp" -ErrorAction SilentlyContinue
+
+            if ($is_update.bUpdateToSingleApp -eq 0) {
+                Write-Output "Adobe PDF Reader 己設定不自動更新."
+            }
+            else {
+                if ($check_admin) {
+                    Write-Output "正在設定Adobe PDF Reader 為不自動新更中."
+                    Set-ItemProperty -Path $r -Name "bUpdateToSingleApp" -Value 00000000 -type DWord -Force
+                }
+                else {
+                    Write-Warning "沒有系統管理員權限,且Adobe PDF Reader未設定不自動新,請以系統管理員身分重新嘗試."
+                }
+            }    
+
+
+
         }
-        else {
-            Write-Warning "沒有系統管理員權限,且Adobe PDF Reader未設定不自動新,請以系統管理員身分重新嘗試."
-        }
     }
+
+   
+    
 
 }
 
@@ -84,7 +96,10 @@ if ($run_main -eq $null) {
         #如果非管理員, 就試著run as admin, 並傳入runadmin 參數1. 因為在網域一般使用者永遠拿不是管理員權限, 會造成無限重跑. 此參數用來輔助判斷只跑一次. 
         Start-Process powershell.exe -ArgumentList "-FILE `"$PSCommandPath`" -Executionpolicy bypass -NoProfile  -runadmin 1" -Verb Runas; exit
     }
-
+    else {
+        install-pdf
+    }
+    
     check-pdf
     pause
 }

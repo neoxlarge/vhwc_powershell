@@ -55,11 +55,11 @@ function Enable-SMBv1 {
         $result = Get-WindowsOptionalFeature -Online -FeatureName "SMB1Protocol"
 
         if (
-            !($result -eq $null) -and
+            !($result.State -ne "Enabled") -and
             !(Test-Path -Path "\\172.20.1.14\update" )
         ) {
             
-            Write-Output "SMBv1/CIFS未啟用或連線失測，進行啟用SMBv1/CIFS, 等待完成後必須重新開機."
+            Write-Output "SMBv1/CIFS未啟用或連線失測,進行啟用SMBv1/CIFS, 等待完成後必須重新開機."
 
             # 安裝SMB1.0/CIFS功能
             Enable-WindowsOptionalFeature -Online -FeatureName "SMB1Protocol-Client", "SMB1Protocol-Server", "SMB1Protocol" -NoRestart
@@ -93,6 +93,49 @@ function Enable-SMBv1 {
 }
 
 
+function Enable-NetFx3 {
+    Write-Output "檢查.NET Framework 3.5(包括.NET2.0和3.0)是否啟用:"
+    if ($check_admin) {
+
+        #載入Dism模組
+        import-module_func Dism
+
+        $result = Get-WindowsOptionalFeature -Online -FeatureName "NetFx3"
+
+        if ($result.state -ne "Enabled") {
+            Write-Output ".NET Framework 3.5(包括.NET2.0和3.0)未啟,進行啟用, 等待完成後必須重新開機."
+            
+            $source_path = "\\172.20.5.187\mis\09-dotNet3"
+
+            if (Test-Path -Path $source_path) {
+
+                # 1. 復制檔案到暫存資料夾.
+                $source_path = Get-Item $source_path
+                copy-item -Path $source_path.FullName -Destination $env:TEMP -Force -Recurse
+
+                # 2. 安裝NETFX3
+                Enable-WindowsOptionalFeature -Online -FeatureName "NetFx3", "WCF-HTTP-Activation", "WCF-NonHTTP-Activation" -all -Source "$env:TEMP\$($source_path.name)" -NoRestart
+
+            }
+            else {
+                Write-Warning "$source_path 找不到, 請檢查路徑."
+            }
+           
+        }
+        else {
+            Write-Output ".NET Framework 3.5(包括.NET2.0和3.0)己啟用"
+        }
+
+
+    }
+    else {
+        Write-Warning "沒有系統管理員權限,無法檢查.NET Framework 3.5(包括.NET2.0和3.0)是否有啟用,請以系統管理員身分重新嘗試."
+    }
+
+
+}
+
+
 
 #檔案獨立執行時會執行函式, 如果是被滙入時不會執行函式.
 if ($run_main -eq $null) {
@@ -107,6 +150,6 @@ if ($run_main -eq $null) {
     }
 
     Enable-SMBv1
-    
+    enable-netfx3
     pause
 }

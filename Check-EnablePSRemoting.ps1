@@ -11,21 +11,21 @@ param($runadmin)
 
 Function Check-EnablePSRemoting {
     $winrmService = Get-Service -Name WinRM
-
+    $isJoinAD = (Get-WmiObject -Class Win32_ComputerSystem).PartOfDomain
     If ($winrmService.Status -ne "Running") {
 
-        if ($check_admin) {
+        if ($check_admin -and $isJoinAD) {
             Write-Output "PowerShell 遠端管理未啟用，現在正在啟用..."
             #Start-Service -Name WinRM
             #Set-Service -Name WinRM -StartupType Automatic
             Enable-PSRemoting
-            Write-Output "PowerShell 遠端管理已啟用。"
+            Write-Output "PowerShell 遠端管理已啟用."
         } else {
-            Write-Warning "沒有系統管理員權限，且 PowerShell 遠端管理未啟用，請以系統管理員身分重新嘗試。"
+            Write-Warning "沒有系統管理員權限或未加入AD,且 PowerShell 遠端管理未啟用,請以系統管理員身分重新嘗試."
         }
     }
     Else {
-        Write-Output "PowerShell 遠端管理已經啟用。"
+        Write-Output "PowerShell 遠端管理已經啟用."
     }
 }
 

@@ -14,6 +14,10 @@ function install-chrome {
     $software_msi = "googlechromestandaloneenterprise64.msi"
     $software_msi_x86 = "googlechromestandaloneenterprise32.msi"
 
+
+    $os = Get-WmiObject -Class Win32_OperatingSystem
+    if ($os.Version -ge 10) {
+
     # 安裝chrome
     ## 找出軟體是否己安裝
 
@@ -52,7 +56,9 @@ function install-chrome {
 
     Write-Output ("Software has installed: " + $software_is_installed.DisplayName)
     Write-Output ("Version: " + $software_is_installed.DisplayVersion)
-
+    } else {
+        Write-Warning "OS必須是Win10上, 新版Chrome己停止支援win7以下系統."
+    }
 }
 
 

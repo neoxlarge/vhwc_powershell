@@ -2,11 +2,11 @@
 #1. 關閉EDGE中的IE模式.
 #2. 關閉IE中的IEtoEdga元件
 #3. 把IE設成預設值, 這動作無法直接修改registry, 因為無法算出hash.
-#   需要group policy的方式?成.
+
 
 param($runadmin)
 
-set-IEasDefault {
+function Set-IEasDefault {
 
     Write-Output "在Edge中以IE開啟網站設為永不"
     Set-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Edge\IEToEdge" -Name "RedirectionMode" -Value 0 -Force
@@ -14,7 +14,10 @@ set-IEasDefault {
     Write-Output "關閉IE中的IEtoEdga元件"
     Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Ext\CLSID" -Name "{1FD49718-1D00-4B19-AF5F-070AF6D5D54C}" -Value 0 -Force
 
-    
+    #預設IE瀏覽器無法在本機群組原則套用. Registry也無法指定IE, 只能先清除.
+    Write-Output "清除預設瀏覽器設定,讓使用者第一次執行自行選擇"
+    Remove-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Windows\Shell\Associations\UrlAssociations\http\UserChoice" -Name "Progid" -ErrorAction SilentlyContinue
+    Remove-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Windows\Shell\Associations\UrlAssociations\https\UserChoice" -Name "Progid" -ErrorAction SilentlyContinue
 
 }
 
@@ -31,6 +34,6 @@ if ($run_main -eq $null) {
         Start-Process powershell.exe -ArgumentList "-FILE `"$PSCommandPath`" -Executionpolicy bypass -NoProfile  -runadmin 1" -Verb Runas; exit
     }
 
-    Set-HomePage
+    Set-IEasDefault
     pause
 }

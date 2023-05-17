@@ -33,9 +33,13 @@ if ($PSVersionTable.PSVersion.Major -lt 5) {
 #==安裝================================================================== 
 
 #檢查及啟用SMBv1/CIFS功能. 此功能本應該重開機,但先取消重開機,等全部軟體裝完.
-import-module ((split-path $PSCommandPath) + "\Enable-SMBv1.ps1")
+import-module ((split-path $PSCommandPath) + "\Enable-Win10OPTFeature.ps1")
 Enable-SMBv1
+Enable-NetFx3
 
+# 復制VGHTC等醫院專用程式.
+Import-Module ((Split-Path $PSCommandPath) + "\copy-vghtc.ps1")
+copy-vghtc
 
 # install 7z
 Import-Module ((Split-Path $PSCommandPath) + "\install-7z.ps1")
@@ -85,6 +89,12 @@ install-chrome
 Import-Module ((Split-Path $PSCommandPath) + "\install-smartiris.ps1")
 install-smartiris
 
+#install pdf
+Import-Module ((Split-Path $PSCommandPath) + "\install-pdf.ps1")
+install-pdf
+check-pdf
+
+
 #install libreoffice
 Import-Module ((Split-Path $PSCommandPath) + "\install-libreoffice.ps1")
 install-libreoffice
@@ -92,11 +102,6 @@ install-libreoffice
 # 安裝雲端安控元件健保卡讀卡機控制(PCSC)
 Import-Module ((Split-Path $PSCommandPath) + "\install-PCSC.ps1")
 install-PCSC
-
-# 復制VGHTC等醫院專用程式.
-Import-Module ((Split-Path $PSCommandPath) + "\copy-vghtc.ps1")
-
-copy-vghtc
 
 # 安裝Winnexus
 #Import-Module ((Split-Path $PSCommandPath) + "\install-Winnexus.ps1")
@@ -156,13 +161,13 @@ check-VGHTCenv
 Import-Module ((Split-Path $PSCommandPath) + "\Enable-ChangJieinput.ps1")
 enable-ChangJieinput
 
+#設定Edge開啟IE為永不, IE停用IEtoEdge元件, 清除瀏覽器預設值."
+Import-Module ((Split-Path $PSCommandPath) + "\set-IEasDefault.ps1")
+set-IEasDefault
+
 #設定IE,Edage,Chrome 預設開啟首頁為 "https://eip.vghtc.gov.tw"
 Import-Module ((Split-Path $PSCommandPath) + "\set-HomePage.ps1")
 set-HomePage
-
-#設定PDF不自動更新
-Import-Module ((Split-Path $PSCommandPath) + "\check-pdf.ps1")
-check-pdf
 
 #清理windows 暫存
 Import-Module ((Split-Path $PSCommandPath) + "\Clear-WindowsJunk.ps1")

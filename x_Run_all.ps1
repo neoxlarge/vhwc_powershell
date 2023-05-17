@@ -40,9 +40,10 @@ check-enablepsremoting
 
 
 #檢查及啟用SMBv1/CIFS功能.
-import-module ((split-path $PSCommandPath) + "\enable-smbv1.ps1")
+import-module ((split-path $PSCommandPath) + "\enable-Win10OPTFeature.ps1")
 
 enable-smbv1
+enable-NetFx3
 
 
 #啟用NumLock

@@ -16,7 +16,7 @@ function set-Java_env {
         "x86" { $reg_path = "HKLM:\SOFTWARE\JavaSoft\Java Update\Policy" }
     }
      
-    Set-ItemProperty -Path %$reg_path -Name "EnableAutoUpdate" -Value 0 -Force
+    Set-ItemProperty -Path $reg_path -Name "EnableJavaUpdate" -Value 0 -Force
 
 
     Write-Output "修改通知為下載之前"

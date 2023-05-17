@@ -1,4 +1,6 @@
 # 安裝雲端安控元件健保卡讀卡機控制(PCSC)
+# 此安裝必須在c:\vghtc安裝完成之後, 因為會復制檔案過去.
+
 ## 1. 先安裝VC++可轉發套件
 
 param($runadmin)
@@ -19,8 +21,7 @@ function install-PCSC {
 
     if ($software_is_installed -eq $null) {
     
-        Write-Output ("Start to install: " + $software_name)
-
+  
         #復制檔案到"C:\VGHTC\00_mis"
         Copy-Item -Path $software_path.FullName -Destination $software_copyto_path -Recurse -Force 
 

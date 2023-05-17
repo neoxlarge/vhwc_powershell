@@ -4,7 +4,7 @@ param($runadmin)
 
 function Grant-FullControlPermission {
     <#
-    函數名稱為 Grant-FullControlPermission，有兩個參數：Folders（包含要授予完全控制權限的資料夾清單）和 UserName（要授權限的使用者名稱）。
+    函數名稱為 Grant-FullControlPermission，有兩個變數：Folders（包含要授予完全控制權限的資料夾清單）和 UserName（要授權限的使用者名稱）。
     在函數內部，使用 foreach 迴圈遍歷資料夾清單，對每個資料夾執行相同的操作：取得 ACL、建立存取規則、新增規則至 ACL，然後將修改後的 ACL 套用至資料夾。
     最後，您可以呼叫該函數，填入資料夾清單和使用者名稱，以授予指定的使用者完全控制權限。
     #>

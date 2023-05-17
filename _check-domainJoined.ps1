@@ -27,6 +27,6 @@ function Check-DomainJoined {
         Write-Host "$computer 尚未加入網域。" -ForegroundColor Red
     }
 }
-
+$env:USERDOMAIN
 
 Check-DomainJoined
