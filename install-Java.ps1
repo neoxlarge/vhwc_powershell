@@ -20,10 +20,17 @@ function set-Java_env {
 
 
     Write-Output "修改通知為下載之前"
-
-    Set-ItemProperty -Path "HKLM:\Software\WOW6432Node\JavaSoft\Java Update\Policy" -name "NotifyInstall" -Value 0 -Force
-    Set-ItemProperty -Path "HKLM:\Software\WOW6432Node\JavaSoft\Java Update\Policy" -name "NotifyDownload" -Value 1 -Force
-
+    switch ($env:PROCESSOR_ARCHITECTURE) {
+        "AMD64" {
+            Set-ItemProperty -Path "HKLM:\Software\WOW6432Node\JavaSoft\Java Update\Policy" -name "NotifyInstall" -Value 0 -Force
+            Set-ItemProperty -Path "HKLM:\Software\WOW6432Node\JavaSoft\Java Update\Policy" -name "NotifyDownload" -Value 1 -Force
+        }
+    
+        "x86" {
+            Set-ItemProperty -Path "HKLM:\Software\JavaSoft\Java Update\Policy" -name "NotifyInstall" -Value 0 -Force
+            Set-ItemProperty -Path "HKLM:\Software\JavaSoft\Java Update\Policy" -name "NotifyDownload" -Value 1 -Force
+        }
+    }
 
     Write-Output "修改JAVA執行參數,加入-Xmx256m"
     <# 
@@ -34,7 +41,10 @@ function set-Java_env {
 
     #在剛安裝完JAVA時, 未執行JAVA控制台時, deployment.properties檔案會不在, 執行JAVA控制台會產生該檔.
     if (!(test-path $filePath)) {
-        Start-Process -FilePath "C:\Program Files (x86)\Java\jre6\bin\javacpl.exe"
+        switch ($env:PROCESSOR_ARCHITECTURE) {
+            "AMD64" {Start-Process -FilePath "C:\Program Files (x86)\Java\jre6\bin\javacpl.exe"}
+            "x86" {Start-Process -FilePath "C:\Program Files\Java\jre6\bin\javacpl.exe"}
+        }
         Start-Sleep -Seconds 5
         Stop-Process -Name "javaw"
     }

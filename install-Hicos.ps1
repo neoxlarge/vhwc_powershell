@@ -50,21 +50,25 @@ function install-HiCOS {
         $software_is_installed = $all_installed_program | Where-Object -FilterScript { $_.DisplayName -like $software_name }
 
         #change HiCOS setting
-        #Set-ItemProperty -Path "HKLM:\Software\WOW6432Node\Microsoft\Cryptography\Calais\SmartCards\CHT GPKI Card V3 (Conf.1 T=CL)" -Name "Crypto Provider" -Value "HiCOS PKI Smart Card Cryptographic Service Provider" -Force
-        New-ItemProperty -Path "HKLM:\Software\WOW6432Node\Microsoft\Cryptography\Calais\SmartCards\CHT GPKI Card V3 (Conf.1 T=CL)" -Name "Crypto Provider" -Value "HiCOS PKI Smart Card Cryptographic Service Provider" -Force -PropertyType "string"
-        New-ItemProperty -Path "HKLM:\Software\WOW6432Node\Microsoft\Cryptography\Calais\SmartCards\CHT GPKI Card V3 (Conf.1 T=1)" -Name "Crypto Provider" -Value "HiCOS PKI Smart Card Cryptographic Service Provider" -Force -PropertyType "string"
-        New-ItemProperty -Path "HKLM:\Software\WOW6432Node\Microsoft\Cryptography\Calais\SmartCards\CHT GPKI Card 32K" -Name "Crypto Provider" -Value "HiCOS PKI Smart Card Cryptographic Service Provider" -Force -PropertyType "string"
-        New-ItemProperty -Path "HKLM:\Software\WOW6432Node\Microsoft\Cryptography\Calais\SmartCards\CHT ePKI Card 32K" -Name "Crypto Provider" -Value "HiCOS PKI Smart Card Cryptographic Service Provider" -Force -PropertyType "string"
-        New-ItemProperty -Path "HKLM:\Software\WOW6432Node\Chunghwa TeleCom\HiCOS PKI Smart Card\TokenUtility\1.0.0" -Name "CertImportWithLegacyCSP" -Value 1 -Force -PropertyType "DWord"
-        Set-ItemProperty -Path "HKLM:\Software\WOW6432Node\Chunghwa TeleCom\HiCOS PKI Smart Card\TokenUtility\1.0.0" -Name "LegacyCSPParing" -Value 1 -Force
-
-        New-ItemProperty -Path "HKLM:\Software\Microsoft\Cryptography\Calais\SmartCards\CHT GPKI Card V3 (Conf.1 T=CL)" -Name "Crypto Provider" -Value "HiCOS PKI Smart Card Cryptographic Service Provider" -Force -PropertyType "string"
-        New-ItemProperty -Path "HKLM:\Software\Microsoft\Cryptography\Calais\SmartCards\CHT GPKI Card V3 (Conf.1 T=1)" -Name "Crypto Provider" -Value "HiCOS PKI Smart Card Cryptographic Service Provider" -Force -PropertyType "string"
-        New-ItemProperty -Path "HKLM:\Software\Microsoft\Cryptography\Calais\SmartCards\CHT GPKI Card 32K" -Name "Crypto Provider" -Value "HiCOS PKI Smart Card Cryptographic Service Provider" -Force -PropertyType "string"
-        New-ItemProperty -Path "HKLM:\Software\Microsoft\Cryptography\Calais\SmartCards\CHT ePKI Card 32K" -Name "Crypto Provider" -Value "HiCOS PKI Smart Card Cryptographic Service Provider" -Force -PropertyType "string"
         
-
-
+        switch ($env:PROCESSOR_ARCHITECTURE) {
+            "AMD64" {
+                New-ItemProperty -Path "HKLM:\Software\WOW6432Node\Microsoft\Cryptography\Calais\SmartCards\CHT GPKI Card V3 (Conf.1 T=CL)" -Name "Crypto Provider" -Value "HiCOS PKI Smart Card Cryptographic Service Provider" -Force -PropertyType "string"
+                New-ItemProperty -Path "HKLM:\Software\WOW6432Node\Microsoft\Cryptography\Calais\SmartCards\CHT GPKI Card V3 (Conf.1 T=1)" -Name "Crypto Provider" -Value "HiCOS PKI Smart Card Cryptographic Service Provider" -Force -PropertyType "string"
+                New-ItemProperty -Path "HKLM:\Software\WOW6432Node\Microsoft\Cryptography\Calais\SmartCards\CHT GPKI Card 32K" -Name "Crypto Provider" -Value "HiCOS PKI Smart Card Cryptographic Service Provider" -Force -PropertyType "string"
+                New-ItemProperty -Path "HKLM:\Software\WOW6432Node\Microsoft\Cryptography\Calais\SmartCards\CHT ePKI Card 32K" -Name "Crypto Provider" -Value "HiCOS PKI Smart Card Cryptographic Service Provider" -Force -PropertyType "string"
+                New-ItemProperty -Path "HKLM:\Software\WOW6432Node\Chunghwa TeleCom\HiCOS PKI Smart Card\TokenUtility\1.0.0" -Name "CertImportWithLegacyCSP" -Value 1 -Force -PropertyType "DWord"
+                Set-ItemProperty -Path "HKLM:\Software\WOW6432Node\Chunghwa TeleCom\HiCOS PKI Smart Card\TokenUtility\1.0.0" -Name "LegacyCSPParing" -Value 1 -Force
+            }
+            "x86" {
+                New-ItemProperty -Path "HKLM:\Software\Microsoft\Cryptography\Calais\SmartCards\CHT GPKI Card V3 (Conf.1 T=CL)" -Name "Crypto Provider" -Value "HiCOS PKI Smart Card Cryptographic Service Provider" -Force -PropertyType "string"
+                New-ItemProperty -Path "HKLM:\Software\Microsoft\Cryptography\Calais\SmartCards\CHT GPKI Card V3 (Conf.1 T=1)" -Name "Crypto Provider" -Value "HiCOS PKI Smart Card Cryptographic Service Provider" -Force -PropertyType "string"
+                New-ItemProperty -Path "HKLM:\Software\Microsoft\Cryptography\Calais\SmartCards\CHT GPKI Card 32K" -Name "Crypto Provider" -Value "HiCOS PKI Smart Card Cryptographic Service Provider" -Force -PropertyType "string"
+                New-ItemProperty -Path "HKLM:\Software\Microsoft\Cryptography\Calais\SmartCards\CHT ePKI Card 32K" -Name "Crypto Provider" -Value "HiCOS PKI Smart Card Cryptographic Service Provider" -Force -PropertyType "string"
+                New-ItemProperty -Path "HKLM:\Software\Chunghwa TeleCom\HiCOS PKI Smart Card\TokenUtility\1.0.0" -Name "CertImportWithLegacyCSP" -Value 1 -Force -PropertyType "DWord"
+                Set-ItemProperty -Path "HKLM:\Software\Chunghwa TeleCom\HiCOS PKI Smart Card\TokenUtility\1.0.0" -Name "LegacyCSPParing" -Value 1 -Force
+            }
+        }
     
     }
 

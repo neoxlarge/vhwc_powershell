@@ -73,15 +73,8 @@ function check-pdf {
                     Write-Warning "沒有系統管理員權限,且Adobe PDF Reader未設定不自動新,請以系統管理員身分重新嘗試."
                 }
             }    
-
-
-
         }
     }
-
-   
-    
-
 }
 
 

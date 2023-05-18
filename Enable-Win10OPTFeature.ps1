@@ -94,8 +94,11 @@ function Enable-SMBv1 {
 
 
 function Enable-NetFx3 {
+    #Windows7預設己安裝.net framework 3, 不需要再裝
+    $check_win10 = (Get-WmiObject -Class Win32_OperatingSystem | Select-Object -Property Version).Version -like '10*'
+
     Write-Output "檢查.NET Framework 3.5(包括.NET2.0和3.0)是否啟用:"
-    if ($check_admin) {
+    if ($check_admin -and $check_win10) {
 
         #載入Dism模組
         import-module_func Dism
@@ -129,7 +132,7 @@ function Enable-NetFx3 {
 
     }
     else {
-        Write-Warning "沒有系統管理員權限,無法檢查.NET Framework 3.5(包括.NET2.0和3.0)是否有啟用,請以系統管理員身分重新嘗試."
+        Write-Warning "沒有系統管理員權限或是Win7系統,無法檢查.NET Framework 3.5(包括.NET2.0和3.0)是否有啟用,請以系統管理員身分重新嘗試."
     }
 
 

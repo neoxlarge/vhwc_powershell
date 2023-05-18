@@ -1,32 +1,18 @@
-function DisableJavaAutoUpdate {
-    # 檢查 Java 的安裝路徑
-    $javaPath = Get-Command java | Select-Object -ExpandProperty Source
-
-    if ($javaPath) {
-        # 構建自動更新設定文件的路徑
-        $deploymentPropertiesPath = Join-Path -Path $javaPath -ChildPath 'lib\deployment.config'
-
-        # 確認設定文件是否存在
-        if (Test-Path $deploymentPropertiesPath) {
-            # 讀取設定文件的內容
-            $deploymentProperties = Get-Content $deploymentPropertiesPath -Raw
-
-            # 檢查是否已經設置為取消自動更新
-            if ($deploymentProperties -notmatch 'deployment\.expiration\.check\.enabled') {
-                # 在設定文件的末尾添加禁用自動更新的設定
-                $newDeploymentProperties = $deploymentProperties + "`ndeployment.expiration.check.enabled=false"
-
-                # 寫入更新後的設定文件內容
-                $newDeploymentProperties | Set-Content $deploymentPropertiesPath
-
-                Write-Output 'Java 自動更新已經取消。'
-            } else {
-                Write-Output 'Java 自動更新已經被取消。'
-            }
-        } else {
-            Write-Output '找不到 Java 的 deployment.config 文件。'
-        }
-    } else {
-        Write-Output '找不到已安裝的 Java。'
+Function Prevent-SleepWmi {
+    $Info = Get-CimInstance -ClassName CIM_SessionStatistics
+    if (($Info | Select-Object -ExpandProperty IsActive) -contains $true) {
+        Return;
     }
+
+    $wmiParams = @{ 
+        Namespace = 'root\cimv2\power' 
+        Class = 'Win32_PowerSettingDataIndex'
+    }
+    $sleepSettings = Get-CimInstance @wmiParams -Filter "InstanceID='Microsoft:PowerSetting\{155AAB8B-23B9-4A29-87F0-CPF60A52EEFF}\SUB_NONE_7516b95f-008f-4cb4-9116-DC2EF728B5B6'"
+    $displaySettings = Get-CimInstance @wmiParams -Filter "InstanceID='Microsoft:PowerSetting\{3C0BC021-C8A8-4E07-A973-6B14CBCB2B7E}\SUB_NONE_ultimate_power_plan_ac_dll_microsoft_powerplan_6d22571a_03e8_4eed_80b8_6bdd79498fc8'"
+    Set-CimInstance -InputObject $sleepSettings[0] -Arguments @{ 
+        AcValueIndex = 0
+        DcValueIndex = 0
+    }
+    Set-CimInstance -InputObject $displaySettings[0] -Arguments @{$_.PropertyName = $_.PropertyValue for $_ in $displaySettings.Properties}
 }
