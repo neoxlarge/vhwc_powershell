@@ -16,3 +16,7 @@ Function Prevent-SleepWmi {
     }
     Set-CimInstance -InputObject $displaySettings[0] -Arguments @{$_.PropertyName = $_.PropertyValue for $_ in $displaySettings.Properties}
 }
+
+
+Set-ItemProperty HKCU:\Software\Classes\Local Settings\Software\Microsoft\Windows\Shell\Associations\UrlAssociations\http\UserChoice ProgId "IE.HTTP"
+Restart-Explorer

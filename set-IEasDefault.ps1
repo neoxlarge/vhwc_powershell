@@ -2,6 +2,7 @@
 #1. 關閉EDGE中的IE模式.
 #2. 關閉IE中的IEtoEdga元件
 #3. 把IE設成預設值, 這動作無法直接修改registry, 因為無法算出hash.
+#4. 只有win10須要做這個動作.
 
 
 param($runadmin)

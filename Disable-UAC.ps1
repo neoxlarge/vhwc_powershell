@@ -3,7 +3,15 @@ param($runadmin)
 
 
 function Disable-UAC {
-  Set-ItemProperty -Path HKLM:\Software\Microsoft\Windows\CurrentVersion\Policies\System -Name EnableLUA -Value 0
+    $value = Get-ItemPropertyValue -Path "HKLM:\Software\Microsoft\Windows\CurrentVersion\Policies\System" -Name "EnableLUA"
+    
+    if ($value -ne 0) {
+      if ($check_admin) {
+        Write-Output "關閉UAC."
+        Set-ItemProperty -Path HKLM:\Software\Microsoft\Windows\CurrentVersion\Policies\System -Name EnableLUA -Value 0
+      } else {Write-Warning "沒有系統管理員權限,關閉UAC,請以系統管理員身分重新嘗試。"}
+    }
+   
 }
 
   
@@ -16,7 +24,6 @@ if ($run_main -eq $null) {
     if (!$check_admin -and !$runadmin) {
     #如果非管理員, 就試著run as admin, 並傳入runadmin 參數1. 因為在網域一般使用者永遠拿不是管理員權限, 會造成無限重跑. 此參數用來輔助判斷只跑一次. 
     Start-Process powershell.exe -ArgumentList "-FILE `"$PSCommandPath`" -Executionpolicy bypass -NoProfile  -runadmin 1" -Verb Runas; exit
-    
     }
 
     Disable-UAC

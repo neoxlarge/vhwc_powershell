@@ -10,16 +10,27 @@ function set-Java_env {
     #參考連結 https://thegeekpage.com/turn-off-java-update-notification-in-windows-10/
     #32bit/64bit系統要修改的registry位置不一樣.
     #修改正確會把更新的分頁完全關閉不顯示.
+    #沒有admin權限不用執行取消更新動作.
 
     switch ($env:PROCESSOR_ARCHITECTURE) {
         "AMD64" { $reg_path = "HKLM:\SOFTWARE\WOW6432Node\JavaSoft\Java Update\Policy" }
         "x86" { $reg_path = "HKLM:\SOFTWARE\JavaSoft\Java Update\Policy" }
     }
-     
-    Set-ItemProperty -Path $reg_path -Name "EnableJavaUpdate" -Value 0 -Force
+    
+    
+    if ((Get-ItemProperty -Path $reg_path -Name "EnableJavaUpdate").enableJavaupdate -ne 0 ) 
+    {
+        if ($check_admin) {
+            Set-ItemProperty -Path $reg_path -Name "EnableJavaUpdate" -Value 0 -Force
+        } else {
+            Write-Warning "Java己啟用自動更新, 但沒有管理者權限修改, 請用管理者重試."
+        }
+    }  else {
+        Write-Output "Java更新己取消"
+    }
 
-
-    Write-Output "修改通知為下載之前"
+    <# 取消整個更新分頁後,不再需要以下設定.
+    Write-Output "修改Java更新通知為下載之前"
     switch ($env:PROCESSOR_ARCHITECTURE) {
         "AMD64" {
             Set-ItemProperty -Path "HKLM:\Software\WOW6432Node\JavaSoft\Java Update\Policy" -name "NotifyInstall" -Value 0 -Force
@@ -31,6 +42,8 @@ function set-Java_env {
             Set-ItemProperty -Path "HKLM:\Software\JavaSoft\Java Update\Policy" -name "NotifyDownload" -Value 1 -Force
         }
     }
+    #>
+
 
     Write-Output "修改JAVA執行參數,加入-Xmx256m"
     <# 
