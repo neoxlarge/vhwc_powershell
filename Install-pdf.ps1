@@ -19,8 +19,8 @@ function install-pdf {
     $software_name = "Adobe Acrobat*"
     $zip_path = "\\172.20.5.187\mis\16-PDF\adobe_pdf_離線安裝檔.zip"
     $software_path = $($zip_path.Split("\")[-1])
-    $software_msi = "AcroPro.msi"
-    $software_msi_update = "AcroRdrDCx64Upd2300120143.msp"
+    $software_msi = "AcroRead.msi"
+    $software_msi_update = "AcroRdrDCUpd2300120064.msp"
 
     ## 找出軟體是否己安裝
 

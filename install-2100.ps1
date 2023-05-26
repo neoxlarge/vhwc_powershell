@@ -103,7 +103,8 @@ function set-2100_env {
         default {Write-Warning "Unknown processor architecture."}
     }
 
-    $dll = Get-ItemPropertyValue -Path "$dll_path\HiCOSCSPv32.dll" -Name "VersionInfo"
+    $dll = Get-ItemPropertyValue -Path "$dll_path\HiCOSCSPv32.dll" -Name "VersionInfo" -ErrorAction SilentlyContinue
+    Write-Output "HiCOSCSPv32.dll version: $($dll.ProductVersion)"
     if ($dll.ProductVersion -ne "3.0.3.21207") {
         if (Test-Path -Path ($env:temp + "\01.2100公文系統安裝包_Standard\HiCOSCSPv32.dll")) {
             #覆蓋Hicoscspv32.cll到c:\windows\system32中.
