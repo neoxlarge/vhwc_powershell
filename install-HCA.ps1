@@ -9,9 +9,12 @@ function install-HCA {
     ## 安裝 HCAServiSign
     ### 找出軟體是否己安裝
 
-    $all_installed_program = get-installedprogramlist
-
     $software_name = "HCAServiSignAdapterSetup"
+    $software_path = "\\172.20.5.187\mis\05-HCAServiSign醫事卡解鎖"
+    $software_exec = "HCAServiSignAdapterSetup.exe"
+
+    $all_installed_program = get-installedprogramlist
+  
     $software_is_installed = $all_installed_program | Where-Object -FilterScript { $_.DisplayName -like "$software_name*" }
 
 
@@ -19,12 +22,10 @@ function install-HCA {
         Write-Output "Start to install $software_name"
 
         #來源路徑 ,要復制的路徑,and 安裝執行程式名稱
-        $software_path = get-item -Path "\\172.20.5.187\mis\05-HCAServiSign醫事卡解鎖"
-        $software_exec = "HCAServiSignAdapterSetup.exe"
-          
-
+        $software_path = get-item -Path $software_path
+        
         #復制檔案到暫存資料夾
-        Copy-Item -Path $software_path -Destination $env:TEMP -Recurse -Force 
+        Copy-Item -Path $software_path -Destination $env:TEMP -Recurse -Force -Verbose
 
         #installing...
         $process_id = Start-Process -FilePath ($env:TEMP + "\" + $software_path.Name + "\" + $software_exec) -PassThru
@@ -71,6 +72,3 @@ if ($run_main -eq $null) {
     }
     pause
 }
-
-
-

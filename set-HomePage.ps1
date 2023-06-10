@@ -30,9 +30,16 @@ function Set-HomePage {
         # Modify Internet Explorer home page
         Set-ItemProperty -Path "HKLM:\Software\Microsoft\Internet Explorer\Main" -Name "Start Page" -Value $HomePage
         Set-ItemProperty -Path "HKLM:\Software\Microsoft\Internet Explorer\Main" -Name "Default_Page_URL" -Value $HomePage
+        Set-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Internet Explorer\Main" -Name "Start Page" -Value $HomePage
+        Set-ItemProperty -Path "HKCU:\Software\Microsoft\Internet Explorer\Main" -Name "Default_Page_URL" -Value $HomePage
 
     } else {
-        Write-Warning "沒有系統管理員權限,無法強制設定Homepage,請以系統管理員身分重新嘗試。"
+        
+        $HomePage = "https://eip.vghtc.gov.tw"
+        Set-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Internet Explorer\Main" -Name "Start Page" -Value $HomePage 
+        Set-ItemProperty -Path "HKCU:\Software\Microsoft\Internet Explorer\Main" -Name "Default_Page_URL" -Value $HomePage 
+        
+        Write-Warning "沒有系統管理員權限,無法設定Homepage,請以系統管理員身分重新嘗試。"
     }
 }
 

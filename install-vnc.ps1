@@ -22,7 +22,7 @@ function install-VNC {
 
         #復制檔案到本機暫存"
         $software_path = get-item -Path $software_path
-        Copy-Item -Path $software_path -Destination $env:temp -Recurse -Force
+        Copy-Item -Path $software_path -Destination $env:temp -Recurse -Force -Verbose
 
         ## 判斷OS是32(x86)或是64(AMD64), 其他值(ARM64)不安裝  
         switch ($env:PROCESSOR_ARCHITECTURE) {
@@ -66,7 +66,6 @@ if ($run_main -eq $null) {
     if (!$check_admin -and !$runadmin) {
         #如果非管理員, 就試著run as admin, 並傳入runadmin 參數1. 因為在網域一般使用者永遠拿不是管理員權限, 會造成無限重跑. 此參數用來輔助判斷只跑一次. 
         Start-Process powershell.exe -ArgumentList "-FILE `"$PSCommandPath`" -Executionpolicy bypass -NoProfile  -runadmin 1" -Verb Runas; exit
-    
     }
 
     if ($check_admin) { 

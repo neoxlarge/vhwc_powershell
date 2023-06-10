@@ -21,7 +21,7 @@ function install-SmartIris {
 
         #復制檔案到本機暫存"
         $software_path = get-item -Path $software_path
-        Copy-Item -Path $software_path -Destination $env:temp -Recurse -Force
+        Copy-Item -Path $software_path -Destination $env:temp -Recurse -Force -Verbose
 
         # 安裝  
         $runid = Start-Process -FilePath $($env:temp + "\" + $software_path.Name + "\" + $software_exe) -ArgumentList "/s /f1$($env:temp + "\" + $software_path.Name + "\vhwc.iss")" -PassThru

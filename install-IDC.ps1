@@ -20,7 +20,7 @@ function install-IDC {
 
         #復制檔案到本機暫存"
         $software_path = get-item -Path $software_path
-        Copy-Item -Path $software_path -Destination $env:temp -Recurse -Force
+        Copy-Item -Path $software_path -Destination $env:temp -Recurse -Force -Verbose
 
         ## 判斷OS是32(x86)或是64(AMD64), 其他值(ARM64)不安裝  
         Start-Process -FilePath "msiexec.exe" -ArgumentList "/i $($env:temp + "\" + $software_path.Name + "\" + $software_msi) /passive" -Wait

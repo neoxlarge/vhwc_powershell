@@ -29,8 +29,8 @@ function install-2100 {
 
     #復制檔案到本機暫存"
     $software_path = get-item -Path $software_path
-    Copy-Item -Path $software_path -Destination $env:temp -Recurse -Force
-
+    #Copy-Item -Path $software_path -Destination $env:temp -Recurse -Force
+    Start-Process -FilePath robocopy.exe -ArgumentList "$($software_path.FullName) $($env:temp + "\" +$software_path.Name) /e /R:3 /W:5" -Wait
     #要安裝的檔案
     $package_msi = @(
         "eDocSetup_Win7.msi",

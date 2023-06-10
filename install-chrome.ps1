@@ -11,8 +11,8 @@ function install-chrome {
     
     $software_name = "Google Chrome"
     $software_path = "\\172.20.5.187\mis\32-chrome_standalone"
-    $software_msi = "googlechromestandaloneenterprise64.msi"
-    $software_msi_x86 = "googlechromestandaloneenterprise32.msi"
+    $software_msi_x64 = "googlechromestandaloneenterprise64.msi"
+    $software_msi_x32 = "googlechromestandaloneenterprise32.msi"
 
 
     $os = Get-WmiObject -Class Win32_OperatingSystem
@@ -30,12 +30,12 @@ function install-chrome {
 
         #復制檔案到本機暫存"
         $software_path = get-item -Path $software_path
-        Copy-Item -Path $software_path -Destination $env:temp -Recurse -Force
+        Copy-Item -Path $software_path -Destination $env:temp -Recurse -Force -Verbose
 
         ## 判斷OS是32(x86)或是64(AMD64), 其他值(ARM64)不安裝  
         switch ($env:PROCESSOR_ARCHITECTURE) {
-            "AMD64" { $software_exec = $software_msi }
-            "x86" { $software_exec = $software_msi_x86 }
+            "AMD64" { $software_exec = $software_msi_x64 }
+            "x86" { $software_exec = $software_msi_x32 }
             default { Write-Warning "Unsupport CPU or OS:"  $env:PROCESSOR_ARCHITECTURE; $software_exec = $null }
         }
 

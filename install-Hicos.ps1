@@ -14,8 +14,7 @@ function install-HiCOS {
     $software_name = "HiCOS*"
     $software_path = "\\172.20.5.187\mis\04-自然人憑證-新版HiCOS\HiCOS_Client-3.1.0.22133-20220624"
     $software_exec = "HiCOS_Client.exe"
-    #$software_msi_x86 = "\EZ100_Driver_32bit\setup.exe"
-
+    
     ## 找出軟體是否己安裝
 
     $all_installed_program = get-installedprogramlist
@@ -39,7 +38,7 @@ function install-HiCOS {
 
         #復制檔案到本機暫存"
         $software_path = get-item -Path $software_path
-        Copy-Item -Path $software_path -Destination $env:temp -Recurse -Force
+        Copy-Item -Path $software_path -Destination $env:temp -Recurse -Force -Verbose
 
         $pid_ = Start-Process -FilePath $($env:temp + "\" + $software_path.Name + "\" + $software_exec) -ArgumentList "/install /passive" -PassThru #不知為什麼-wait會停不下來.
         while (!($pid_.HasExited)) { Start-Sleep -Seconds 5}

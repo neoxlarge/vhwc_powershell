@@ -7,36 +7,30 @@ Import-Module ((Split-Path $PSCommandPath) + "\get-installedprogramlist.psm1")
 
 function install-WinNexus {
     # 安裝Winnexus
+    $software_name = "WinNexus"
+    $software_path = "\\172.20.5.187\mis\13-Winnexus\Winnexus_1.2.4.7"
+    $software_exec = "Install_Desktop.1.2.4.7.exe"
+
     ## 找出軟體是否己安裝
 
     $all_installed_program = get-installedprogramlist
 
-    $software_name = "WinNexus"
+   
     $software_is_installed = $all_installed_program | Where-Object -FilterScript { $_.DisplayName -like "$software_name*" }
 
     if ($software_is_installed -eq $null) {
         Write-OutPut "Start to install: $software_name"
 
-        $software_path = get-item -Path "\\172.20.5.187\mis\13-Winnexus\Winnexus_1.2.4.7"
-        $software_exec = "Install_Desktop.1.2.4.7.exe"
-        if (Test-Path -Path "d:\mis") {
-            $software_copyto_path = "D:\mis"
-        }
-        else {
-            $software_copyto_path = "C:\mis"
-        }
+        $software_path = get-item -Path $software_path
         
-
         #復制檔案到D:\mis
-        Copy-Item -Path $software_path -Destination $software_copyto_path -Recurse -Force 
+        Copy-Item -Path $software_path -Destination $env:TEMP -Recurse -Force -Verbose
 
         #installing...
-        Start-Process -FilePath ($software_copyto_path + "\" + $software_path.Name + "\" + $software_exec) -ArgumentList ("/suppressmsgboxes /log:d:\mis\install_winnexus.log") -Wait
+        Start-Process -FilePath ($env:TEMP + "\" + $software_path.Name + "\" + $software_exec) -ArgumentList ("/suppressmsgboxes /log:install_winnexus.log") -Wait
         Start-Sleep -Seconds 5 
-    
-        #安裝完, 刪除安裝檔案
-        Remove-Item -Path ($software_copyto_path + "\" + $software_path.Name) -Recurse -Force
-      
+   
+     
         #安裝完, 再重新取得安裝資訊
         $all_installed_program = get-installedprogramlist
         $software_is_installed = $all_installed_program | Where-Object -FilterScript { $_.DisplayName -like "$software_name *" }

@@ -8,30 +8,26 @@ function install-CMS {
     ## 安裝CMS_CGServiSignAdapter
     ### 依文件要求,安裝前應關閉防毒軟體, 所以比防毒先安裝
 
-    $all_installed_program = get-installedprogramlist
-
     $software_name = "NHIServiSignAdapterSetup"
+    $software_path = "\\172.20.5.187\mis\05-CMS_CGServiSignAdapterSetup\CMS_CGServiSignAdapterSetup"
+    $software_exec = "NHIServiSignAdapterSetup_1.0.22.0830.exe"
+    
+    $all_installed_program = get-installedprogramlist
+   
     $software_is_installed = $all_installed_program | Where-Object -FilterScript { $_.DisplayName -like "$software_name*" }
-
 
     if ($null -eq $software_is_installed) {
         Write-Output "Start to install $software_name"
 
         #來源路徑 ,要復制的路徑,and 安裝執行程式名稱
-        $software_path = get-item -Path "\\172.20.5.187\mis\05-CMS_CGServiSignAdapterSetup\CMS_CGServiSignAdapterSetup"
-        $software_exec = "NHIServiSignAdapterSetup_1.0.22.0830.exe"
-        if (Test-Path -Path "d:\mis") {
-            $software_copyto_path = "D:\mis"
-        }
-        else {
-            $software_copyto_path = "C:\mis"
-        }
+        $software_path = get-item -Path $software_path
         
-        #復制檔案到D:\mis
-        Copy-Item -Path $software_path -Destination $software_copyto_path -Recurse -Force 
+        
+        #復制檔案到temp
+        Copy-Item -Path $software_path -Destination $env:temp -Recurse -Force -Verbose
 
         #installing...
-        $process_id = Start-Process -FilePath ($software_copyto_path + "\" + $software_path.Name + "\" + $software_exec) -PassThru
+        $process_id = Start-Process -FilePath "$env:temp\$($software_path.Name)\$software_exec" -PassThru
     
         #依安裝文件, CGServiSignMonitor會最後被開啟, 所以檢查到該程序執行後, 表示安裝完成.
         $process_exist = $null

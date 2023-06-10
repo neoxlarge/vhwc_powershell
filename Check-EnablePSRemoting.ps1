@@ -6,6 +6,8 @@ PowerShell 遠端管理允許 IT 專業人員從遠程地點管理多台計算�
 查看計算機狀態，設置系統配置，安裝軟體和更新，檢查事件日誌，還可以執行其他管理任務。
 這使得 IT 管理員能夠更快地處理問題，減少了出差和現場工作的需求，並提高了效率。此外，
 PowerShell 遠端管理支援跨平台操作，可以在 Windows、Linux 和 macOS 上使用。
+
+遠端管理(WinRM)須加入AD才能enable, 非AD環境須額外設定,較為麻煩.
 #>
 param($runadmin)
 
@@ -16,8 +18,6 @@ Function Check-EnablePSRemoting {
 
         if ($check_admin -and $isJoinAD) {
             Write-Output "PowerShell 遠端管理未啟用，現在正在啟用..."
-            #Start-Service -Name WinRM
-            #Set-Service -Name WinRM -StartupType Automatic
             Enable-PSRemoting
             Write-Output "PowerShell 遠端管理已啟用."
         } else {

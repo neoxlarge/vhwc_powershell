@@ -32,7 +32,7 @@ function install-pdf {
         if (Test-Path $zip_path) {
             Write-Output "Start to install $software_name"
             Write-Output "復制且解壓縮檔案: $zip_path"
-            expand-archive -Path $zip_path -DestinationPath $env:TEMP\$software_path
+            expand-archive -Path $zip_path -DestinationPath $env:TEMP\$software_path -Force
         
             Start-Process -FilePath "msiexec.exe" -ArgumentList "/i $env:TEMP\$software_path\$software_msi /passive" -wait
             Start-Sleep -Seconds 3

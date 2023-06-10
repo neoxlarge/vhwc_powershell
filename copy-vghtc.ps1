@@ -18,7 +18,7 @@ function copy-vghtc {
         foreach ($s in $system_list) {
             Write-Output "Copy $s"
             #robocopy.exe 請勿使用/mir, 危險,容易誤刪.
-            Start-Process -FilePath "robocopy.exe" -ArgumentList "$s C:\$($S.split("\")[-1]) /E" -Wait
+            Start-Process -FilePath "robocopy.exe" -ArgumentList "$s C:\$($S.split("\")[-1]) /E /R:3 /W:5" -Wait
             
         }
     }
