@@ -85,6 +85,11 @@ set-2100_env
 Import-Module ((Split-Path $PSCommandPath) + "\install-chrome.ps1")
 install-chrome
 
+#install Edge and Webview
+Import-Module ((Split-Path $PSCommandPath) + "\install-Edge.ps1")
+Install-Edge
+install-EdgeWebview
+
 #install smartiris
 Import-Module ((Split-Path $PSCommandPath) + "\install-smartiris.ps1")
 install-smartiris
