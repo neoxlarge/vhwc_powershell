@@ -81,6 +81,10 @@ Import-Module ((Split-Path $PSCommandPath) + "\install-2100.ps1")
 install-2100
 set-2100_env
 
+#install-IE11
+Import-Module ((Split-Path $PSCommandPath) + "\install-IE11.ps1")
+install-IE11
+
 #install chrome
 Import-Module ((Split-Path $PSCommandPath) + "\install-chrome.ps1")
 install-chrome
