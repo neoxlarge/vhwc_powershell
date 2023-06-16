@@ -38,9 +38,6 @@ function install-CMS {
             Start-Sleep -Seconds 5
         }
 
-        #安裝完, 刪除安裝檔案
-        remove-item -Path ($software_copyto_path + "\" + $software_path.Name) -Recurse -Force
-
         #安裝完, 再重新取得安裝資訊
         $all_installed_program = get-installedprogramlist
         $software_is_installed = $all_installed_program | Where-Object -FilterScript { $_.DisplayName -like "$software_name*" }
