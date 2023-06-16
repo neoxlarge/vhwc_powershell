@@ -15,13 +15,16 @@ function install-IE11 {
     # 取得目前系統中 IE 的版本
     #此命令將嘗試從註冊表的 "HKLM:\Software\Microsoft\Internet Explorer" 位置中檢索 IE 版本資訊，並將其存儲在 $ieVersion 變數中。
     #請注意，使用 svcVersion 或 Version 屬性取決於 IE 的版本。svcVersion 屬性適用於 IE 10 或更新版本，而 Version 屬性則適用於 IE 9 或較舊版本。
-    $ieVersion = (Get-ItemPropertyValue -Path "HKLM:\Software\Microsoft\Internet Explorer" -Name "svcVersion" -ErrorAction SilentlyContinue)
-    if (-not $ieVersion) {
-        $ieVersion = (Get-ItemPropertyValue -Path "HKLM:\Software\Microsoft\Internet Explorer" -Name "Version" -ErrorAction SilentlyContinue)
+    $ieVersion = $null
+    $ieVersion = (Get-ItemProperty -Path "HKLM:\Software\Microsoft\Internet Explorer" | Select-Object -Property "svcVersion").svcVersion
+    if ($ieVersion -eq $null) {
+        $ieVersion = (Get-ItemPropertyValue -Path "HKLM:\Software\Microsoft\Internet Explorer" -Name "Version")
     }
 
+    Write-Output "IE version: $ieVersion"
+    
     # 檢查版本並安裝 IE 11（如果版本小於 11）
-    if ($ieVersion -lt 11) {
+    if ([int16]$ieVersion.Split(".")[0] -lt 11) {
         
         Write-Output "Start to insall: $software_name"
 
