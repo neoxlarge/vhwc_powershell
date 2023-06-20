@@ -81,12 +81,21 @@ function install-2100 {
 
 function set-2100_env {
 
+    #先檢查檔案是否在,沒有要復制一下
+    $software_path = "\\172.20.5.187\mis\08-2100公文系統\01.2100公文系統安裝包_Standard"
+    $software_path = get-item -Path $software_path
+
+    if (!(Test-Path -Path $software_path)) {
+        Start-Process -FilePath robocopy.exe -ArgumentList "$($software_path.FullName) $($env:temp + "\" +$software_path.Name) /e /R:3 /W:5" -Wait
+    }
+
     #1.
     Write-Output "復制醫院設定檔ClientSetting.ini"    
     $path = $env:TEMP + "\01.2100公文系統安裝包_Standard\ClientSetting\ClientSetting_Chiayi.ini"
     if (Test-Path -Path $path) {
         copy-item -Path $path -Destination $env:SystemDrive\2100\SSO\ClientSetting.ini -Force
-    } else {
+    }
+    else {
         Write-Warning "找不到ClientSetting_Chiayi.ini檔案, 請檢查!!"
     }
 
@@ -98,9 +107,9 @@ function set-2100_env {
     #>
 
     switch ($env:PROCESSOR_ARCHITECTURE) {
-        "amd64" {$dll_path = "$env:windir\SysWoW64"}
-        "x86" {$dll_path = "$env:windir\System32"}
-        default {Write-Warning "Unknown processor architecture."}
+        "amd64" { $dll_path = "$env:windir\SysWoW64" }
+        "x86" { $dll_path = "$env:windir\System32" }
+        default { Write-Warning "Unknown processor architecture." }
     }
 
     $dll = Get-ItemPropertyValue -Path "$dll_path\HiCOSCSPv32.dll" -Name "VersionInfo" -ErrorAction SilentlyContinue
@@ -109,9 +118,10 @@ function set-2100_env {
         if (Test-Path -Path ($env:temp + "\01.2100公文系統安裝包_Standard\HiCOSCSPv32.dll")) {
             #覆蓋Hicoscspv32.cll到c:\windows\system32中.
             Write-Output "覆蓋Hicoscspv32.cll(3.0.3.21207)到$dll_path"
-            copy-item -Path ($env:temp +"\01.2100公文系統安裝包_Standard\HiCOSCSPv32.dll") -Destination $dll_path -Force
+            copy-item -Path ($env:temp + "\01.2100公文系統安裝包_Standard\HiCOSCSPv32.dll") -Destination $dll_path -Force
 
-        } else {write-warning "找不到正確的HiCOSCSPv32.dll檔案"}
+        }
+        else { write-warning "找不到正確的HiCOSCSPv32.dll檔案" }
     }
 
     #3.
