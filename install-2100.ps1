@@ -85,7 +85,7 @@ function set-2100_env {
     $software_path = "\\172.20.5.187\mis\08-2100公文系統\01.2100公文系統安裝包_Standard"
     $software_path = get-item -Path $software_path
 
-    if (!(Test-Path -Path $software_path)) {
+    if (!(Test-Path -Path "$env:temp\$($software_path.name)")) {
         Start-Process -FilePath robocopy.exe -ArgumentList "$($software_path.FullName) $($env:temp + "\" +$software_path.Name) /e /R:3 /W:5" -Wait
     }
 
@@ -128,7 +128,7 @@ function set-2100_env {
     Write-Output "執行 01公文環境檔.exe 及IE 設定"
     Start-Process -FilePath reg.exe -ArgumentList ("import " + $env:temp + "\01.2100公文系統安裝包_Standard\reg\IE9setting.reg") -Wait
     Start-Process -FilePath reg.exe -ArgumentList ("import " + $env:temp + "\01.2100公文系統安裝包_Standard\reg\IE9setting1.reg") -Wait
-    Start-Process -FilePath ($env:temp + "\01.2100公文系統安裝包_Standard\01公文環境檔.exe") -Wait
+    Start-Process -FilePath $($env:temp + "\01.2100公文系統安裝包_Standard\01公文環境檔.exe") -Wait
   
 
 }
