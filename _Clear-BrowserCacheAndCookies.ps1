@@ -14,7 +14,7 @@ function Clear-BrowserCacheAndCookies {
     # 清除Google Chrome暫存檔和Cookies
     try {
       Remove-Item -Path "$env:LOCALAPPDATA\Google\Chrome\User Data\Default\Cache\*" -Recurse -Force -ErrorAction  Stop
-      Remove-Item -Path "$env:LOCALAPPDATA\Google\Chrome\User Data\Default\Cookies\*" -Recurse -Force -ErrorAction Stop
+      Remove-Item -Path "$env:LOCALAPPDATA\Google\Chrome\User Data\Default\Network\cookies" -Recurse -Force -ErrorAction Stop 
     }
     catch [System.Management.Automation.ItemNotFoundException] {
       Write-Warning "清除暫存檔可能失敗:"
