@@ -13,12 +13,12 @@ function Clear-BrowserCacheAndCookies {
   
     # 清除Google Chrome暫存檔和Cookies
     try {
-      Remove-Item -Path "$env:LOCALAPPDATA\Google\Chrome\User Data\Default\Cacheqq\*" -Recurse -Force -ErrorAction  Stop
-      Remove-Item -Path "$env:LOCALAPPDATA\Google\Chrome\User Data\Default\Cookiesqq\*" -Recurse -Force -ErrorAction Stop
+      Remove-Item -Path "$env:LOCALAPPDATA\Google\Chrome\User Data\Default\Cache11\*" -Recurse -Force -ErrorAction  Stop
+      Remove-Item -Path "$env:LOCALAPPDATA\Google\Chrome\User Data\Default\Cookies\*" -Recurse -Force -ErrorAction Stop
     }
     catch [System.Management.Automation.ItemNotFoundException] {
       Write-Warning "清除暫存檔可能失敗:"
-      Write-Warning $Error[0].Exception
+      Write-Warning $Error[0].Exception.Message
     }
 
     
@@ -29,7 +29,7 @@ function Clear-BrowserCacheAndCookies {
     }
     catch [System.Management.Automation.ItemNotFoundException]{
       Write-Warning "清除暫存檔可能失敗:"
-      Write-Warning $Error[0].Exception
+      Write-Warning $Error[0].Exception.Message
     }
   }
 
