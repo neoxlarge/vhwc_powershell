@@ -2,8 +2,6 @@
 
 param($runadmin)
 
-
-
 function install-ps5 {
     if (($PSVersionTable.PSVersion.Major -lt 5) -and ($PSVersionTable.PSVersion.Minor -lt 1)) {
         Write-Output "Powershell 目前版本為 $($PSVersionTable.PSVersion), 升級版到到5.1"
@@ -12,7 +10,7 @@ function install-ps5 {
         $software_path = "\\172.20.5.185\powershell\powershell5.1forWin7"
         $software_msi_x64 = "Win7-KB3191566-x64.zip"
         $software_msi_x32 = "Win7-KB3191566-x86.zip"
-    $a = Read-Host
+    
         #檢查一下暫存目錄是否存在
         if (!(Test-Path -Path "$env:TEMP\$($software_path.Split("\")[-1])")) {
             switch ($env:PROCESSOR_ARCHITECTURE) {
@@ -23,13 +21,7 @@ function install-ps5 {
             New-Item -Path "$env:TEMP\$($software_path.Split("\")[-1])" -ItemType directory -Force
             
             Start-Process unzip.exe -ArgumentList "-o $zip_path -d $env:TEMP\$($software_path.Split("\")[-1])" -Wait -NoNewWindow
-write-host "zip..."
-$a = Read-Host
-            #Expand-Archive -Path $zip_path -DestinationPath "$env:TEMP\$($software_path.Split("\")[-1])" -Force
 
-            #Start-Process powershell.exe -ArgumentList "-File '$env:TEMP\$($software_path.Split("\")[-1])\Install-WMF5.1.ps1' -NoExit"
-            write-host "run"
-            $b = read-host
             Invoke-Expression "$env:TEMP\$($software_path.Split("\")[-1])\Install-WMF5.1.ps1 -AcceptEULA -AllowRestart" 
             
             write-output "Pause, please enter ..."
@@ -37,7 +29,6 @@ $a = Read-Host
             $null = Read-Host
         }
     }
-
 
 }
 
