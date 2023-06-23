@@ -53,7 +53,7 @@ function install-Edge {
 
 function install-EdgeWebview {
     
-    $software_name = "Microsoft Edge WebView"
+    $software_name = "Microsoft Edge WebView*"
     $software_path = "\\172.20.5.187\mis\00-EdgeNET"
     $software_msi_x64 = "MicrosoftEdgeWebView2RuntimeInstallerX64.exe"
     $software_msi_x32 = "MicrosoftEdgeWebView2RuntimeInstallerX86.exe"

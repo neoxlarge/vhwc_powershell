@@ -5,17 +5,32 @@ param($runadmin)
 
 function Clear-BrowserCacheAndCookies {
     # 清除Internet Explorer暫存檔和Cookies
-    Remove-Item -Path "$env:LOCALAPPDATA\Microsoft\Windows\INetCache\*" -Recurse -Force -ErrorAction SilentlyContinue
-    Remove-Item -Path "$env:LOCALAPPDATA\Microsoft\Windows\INetCookies\*" -Recurse -Force
+    #Remove-Item -Path "$env:LOCALAPPDATA\Microsoft\Windows\INetCache\*" -Recurse -Force -ErrorAction SilentlyContinue
+    #Remove-Item -Path "$env:LOCALAPPDATA\Microsoft\Windows\INetCookies\*" -Recurse -Force
+    Start-Process -FilePath "RunDll32.exe" -ArgumentList "InetCpl.cpl,ClearMyTracksByProcess 8" -Wait
+    Start-Process -FilePath "RunDll32.exe" -ArgumentList "InetCpl.cpl,ClearMyTracksByProcess 2" -Wait
    
   
     # 清除Google Chrome暫存檔和Cookies
-    Remove-Item -Path "$env:LOCALAPPDATA\Google\Chrome\User Data\Default\Cache\*" -Recurse -Force
-    Remove-Item -Path "$env:LOCALAPPDATA\Google\Chrome\User Data\Default\Cookies\*" -Recurse -Force
-  
+    try {
+      Remove-Item -Path "$env:LOCALAPPDATA\Google\Chrome\User Data\Default\Cache\*" -Recurse -Force -ErrorAction  Stop
+      Remove-Item -Path "$env:LOCALAPPDATA\Google\Chrome\User Data\Default\Network\cookies" -Recurse -Force -ErrorAction Stop 
+    }
+    catch [System.Management.Automation.ItemNotFoundException] {
+      Write-Warning "清除暫存檔可能失敗:"
+      Write-Warning $Error[0].Exception.Message
+    }
+
+    
     # 清除Microsoft Edge暫存檔和Cookies
-    Remove-Item -Path "$env:LOCALAPPDATA\Packages\Microsoft.MicrosoftEdge_8wekyb3d8bbwe\AC\MicrosoftEdge\Cache\*" -Recurse -Force
-    Remove-Item -Path "$env:LOCALAPPDATA\Packages\Microsoft.MicrosoftEdge_8wekyb3d8bbwe\AC\MicrosoftEdge\Cookies\*" -Recurse -Force
+    try {
+    Remove-Item -Path "$env:LOCALAPPDATA\Packages\Microsoft.MicrosoftEdge_8wekyb3d8bbwe\AC\MicrosoftEdge\Cache\*" -Recurse -Force -ErrorAction Stop
+    Remove-Item -Path "$env:LOCALAPPDATA\Packages\Microsoft.MicrosoftEdge_8wekyb3d8bbwe\AC\MicrosoftEdge\Cookies\*" -Recurse -Force -ErrorAction Stop
+    }
+    catch [System.Management.Automation.ItemNotFoundException]{
+      Write-Warning "清除暫存檔可能失敗:"
+      Write-Warning $Error[0].Exception.Message
+    }
   }
 
   

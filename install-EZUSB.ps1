@@ -7,7 +7,7 @@ param($runadmin)
 Import-Module ((Split-Path $PSCommandPath) + "\get-installedprogramlist.psm1")
 
 function install-EZUSB {
-    $software_name = "EZUSB Driver"
+    $software_name = "EZUSB Driver*"
     $software_path = "\\172.20.5.187\mis\07-Åª¥d¾÷\Pisces-310PU"
     $software_msi = "\EZ100_Driver_64bit\setup.exe"
     $software_msi_x86 = "\EZ100_Driver_32bit\setup.exe"
