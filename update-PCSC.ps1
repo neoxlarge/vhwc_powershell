@@ -5,25 +5,36 @@ param($runadmin)
 
 function Get-IPv4Address {
     <#
-    只能在172.*才能用.
+    回傳找到的IP,只能在172.*才能用. 
     #>
 
     $ip = Get-WmiObject -Class Win32_NetworkAdapterConfiguration |
-          Where-Object {$_.IPAddress -ne $null -and $_.IPAddress[0] -like "172.*" } |
+          Where-Object {$_.IPAddress -ne $null -and $_.IPAddress[0] -like "172.20.*" } |
           Select-Object -ExpandProperty IPAddress |
           Where-Object { $_ -match "\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}" } |
           Select-Object -First 1
+
+    if ($ip -eq $null) {
+        return $null
+    } else {     
     return $ip
+    }
 }
 
 function update-pcsc {
 
     # 軟體環境檢查
     # 1. 取得己安裝版本
-    #$installedPCSC = Get-CimInstance -ClassName Win32_Product -Filter "Name like '%PCSC%'"
     $installedPCSC = Get-WmiObject -Class Win32_Product | Where-Object -FilterScript { $_.name -like "*PCSC*" }
-    # 2. 檢查ip在灣橋 172.20開頭
+    
+    # 2. 取得ip
     $ipv4 = Get-IPv4Address 
+
+    #條件:
+    #1安裝的版本為5.1.5.3 或 51.5.5
+    #2符合限制的IP
+    $check_condition = ($installedPCSC.version -in @("5.1.53", "5.1.55")) -and ($ipv4 -like "172.20.5.1*")
+
 
     #寫入記錄檔路徑
     $log_file = "\\172.20.1.14\update\0001-中榮系統環境設定\pcsc_5157.log"
@@ -31,7 +42,7 @@ function update-pcsc {
     $log_string = "Boot,$env:COMPUTERNAME,$ipv4,$(Get-Date)" 
     $log_string | Add-Content -PassThru $log_file
     
-    if (($installedPCSC.version -in @("5.1.53", "5.1.55")) -and ($ipv4 -like "172.20.5.1*")) {
+    if ($check_condition) {
         #符合升級條件.
     
         #移除舊版
@@ -48,15 +59,14 @@ function update-pcsc {
         #安裝新版
         Start-Process -FilePath "msiexec.exe" -ArgumentList "/i C:\Vghtc\00_mis\$($new_pcsc_path.name)\gCIE_Setup\gCIE_Setup.msi /quiet /norestart" -Wait 
 
+        #重新啟健保卡程式.
+        Stop-Process -Name csfsim -Force -ErrorAction SilentlyContinue
+        Start-Sleep -Seconds 3
+        Start-Process -FilePath C:\nhi\BIN\csfsim.exe -ErrorAction SilentlyContinue
 
         #記錄內容
         $log_string = "Pass,$env:COMPUTERNAME,$ipv4,$(Get-Date)" 
         $log_string | Add-Content -PassThru $log_file
-
-        #動啟健保卡程式.
-        Stop-Process -Name csfsim -Force -ErrorAction SilentlyContinue
-        Start-Sleep -Seconds 3
-        Start-Process -FilePath C:\nhi\BIN\csfsim.exe -ErrorAction SilentlyContinue
 
 
     }
