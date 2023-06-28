@@ -1,0 +1,94 @@
+# 升級雲端安控元件健保卡讀卡機控制(PCSC 5.1.5.7)
+
+param($runadmin)
+
+
+function Get-IPv4Address {
+    <#
+    只能在172.*才能用.
+    #>
+
+    $ip = Get-WmiObject -Class Win32_NetworkAdapterConfiguration |
+          Where-Object {$_.IPAddress -ne $null -and $_.IPAddress[0] -like "172.*" } |
+          Select-Object -ExpandProperty IPAddress |
+          Where-Object { $_ -match "\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}" } |
+          Select-Object -First 1
+    return $ip
+}
+
+function update-pcsc {
+
+    # 軟體環境檢查
+    # 1. 取得己安裝版本
+    #$installedPCSC = Get-CimInstance -ClassName Win32_Product -Filter "Name like '%PCSC%'"
+    $installedPCSC = Get-WmiObject -Class Win32_Product | Where-Object -FilterScript { $_.name -like "*PCSC*" }
+    # 2. 檢查ip在灣橋 172.20開頭
+    $ipv4 = Get-IPv4Address 
+
+    #寫入記錄檔路徑
+    $log_file = "\\172.20.1.14\update\0001-中榮系統環境設定\pcsc_5157.log"
+    
+    $log_string = "Boot,$env:COMPUTERNAME,$ipv4,$(Get-Date)" 
+    $log_string | Add-Content -PassThru $log_file
+    
+    if (($installedPCSC.version -in @("5.1.53", "5.1.55")) -and ($ipv4 -like "172.20.5.1*")) {
+        #符合升級條件.
+    
+        #移除舊版
+        $installedPCSC.uninstall()
+
+        #復制新版
+        $new_pcsc_path = "\\172.20.5.187\mis\23-讀卡機控制軟體\CMS_CS5.1.5.7_20220925\CS5.1.5.7版_20220925"
+    
+        $new_pcsc_path = Get-Item $new_pcsc_path
+        Copy-Item -Path $new_pcsc_path -Destination "C:\Vghtc\00_mis\$($new_pcsc_path.name)" -Recurse -Force -Verbose
+
+        Stop-Process -Name csfsim -Force -ErrorAction SilentlyContinue
+
+        #安裝新版
+        Start-Process -FilePath "msiexec.exe" -ArgumentList "/i C:\Vghtc\00_mis\$($new_pcsc_path.name)\gCIE_Setup\gCIE_Setup.msi /quiet /norestart" -Wait 
+
+
+        #記錄內容
+        $log_string = "Pass,$env:COMPUTERNAME,$ipv4,$(Get-Date)" 
+        $log_string | Add-Content -PassThru $log_file
+
+        #動啟健保卡程式.
+        Stop-Process -Name csfsim -Force -ErrorAction SilentlyContinue
+        Start-Sleep -Seconds 3
+        Start-Process -FilePath C:\nhi\BIN\csfsim.exe -ErrorAction SilentlyContinue
+
+
+    }
+    else {
+        #不符升級修件
+        
+        if ($installedPCSC.Version -eq "5.1.57") { write-output "PCSC版本己是5.1.57." }
+        if ($ipv4.IPAddress -eq $null) { write-output "IP為非灣橋院區IP." }
+        
+    }
+
+}    
+
+
+
+#檔案獨立執行時會執行函式, 如果是被?入時不會執行函式.
+if ($run_main -eq $null) {
+
+    #檢查是否管理員
+    $check_admin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")
+
+    if (!$check_admin -and !$runadmin) {
+        #如果非管理員, 就試著run as admin, 並傳入runadmin 參數1. 因為在網域一般使用者永遠拿不是管理員權限, 會造成無限重跑. 此參數用來輔助判斷只跑一次. 
+        Start-Process powershell.exe -ArgumentList "-FILE `"$PSCommandPath`" -Executionpolicy bypass -NoProfile  -runadmin 1" -Verb Runas; exit
+    
+    }
+
+    if ($check_admin) { 
+        update-pcsc
+    }
+    else {
+        Write-Warning "無法取得管理員權限來安裝軟體, 請以管理員帳號重試."
+    }
+    pause
+}
