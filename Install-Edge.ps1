@@ -11,7 +11,7 @@ function install-Edge {
     $software_msi_x64 = "MicrosoftEdgeEnterpriseX64.msi"
     $software_msi_x32 = "MicrosoftEdgeEnterpriseX86.msi"
 
-    # 安裝chrome
+    # 安裝Edge
     ## 找出軟體是否己安裝
 
     $all_installed_program = get-installedprogramlist
@@ -58,7 +58,7 @@ function install-EdgeWebview {
     $software_msi_x64 = "MicrosoftEdgeWebView2RuntimeInstallerX64.exe"
     $software_msi_x32 = "MicrosoftEdgeWebView2RuntimeInstallerX86.exe"
 
-    # 安裝chrome
+    # 安裝edge webview
     ## 找出軟體是否己安裝
 
     $all_installed_program = get-installedprogramlist
