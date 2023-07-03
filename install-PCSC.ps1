@@ -1,8 +1,6 @@
 # 安裝雲端安控元件健保卡讀卡機控制(PCSC)
 # 此安裝必須在c:\vghtc安裝完成之後, 因為會復制檔案過去.
 
-## 1. 先安裝VC++可轉發套件
-
 param($runadmin)
 
 Import-Module ((Split-Path $PSCommandPath) + "\get-installedprogramlist.psm1")
@@ -28,25 +26,18 @@ function install-PCSC {
         Write-OutPut ("Start to install software: " + $software_name)
     
         ## 1. 先安裝VC++可轉發套件
-        $software_exec = "CMS_CS5.1.5.5\CS5.1.5.5版\gCIE_Setup\vcredist_x86\vcredist_x86.exe"#2
+        $software_exec = "CMS_CS5.1.5.5\CS5.1.5.5版\gCIE_Setup\vcredist_x86\vcredist_x86.exe"
         Start-Process -FilePath ($software_copyto_path + "\" + $software_path.Name + "\" + $software_exec) -ArgumentList "/passive" -Wait
 
-        Start-Sleep -Seconds 5
+        Start-Sleep -Seconds 3
 
         ## 2.安裝雲端元件
-        
-        # 存log檔的位置
-        if ((Test-Path -Path "d:\")) {
-            $log_folder = "d:\mis"
-        }
-        else { $log_folder = "c:\mis" }
-
         $software_exec = "CMS_CS5.1.5.5\CS5.1.5.5版\gCIE_Setup\gCIE_Setup.msi"
         Start-Process -FilePath "msiexec.exe" -ArgumentList "/i $($software_copyto_path + "\" + $software_path.Name + "\" + $software_exec) /passive " -Wait
     
         ## 3.要跑設定檔 bat檔, 為了不被原本bat內的pause卡住, 重寫一次powershell版本.
 
-        Write-Output "跑讀卡機控制軟體的設定bat"
+        Write-Output "執行讀卡機控制軟體的設定bat"
         
         #1.切換為晶片讀卡機版本
 
@@ -64,13 +55,9 @@ function install-PCSC {
 
         #2.copy灣橋SAM檔-至指定位置
         Copy-Item -Path "C:\VGHTC\00_mis\CMS_CS5.1.5.5-讀卡機控制軟體\0640140012001000005984.SAM" -Destination "C:\NHI\SAM\COMX1\0640140012001000005984.SAM" -Force
-        $i_version = Get-ItemProperty -Path "C:\NHI\SAM\COMX1\0640140012001000005984.SAM"
-        Write-Output ("Check dll: " + $i_version.FullName + " Exists: " + $i_version.Exists )
     
         #3. 雲端安全模組-放到all-user啟動
         Copy-Item -Path "C:\VGHTC\00_mis\CMS_CS5.1.5.5-讀卡機控制軟體\4-雲端安全模組主控台-v5155.lnk" -Destination "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\StartUp\雲端安全模組主控台.lnk" -Force
-        $i_version = Get-ItemProperty -Path "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\StartUp\雲端安全模組主控台.lnk"
-        Write-Output ("Check dll: " + $i_version.FullName + " Exists: " + $i_version.Exists )
 
         #5. 5-copy-dll-to-c-v5155 , 就是復制"C:\VGHTC\00_mis\CMS_CS5.1.5.5-讀卡機控制軟體\copy-to-C\ICCARD_HIS"裡所有dll到3個資料?.
         $setup_file_ = Get-ChildItem -Path "C:\VGHTC\00_mis\CMS_CS5.1.5.5-讀卡機控制軟體\copy-to-C\ICCARD_HIS"
