@@ -106,8 +106,8 @@ function update-pcsc {
         #升級應該不用檢查這個.
 
         #復制Link
-        $diff1 = "C:\Users\Public\Desktop\雲端安全模組主控台.link"
-        $diff2 = "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\StartUp\雲端安全模組主控台.link"
+        $diff1 = "C:\Users\Public\Desktop\雲端安全模組主控台.lnk"
+        $diff2 = "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\StartUp\雲端安全模組主控台.lnk"
         $compare_result = Compare-Object -ReferenceObject (Get-Content $diff1) -DifferenceObject (Get-Content $diff2)
 
         if ($compare_result -ne $null) {
@@ -158,8 +158,7 @@ function update-pcsc {
         $count = 0
 
         foreach ($i in $setup_file_) {
-            Write-Output ("dll name: " + $i.Name + "dll versoin: " + $i.VersionInfo.ProductVersion    )
-
+            
             foreach ($j in $setup_file_target_path) {
                 $result = $i.VersionInfo.ProductVersion -ne $(Get-ItemProperty -path ("$j\$($i.name)")).VersionInfo.ProductVersion
                 if ($result) {
