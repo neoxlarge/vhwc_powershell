@@ -69,9 +69,9 @@ function update-pcsc {
         $log_string = "Boot,$env:COMPUTERNAME,$ipv4,$(Get-OSVersion),$env:PROCESSOR_ARCHITECTURE,$(Get-Date)"
         $log_string | Add-Content -PassThru $log_file
     
+        #符合升級條件,進行升級
         if ($check_condition) {
-            #符合升級條件.
-    
+                
             #移除舊版
             $installedPCSC.uninstall()
 
@@ -92,17 +92,85 @@ function update-pcsc {
             Start-Process -FilePath C:\nhi\BIN\csfsim.exe -ErrorAction SilentlyContinue
 
             #記錄內容
-            $log_string = "Pass,$env:COMPUTERNAME,$ipv4,$(Get-OSVersion),$env:PROCESSOR_ARCHITECTURE,$(Get-Date)" 
+            $log_string = "updated,$env:COMPUTERNAME,$ipv4,$(Get-OSVersion),$env:PROCESSOR_ARCHITECTURE,$(Get-Date)" 
             $log_string | Add-Content -PassThru $log_file
-
-
         }
         else {
             #不符升級條件
         
             if ($installedPCSC.Version -eq "5.1.57") { write-output "PCSC版本己是5.1.57." }
             if ($ipv4.IPAddress -eq $null) { write-output "IP為非灣橋院區IP." }
+        }
+
+        #檢查SAM檔
+        #升級應該不用檢查這個.
+
+        #復制Link
+        $diff1 = "C:\Users\Public\Desktop\雲端安全模組主控台.link"
+        $diff2 = "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\StartUp\雲端安全模組主控台.link"
+        $compare_result = Compare-Object -ReferenceObject (Get-Content $diff1) -DifferenceObject (Get-Content $diff2)
+
+        if ($compare_result -ne $null) {
+            Copy-Item -path $diff1 -Destination $diff2 -Force
+            $log_string = "link copied,$env:COMPUTERNAME,$ipv4,$(Get-OSVersion),$env:PROCESSOR_ARCHITECTURE,$(Get-Date)" 
+            $log_string | Add-Content -PassThru $log_file
+        }
+
+        #復制CSHIS.dll到指定資料夾
+
+        $source_dll = Get-ItemProperty -Path "C:\NHI\LIB\CSHIS.dll"
         
+        $setup_file_ = @(
+            "C:\VGHTC\ICCard\CsHis.dll",
+            "C:\ICCARD_HIS\CsHis.dll",
+            "C:\vhgp\ICCard\CsHis.dll"
+        )
+
+        $count = 0
+
+        foreach ($i in $setup_file_) {
+
+            $i_version = Get-ItemProperty -Path $i
+
+            $result = $source_dll.VersionInfo.ProductVersion -ne $i_version.VersionInfo.ProductVersion
+            
+            if ($result) {
+                Copy-Item -Path $source_dll.FullName -Destination $i -Force
+                $count += 1
+            }
+                
+        }
+        if ($count -ne 0) {
+            $log_string = "Dll copied$count,$env:COMPUTERNAME,$ipv4,$(Get-OSVersion),$env:PROCESSOR_ARCHITECTURE,$(Get-Date)" 
+            $log_string | Add-Content -PassThru $log_file
+        }
+        
+        #copy dlls
+        #就是復制"C:\NHI\LIB\"裡所有dll到3個資料夾.
+        $setup_file_ = Get-ChildItem -Path "C:\NHI\LIB\"
+    
+        $setup_file_target_path = @(
+            "C:\ICCARD_HIS",
+            "C:\Windows\System32",
+            "C:\Windows\System"    
+        )
+
+        $count = 0
+
+        foreach ($i in $setup_file_) {
+            Write-Output ("dll name: " + $i.Name + "dll versoin: " + $i.VersionInfo.ProductVersion    )
+
+            foreach ($j in $setup_file_target_path) {
+                $result = $i.VersionInfo.ProductVersion -ne $(Get-ItemProperty -path ("$j\$($i.name)")).VersionInfo.ProductVersion
+                if ($result) {
+                    copy-item -Path $i.FullName -Destination ($j + "\" + $i.Name) -Force
+                    $count += 1
+                }
+            }
+        }
+        if ($count -ne 0) {
+            $log_string = "LibDll copied$count,$env:COMPUTERNAME,$ipv4,$(Get-OSVersion),$env:PROCESSOR_ARCHITECTURE,$(Get-Date)" 
+            $log_string | Add-Content -PassThru $log_file
         }
 
     }    
