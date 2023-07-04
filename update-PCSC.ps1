@@ -99,7 +99,7 @@ function update-pcsc {
             #不符升級條件
         
             if ($installedPCSC.Version -eq "5.1.57") { write-output "PCSC版本己是5.1.57." }
-            if ($ipv4.IPAddress -eq $null) { write-output "IP為非灣橋院區IP." }
+            if ($ipv4 -eq $null) { write-output "IP為非灣橋院區IP." }
         }
 
         #檢查SAM檔
