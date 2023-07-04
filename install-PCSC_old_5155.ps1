@@ -1,6 +1,6 @@
 # 安裝雲端安控元件健保卡讀卡機控制(PCSC)
 # 此安裝必須在c:\vghtc安裝完成之後, 因為會復制檔案過去.
-# 20230704 update to 5.1.5.7
+
 param($runadmin)
 
 Import-Module ((Split-Path $PSCommandPath) + "\get-installedprogramlist.psm1")
@@ -9,7 +9,7 @@ function install-PCSC {
     # 安裝雲端安控元件健保卡讀卡機控制(PCSC)
 
     $software_name = "健保卡讀卡機控制(PCSC)*"
-    $software_path = get-item -Path "\\172.20.5.187\mis\23-讀卡機控制軟體\CMS_CS5.1.5.7_20220925\CS5.1.5.7版_20220925"
+    $software_path = get-item -Path "\\172.20.5.187\mis\23-讀卡機控制軟體\CMS_CS5.1.5.5-讀卡機控制軟體"
     #特別復制到c:\vghtc\00_mis保存.
     $software_copyto_path = "C:\VGHTC\00_mis" 
    
@@ -26,13 +26,13 @@ function install-PCSC {
         Write-OutPut ("Start to install software: " + $software_name)
     
         ## 1. 先安裝VC++可轉發套件
-        $software_exec = "gCIE_Setup\vcredist_x86\vcredist_x86.exe"
+        $software_exec = "CMS_CS5.1.5.5\CS5.1.5.5版\gCIE_Setup\vcredist_x86\vcredist_x86.exe"
         Start-Process -FilePath ($software_copyto_path + "\" + $software_path.Name + "\" + $software_exec) -ArgumentList "/passive" -Wait
 
         Start-Sleep -Seconds 3
 
         ## 2.安裝雲端元件
-        $software_exec = "gCIE_Setup\gCIE_Setup.msi"
+        $software_exec = "CMS_CS5.1.5.5\CS5.1.5.5版\gCIE_Setup\gCIE_Setup.msi"
         Start-Process -FilePath "msiexec.exe" -ArgumentList "/i $($software_copyto_path + "\" + $software_path.Name + "\" + $software_exec) /passive " -Wait
     
         ## 3.要跑設定檔 bat檔, 為了不被原本bat內的pause卡住, 重寫一次powershell版本.
@@ -48,23 +48,19 @@ function install-PCSC {
         )
 
         foreach ($i in $setup_file_) {
-            Copy-Item -Path "C:\NHI\LIB\CSHIS.dll" -Destination $i -Force
+            Copy-Item -Path "C:\VGHTC\00_mis\CMS_CS5.1.5.5-讀卡機控制軟體\CSHIS-ic20-晶片讀卡機版本-v5155.dll" -Destination $i -Force
             $i_version = Get-ItemProperty -Path $i
             Write-Output ("Check dll: " + $i_version.FullName + " Version: " + $i_version.VersionInfo.ProductVersion )
         }
 
         #2.copy灣橋SAM檔-至指定位置
-        $sam_path1 = "$software_copyto_path\$($software_path.Name)\0640140012001000005984.SAM"
-        $sam_path2 = "C:\NHI\SAM\COMX1\0640140012001000005984.SAM"
-        Copy-Item -Path $sam_path1 -Destination $sam_path2 -Force
+        Copy-Item -Path "C:\VGHTC\00_mis\CMS_CS5.1.5.5-讀卡機控制軟體\0640140012001000005984.SAM" -Destination "C:\NHI\SAM\COMX1\0640140012001000005984.SAM" -Force
     
         #3. 雲端安全模組-放到all-user啟動
-        $link_path1 = "C:\Users\Public\Desktop\雲端安全模組主控台.lnk"
-        $link_paht2 = "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\StartUp\雲端安全模組主控台.lnk"
-        Copy-Item -Path $link_path1 -Destination $link_paht2 -Force
+        Copy-Item -Path "C:\VGHTC\00_mis\CMS_CS5.1.5.5-讀卡機控制軟體\4-雲端安全模組主控台-v5155.lnk" -Destination "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\StartUp\雲端安全模組主控台.lnk" -Force
 
         #5. 5-copy-dll-to-c-v5155 , 就是復制"C:\VGHTC\00_mis\CMS_CS5.1.5.5-讀卡機控制軟體\copy-to-C\ICCARD_HIS"裡所有dll到3個資料?.
-        $setup_file_ = Get-ChildItem -Path "C:\NHI\LIB"
+        $setup_file_ = Get-ChildItem -Path "C:\VGHTC\00_mis\CMS_CS5.1.5.5-讀卡機控制軟體\copy-to-C\ICCARD_HIS"
     
         $setup_file_target_path = @(
             "C:\ICCARD_HIS",
