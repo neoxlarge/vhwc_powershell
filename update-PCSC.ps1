@@ -175,6 +175,39 @@ function update-pcsc {
     }    
 
 
+    function update-virtualhc {
+        #升級虛擬健保卡SDK 2.5.4
+
+        #只有有裝過的才需要升級
+        #新的不用安裝, 只要復制資料夾再執行程式即可
+
+        #取得舊版軟體
+        $installed_vhc= Get-WmiObject -Class Win32_Product | Where-Object -FilterScript { $_.name -like "虛擬健保卡控制軟體*" }
+
+        if ($installed_vhc -ne $null) {
+            
+            #復制2.5.4版到本機
+            $vhc_path = "\\172.20.5.187\mis\25-虛擬健保卡\診間\VHIC_virtual-nhicard+SDK+Setup-2.5.4"
+            $vhc_path = Get-Item $vhc_path
+            Copy-Item -Path $vhc_path -Destination "c:\NHI\$($vhc_path.name)" -Recurse -Force -Verbose
+
+            #移除軟體
+            $installed_vhc.uninstall()
+            Start-Sleep -Seconds 3
+
+            #復制捷徑到桌面及啟動
+            copy-item -Path "c:\NHI\$($vhc_path.name)\虛擬健保卡控制軟體.lnk" -Destination "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\StartUp\虛擬健保卡控制軟體.lnk" -Force
+            copy-item -Path "c:\NHI\$($vhc_path.name)\虛擬健保卡控制軟體.lnk" -Destination "C:\users\public\desktop\虛擬健保卡控制軟體.lnk" -Force
+
+            #open firewall
+            #netsh advfirewall firewall add rule name='Allow 虛擬健保卡控制軟體' dir=in action=allow program='C:\NHI\VHIC_virtual-nhicard+SDK+Setup-2.5.4\虛擬健保卡控制軟體-正式版.2.5.4.exe'
+            Start-Process netsh.exe -ArgumentList "advfirewall firewall add rule name='Allow 虛擬健保卡控制軟體' dir=in action=allow program='C:\NHI\VHIC_virtual-nhicard+SDK+Setup-2.5.4\虛擬健保卡控制軟體-正式版.2.5.4.exe'"
+           
+        }
+
+
+    }
+
 
     #檔案獨立執行時會執行函式, 如果是被匯入時不會執行函式.
     if ($run_main -eq $null) {
