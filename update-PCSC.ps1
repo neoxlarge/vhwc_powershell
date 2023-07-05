@@ -59,20 +59,19 @@ function Create-Shortcut {
         [string]$ShortcutPath
     )
 
-    # ?建 WScript.Shell ?象
+    # 創建 WScript.Shell 物件
     $shell = New-Object -ComObject WScript.Shell
 
-    # ?查快捷方式是否已存在，如果存在??除
+    # 檢查快捷方式是否已存在，如果存在勍刪除
     if ($shell.CreateShortcut($ShortcutPath).FullName) {
         Remove-Item $ShortcutPath -Force -ErrorAction SilentlyContinue
     }
 
-    # ?建快捷方式
+    # 創建快捷
     $shortcut = $shell.CreateShortcut($ShortcutPath)
     $shortcut.TargetPath = $TargetPath
     $shortcut.Save()
-
-    #Write-Host "Shortcut created at: $ShortcutPath"
+    
 }
 
 function get-installedprogramlist {
@@ -234,7 +233,7 @@ function update-pcsc {
     }
 
 
-    #檢查系統環境變數 3
+    #檢查系統環境變數
     $setting_file = "C:\VGHTC\00_mis\中榮iccard環境變數設定.bat"
     Write-Output "執行環境設定: $setting_file"
     $path = "C:\VGHTC\ICCard"
@@ -249,15 +248,8 @@ function update-pcsc {
                 Write-Output "執行設定檔: $setting_file"
                 Start-Process -FilePath "cmd.exe" -ArgumentList "/c $setting_file"  -Wait
             }
-            else {
-                Write-Warning "設定檔不存在: $setting_file"
-            }
         }
-        else {
-        
-            Write-Warning "沒有系統管理員權限,無法執行$setting_file ,請以系統管理員身分重新嘗試."
-        }
-    
+            
     }
     elseif ($result -eq $true) {
 
@@ -294,7 +286,6 @@ function update-virtualhc {
         Start-Sleep -Seconds 3
 
         #復制捷徑到桌面及啟動
- 
         Create-Shortcut -TargetPath "C:\NHI\VHIC_virtual-nhicard+SDK+Setup-2.5.4\虛擬健保卡控制軟體-正式版.2.5.4.exe" -ShortcutPath "C:\users\public\desktop\虛擬健保卡控制軟體.lnk"
         Create-Shortcut -TargetPath "C:\NHI\VHIC_virtual-nhicard+SDK+Setup-2.5.4\虛擬健保卡控制軟體-正式版.2.5.4.exe" -ShortcutPath "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\StartUp\虛擬健保卡控制軟體.lnk"
     
