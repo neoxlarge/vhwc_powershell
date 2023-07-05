@@ -36,6 +36,20 @@ function Get-OSVersion {
     }
 }
 
+function Check-EnvPathContains($path) {
+    # 檢查系統環境變數$env:path是否包含特定路徑
+    $envPathList = $env:path -split ";"
+    foreach ($p in $envPathList) {
+        if ($p -like "*$path*") {
+            #系統環境變數中包含$path,不需執行C:\VGHTC\00_mis\中榮iccard環境變數設定.bat 
+            return $true
+        }
+    }
+    #系統環境變數中不包含$path,需執行C:\VGHTC\00_mis\中榮iccard環境變數設定.bat 
+    return $false
+}
+
+
 function update-pcsc {
     Write-Host "升級健保卡讀卡機控制軟體PCSC 5.1.5.7"
     # 軟體環境檢查
@@ -63,170 +77,208 @@ function update-pcsc {
     $check_condition = $check_version -and ($ipv4 -like "172.20.*")
 
 
-        #寫入記錄檔路徑
-        $log_file = "\\172.20.1.14\update\0001-中榮系統環境設定\pcsc_5157.log"
+    #寫入記錄檔路徑
+    $log_file = "\\172.20.1.14\update\0001-中榮系統環境設定\pcsc_5157.log"
     
-        $log_string = "Boot,$env:COMPUTERNAME,$ipv4,$(Get-OSVersion),$env:PROCESSOR_ARCHITECTURE,$(Get-Date)"
-        $log_string | Add-Content -PassThru $log_file
+    $log_string = "Boot,$env:COMPUTERNAME,$ipv4,$(Get-OSVersion),$env:PROCESSOR_ARCHITECTURE,$(Get-Date)"
+    $log_string | Add-Content -PassThru $log_file
     
-        #符合升級條件,進行升級
-        if ($check_condition) {
+    #符合升級條件,進行升級
+    if ($check_condition) {
                 
-            #移除舊版
-            $installedPCSC.uninstall()
-
-            #復制新版
-            $new_pcsc_path = "\\172.20.5.187\mis\23-讀卡機控制軟體\CMS_CS5.1.5.7_20220925\CS5.1.5.7版_20220925"
+        #復制新版
+        $new_pcsc_path = "\\172.20.5.187\mis\23-讀卡機控制軟體\CMS_CS5.1.5.7_20220925\CS5.1.5.7版_20220925"
     
-            $new_pcsc_path = Get-Item $new_pcsc_path
-            Copy-Item -Path $new_pcsc_path -Destination "C:\Vghtc\00_mis\$($new_pcsc_path.name)" -Recurse -Force -Verbose
+        $new_pcsc_path = Get-Item $new_pcsc_path
+        Copy-Item -Path $new_pcsc_path -Destination "C:\Vghtc\00_mis\$($new_pcsc_path.name)" -Recurse -Force -Verbose
 
-            Stop-Process -Name csfsim -Force -ErrorAction SilentlyContinue
+        #關閉健保卡軟體
+        Stop-Process -Name csfsim -Force -ErrorAction SilentlyContinue
+        Start-Sleep -Seconds 3
 
-            #安裝新版
-            Start-Process -FilePath "msiexec.exe" -ArgumentList "/i C:\Vghtc\00_mis\$($new_pcsc_path.name)\gCIE_Setup\gCIE_Setup.msi /quiet /norestart" -Wait 
+        #移除舊版
+        $installedPCSC.uninstall()
+        Start-Sleep -Seconds 3
 
-            #重新啟健保卡程式.
-            Stop-Process -Name csfsim -Force -ErrorAction SilentlyContinue
-            Start-Sleep -Seconds 3
-            Start-Process -FilePath C:\nhi\BIN\csfsim.exe -ErrorAction SilentlyContinue
+        #安裝新版
+        Start-Process -FilePath "msiexec.exe" -ArgumentList "/i C:\Vghtc\00_mis\$($new_pcsc_path.name)\gCIE_Setup\gCIE_Setup.msi /quiet /norestart" -Wait 
 
-            #記錄內容
-            $log_string = "updated,$env:COMPUTERNAME,$ipv4,$(Get-OSVersion),$env:PROCESSOR_ARCHITECTURE,$(Get-Date)" 
-            $log_string | Add-Content -PassThru $log_file
-        }
-        else {
-            #不符升級條件
+        #記錄內容
+        $log_string = "updated,$env:COMPUTERNAME,$ipv4,$(Get-OSVersion),$env:PROCESSOR_ARCHITECTURE,$(Get-Date)" 
+        $log_string | Add-Content -PassThru $log_file
+    }
+    else {
+        #不符升級條件
         
-            if ($installedPCSC.Version -eq "5.1.57") { write-output "PCSC版本己是5.1.57." }
-            if ($ipv4 -eq $null) { write-output "IP為非灣橋院區IP." }
-        }
+        if ($installedPCSC.Version -eq "5.1.57") { write-output "PCSC版本己是5.1.57." }
+        if ($ipv4 -eq $null) { write-output "IP為非灣橋院區IP." }
+    }
 
-        #檢查SAM檔
-        #升級應該不用檢查這個.
+    #檢查SAM檔
+    #升級應該不用檢查這個.
 
-        #復制Link
-        $diff1 = "C:\Users\Public\Desktop\雲端安全模組主控台.lnk"
-        $diff2 = "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\StartUp\雲端安全模組主控台.lnk"
-        $compare_result = Compare-Object -ReferenceObject (Get-Content $diff1) -DifferenceObject (Get-Content $diff2)
+    #復制Link
+    $diff1 = "C:\Users\Public\Desktop\雲端安全模組主控台.lnk"
+    $diff2 = "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\StartUp\雲端安全模組主控台.lnk"
+    $compare_result = Compare-Object -ReferenceObject (Get-Content $diff1) -DifferenceObject (Get-Content $diff2)
 
-        if ($compare_result -ne $null) {
-            Copy-Item -path $diff1 -Destination $diff2 -Force
-            $log_string = "link copied,$env:COMPUTERNAME,$ipv4,$(Get-OSVersion),$env:PROCESSOR_ARCHITECTURE,$(Get-Date)" 
-            $log_string | Add-Content -PassThru $log_file
-        }
+    if ($compare_result -ne $null) {
+        Copy-Item -path $diff1 -Destination $diff2 -Force
+        $log_string = "link copied,$env:COMPUTERNAME,$ipv4,$(Get-OSVersion),$env:PROCESSOR_ARCHITECTURE,$(Get-Date)" 
+        $log_string | Add-Content -PassThru $log_file
+    }
 
-        #復制CSHIS.dll到指定資料夾
+    #復制CSHIS.dll到指定資料夾
 
-        $source_dll = Get-ItemProperty -Path "C:\NHI\LIB\CSHIS.dll"
+    $source_dll = Get-ItemProperty -Path "C:\NHI\LIB\CSHIS.dll"
         
-        $setup_file_ = @(
-            "C:\VGHTC\ICCard\CsHis.dll",
-            "C:\ICCARD_HIS\CsHis.dll",
-            "C:\vhgp\ICCard\CsHis.dll"
-        )
+    $setup_file_ = @(
+        "C:\VGHTC\ICCard\CSHIS.dll",
+        "C:\ICCARD_HIS\CSHIS.dll",
+        "C:\vhgp\ICCard\CSHIS.dll"
+    )
 
-        $count = 0
+    $count = 0
 
-        foreach ($i in $setup_file_) {
+    foreach ($i in $setup_file_) {
 
-            $i_version = Get-ItemProperty -Path $i
+        $i_version = Get-ItemProperty -Path $i
 
-            $result = $source_dll.VersionInfo.ProductVersion -ne $i_version.VersionInfo.ProductVersion
+        $result = $source_dll.VersionInfo.ProductVersion -ne $i_version.VersionInfo.ProductVersion
             
+        if ($result) {
+            Copy-Item -Path $source_dll.FullName -Destination $i -Force
+            $count += 1
+        }
+                
+    }
+    if ($count -ne 0) {
+        $log_string = "Dll copied$count,$env:COMPUTERNAME,$ipv4,$(Get-OSVersion),$env:PROCESSOR_ARCHITECTURE,$(Get-Date)" 
+        $log_string | Add-Content -PassThru $log_file
+    }
+        
+    #copy dlls
+    #就是復制"C:\NHI\LIB\"裡所有dll到3個資料夾.
+    $setup_file_ = Get-ChildItem -Path "C:\NHI\LIB\"
+    
+    $setup_file_target_path = @(
+        "C:\ICCARD_HIS",
+        "C:\Windows\System32",
+        "C:\Windows\System"    
+    )
+
+    $count = 0
+
+    foreach ($i in $setup_file_) {
+            
+        foreach ($j in $setup_file_target_path) {
+            $i_version = Get-ItemProperty -path "$j\$($i.name)" -ErrorAction SilentlyContinue
+            $result = $i.VersionInfo.ProductVersion -ne $i_version.VersionInfo.ProductVersion
             if ($result) {
-                Copy-Item -Path $source_dll.FullName -Destination $i -Force
+                copy-item -Path $i.FullName -Destination ($j + "\" + $i.Name) -Force
                 $count += 1
             }
-                
         }
-        if ($count -ne 0) {
-            $log_string = "Dll copied$count,$env:COMPUTERNAME,$ipv4,$(Get-OSVersion),$env:PROCESSOR_ARCHITECTURE,$(Get-Date)" 
-            $log_string | Add-Content -PassThru $log_file
-        }
-        
-        #copy dlls
-        #就是復制"C:\NHI\LIB\"裡所有dll到3個資料夾.
-        $setup_file_ = Get-ChildItem -Path "C:\NHI\LIB\"
+    }
+    if ($count -ne 0) {
+        $log_string = "LibDll copied$count,$env:COMPUTERNAME,$ipv4,$(Get-OSVersion),$env:PROCESSOR_ARCHITECTURE,$(Get-Date)" 
+        $log_string | Add-Content -PassThru $log_file
+    }
+
+
+    #檢查系統環境變數 3
+    $setting_file = "C:\VGHTC\00_mis\中榮iccard環境變數設定.bat"
+    Write-Output "執行環境設定: $setting_file"
+
+    $result = Check-EnvPathContains "C:\VGHTC\ICCard"
+
+    if ($result -eq $fasle) {
     
-        $setup_file_target_path = @(
-            "C:\ICCARD_HIS",
-            "C:\Windows\System32",
-            "C:\Windows\System"    
-        )
-
-        $count = 0
-
-        foreach ($i in $setup_file_) {
-            
-            foreach ($j in $setup_file_target_path) {
-                $result = $i.VersionInfo.ProductVersion -ne $(Get-ItemProperty -path ("$j\$($i.name)")).VersionInfo.ProductVersion
-                if ($result) {
-                    copy-item -Path $i.FullName -Destination ($j + "\" + $i.Name) -Force
-                    $count += 1
-                }
+        Write-Warning "系統環境變數中不包含 $path"
+        
+        if ($check_admin) {
+            if (Test-Path $setting_file) {
+                Write-Output "執行設定檔: $setting_file"
+                Start-Process -FilePath "cmd.exe" -ArgumentList "/c $setting_file"  -Wait
+            }
+            else {
+                Write-Warning "設定檔不存在: $setting_file"
             }
         }
-        if ($count -ne 0) {
-            $log_string = "LibDll copied$count,$env:COMPUTERNAME,$ipv4,$(Get-OSVersion),$env:PROCESSOR_ARCHITECTURE,$(Get-Date)" 
-            $log_string | Add-Content -PassThru $log_file
-        }
-
-    }    
-
-
-    function update-virtualhc {
-        #升級虛擬健保卡SDK 2.5.4
-
-        #只有有裝過的才需要升級
-        #新的不用安裝, 只要復制資料夾再執行程式即可
-
-        #取得舊版軟體
-        $installed_vhc= Get-WmiObject -Class Win32_Product | Where-Object -FilterScript { $_.name -like "虛擬健保卡控制軟體*" }
-
-        if ($installed_vhc -ne $null) {
-            
-            #復制2.5.4版到本機
-            $vhc_path = "\\172.20.5.187\mis\25-虛擬健保卡\診間\VHIC_virtual-nhicard+SDK+Setup-2.5.4"
-            $vhc_path = Get-Item $vhc_path
-            Copy-Item -Path $vhc_path -Destination "c:\NHI\$($vhc_path.name)" -Recurse -Force -Verbose
-
-            #移除軟體
-            $installed_vhc.uninstall()
-            Start-Sleep -Seconds 3
-
-            #復制捷徑到桌面及啟動
-            copy-item -Path "c:\NHI\$($vhc_path.name)\虛擬健保卡控制軟體.lnk" -Destination "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\StartUp\虛擬健保卡控制軟體.lnk" -Force
-            copy-item -Path "c:\NHI\$($vhc_path.name)\虛擬健保卡控制軟體.lnk" -Destination "C:\users\public\desktop\虛擬健保卡控制軟體.lnk" -Force
-
-            #open firewall
-            #netsh advfirewall firewall add rule name='Allow 虛擬健保卡控制軟體' dir=in action=allow program='C:\NHI\VHIC_virtual-nhicard+SDK+Setup-2.5.4\虛擬健保卡控制軟體-正式版.2.5.4.exe'
-            Start-Process netsh.exe -ArgumentList "advfirewall firewall add rule name='Allow 虛擬健保卡控制軟體' dir=in action=allow program='C:\NHI\VHIC_virtual-nhicard+SDK+Setup-2.5.4\虛擬健保卡控制軟體-正式版.2.5.4.exe'"
-           
-        }
-
-
-    }
-
-
-    #檔案獨立執行時會執行函式, 如果是被匯入時不會執行函式.
-    if ($run_main -eq $null) {
-
-        #檢查是否管理員
-        $check_admin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")
-
-        if (!$check_admin -and !$runadmin) {
-            #如果非管理員, 就試著run as admin, 並傳入runadmin 參數1. 因為在網域一般使用者永遠拿不是管理員權限, 會造成無限重跑. 此參數用來輔助判斷只跑一次. 
-            Start-Process powershell.exe -ArgumentList "-FILE `"$PSCommandPath`" -Executionpolicy bypass -NoProfile  -runadmin 1" -Verb Runas; exit
-    
-        }
-
-        if ($check_admin) { 
-            update-pcsc
-        }
         else {
-            Write-Warning "無法取得管理員權限來安裝軟體, 請以管理員帳號重試."
+        
+            Write-Warning "沒有系統管理員權限,無法執行$setting_file ,請以系統管理員身分重新嘗試."
         }
-        Write-Output "升級完成."
-        Start-Sleep -Seconds 20
+    
     }
+    elseif ($result -eq $true) {
+
+        Write-Output "系統環境變數中包含$path"
+        Write-Output "不需執行 $setting_file "
+
+    }
+
+}    
+
+
+function update-virtualhc {
+    #升級虛擬健保卡SDK 2.5.4
+
+    #只有有裝過的才需要升級
+    #新的不用安裝, 只要復制資料夾再執行程式即可
+
+    #取得舊版軟體
+    $installed_vhc = Get-WmiObject -Class Win32_Product | Where-Object -FilterScript { $_.name -like "虛擬健保卡控制軟體*" }
+
+    if ($installed_vhc -ne $null) {
+            
+        #復制2.5.4版到本機
+        $vhc_path = "\\172.20.5.187\mis\25-虛擬健保卡\診間\VHIC_virtual-nhicard+SDK+Setup-2.5.4"
+        $vhc_path = Get-Item $vhc_path
+        Copy-Item -Path $vhc_path -Destination "c:\NHI\$($vhc_path.name)" -Recurse -Force -Verbose
+
+        #移除軟體
+        $installed_vhc.uninstall()
+        Start-Sleep -Seconds 3
+
+        #復制捷徑到桌面及啟動
+        copy-item -Path "c:\NHI\$($vhc_path.name)\虛擬健保卡控制軟體.lnk" -Destination "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\StartUp\虛擬健保卡控制軟體.lnk" -Force
+        copy-item -Path "c:\NHI\$($vhc_path.name)\虛擬健保卡控制軟體.lnk" -Destination "C:\users\public\desktop\虛擬健保卡控制軟體.lnk" -Force
+
+        #open firewall
+        #netsh advfirewall firewall add rule name='Allow 虛擬健保卡控制軟體' dir=in action=allow program='C:\NHI\VHIC_virtual-nhicard+SDK+Setup-2.5.4\虛擬健保卡控制軟體-正式版.2.5.4.exe'
+        Start-Process netsh.exe -ArgumentList "advfirewall firewall add rule name='Allow 虛擬健保卡控制軟體' dir=in action=allow program='C:\NHI\VHIC_virtual-nhicard+SDK+Setup-2.5.4\虛擬健保卡控制軟體-正式版.2.5.4.exe'"
+           
+    }
+
+
+}
+
+
+#檔案獨立執行時會執行函式, 如果是被匯入時不會執行函式.
+if ($run_main -eq $null) {
+
+    #檢查是否管理員
+    $check_admin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")
+
+    if (!$check_admin -and !$runadmin) {
+        #如果非管理員, 就試著run as admin, 並傳入runadmin 參數1. 因為在網域一般使用者永遠拿不是管理員權限, 會造成無限重跑. 此參數用來輔助判斷只跑一次. 
+        Start-Process powershell.exe -ArgumentList "-FILE `"$PSCommandPath`" -Executionpolicy bypass -NoProfile  -runadmin 1" -Verb Runas; exit
+    
+    }
+
+    if ($check_admin) { 
+        update-pcsc
+    }
+    else {
+        Write-Warning "無法取得管理員權限來安裝軟體, 請以管理員帳號重試."
+    }
+
+    #重新啟健保卡程式.
+    Stop-Process -Name csfsim -Force -ErrorAction SilentlyContinue
+    Start-Sleep -Seconds 3
+    Start-Process -FilePath C:\nhi\BIN\csfsim.exe -ErrorAction SilentlyContinue
+
+    Write-Output "升級完成."
+    Start-Sleep -Seconds 20
+}
