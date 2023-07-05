@@ -181,6 +181,11 @@ function update-pcsc {
         "C:\vhgp\ICCard\CSHIS.dll"
     )
 
+    #關閉下列程式,以防占用DLL.
+    Stop-Process -Name IccPrj -ErrorAction SilentlyContinue
+    Stop-Process -Name HISLogin -ErrorAction SilentlyContinue
+    Stop-Process -Name csfsim -ErrorAction SilentlyContinue
+    
     $count = 0
 
     foreach ($i in $setup_file_) {
@@ -289,15 +294,10 @@ function update-virtualhc {
         Start-Sleep -Seconds 3
 
         #復制捷徑到桌面及啟動
-        #copy-item -Path "c:\NHI\$($vhc_path.name)\虛擬健保卡控制軟體.lnk" -Destination "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\StartUp\虛擬健保卡控制軟體.lnk" -Force
-        #copy-item -Path "c:\NHI\$($vhc_path.name)\虛擬健保卡控制軟體.lnk" -Destination "C:\users\public\desktop\虛擬健保卡控制軟體.lnk" -Force
-
+ 
         Create-Shortcut -TargetPath "C:\NHI\VHIC_virtual-nhicard+SDK+Setup-2.5.4\虛擬健保卡控制軟體-正式版.2.5.4.exe" -ShortcutPath "C:\users\public\desktop\虛擬健保卡控制軟體.lnk"
         Create-Shortcut -TargetPath "C:\NHI\VHIC_virtual-nhicard+SDK+Setup-2.5.4\虛擬健保卡控制軟體-正式版.2.5.4.exe" -ShortcutPath "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\StartUp\虛擬健保卡控制軟體.lnk"
     
-
-
-
 
         #open firewall
         #netsh advfirewall firewall add rule name='Allow 虛擬健保卡控制軟體' dir=in action=allow program='C:\NHI\VHIC_virtual-nhicard+SDK+Setup-2.5.4\虛擬健保卡控制軟體-正式版.2.5.4.exe'
