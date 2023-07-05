@@ -194,7 +194,7 @@ function update-pcsc {
 
     if ($result -eq $false) {
     
-        Write-Warning "系統環境變數中不包含 $path"
+        Write-Warning "系統環境變數中不包含 C:\VGHTC\ICCard"
         
         if ($check_admin) {
             if (Test-Path $setting_file) {
