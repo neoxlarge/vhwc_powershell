@@ -189,12 +189,12 @@ function update-pcsc {
     #檢查系統環境變數 3
     $setting_file = "C:\VGHTC\00_mis\中榮iccard環境變數設定.bat"
     Write-Output "執行環境設定: $setting_file"
-
+    $path = "C:\VGHTC\ICCard"
     $result = Check-EnvPathContains "C:\VGHTC\ICCard"
 
     if ($result -eq $false) {
     
-        Write-Warning "系統環境變數中不包含 C:\VGHTC\ICCard"
+        Write-Warning "系統環境變數中不包含 $path"
         
         if ($check_admin) {
             if (Test-Path $setting_file) {
