@@ -86,7 +86,7 @@ function Check-VGHTCenv {
 
     $result = Check-EnvPathContains "C:\VGHTC\ICCard"
 
-    if ($result -eq $fasle) {
+    if ($result -eq $false) {
     
         Write-Warning "系統環境變數中不包含 $path"
         
