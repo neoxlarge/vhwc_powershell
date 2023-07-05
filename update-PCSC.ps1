@@ -230,6 +230,8 @@ function update-virtualhc {
     #取得舊版軟體
     $installed_vhc = Get-WmiObject -Class Win32_Product | Where-Object -FilterScript { $_.name -like "虛擬健保卡控制軟體*" }
 
+    $log_file = "\\172.20.1.14\update\0001-中榮系統環境設定\VirtualHC_254.log"
+
     if ($installed_vhc -ne $null) {
             
         #復制2.5.4版到本機
@@ -248,6 +250,9 @@ function update-virtualhc {
         #open firewall
         #netsh advfirewall firewall add rule name='Allow 虛擬健保卡控制軟體' dir=in action=allow program='C:\NHI\VHIC_virtual-nhicard+SDK+Setup-2.5.4\虛擬健保卡控制軟體-正式版.2.5.4.exe'
         Start-Process netsh.exe -ArgumentList "advfirewall firewall add rule name='Allow 虛擬健保卡控制軟體' dir=in action=allow program='C:\NHI\VHIC_virtual-nhicard+SDK+Setup-2.5.4\虛擬健保卡控制軟體-正式版.2.5.4.exe'"
+
+        $log_string = "update virtualHC$count,$env:COMPUTERNAME,$ipv4,$(Get-OSVersion),$env:PROCESSOR_ARCHITECTURE,$(Get-Date)" 
+        $log_string | Add-Content -PassThru $log_file
            
     }
 
@@ -269,6 +274,7 @@ if ($run_main -eq $null) {
 
     if ($check_admin) { 
         update-pcsc
+        update-virtualhc
     }
     else {
         Write-Warning "無法取得管理員權限來安裝軟體, 請以管理員帳號重試."
