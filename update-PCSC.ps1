@@ -50,6 +50,49 @@ function Check-EnvPathContains($path) {
 }
 
 
+function Create-Shortcut {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$TargetPath,
+
+        [Parameter(Mandatory = $true)]
+        [string]$ShortcutPath
+    )
+
+    # ?建 WScript.Shell ?象
+    $shell = New-Object -ComObject WScript.Shell
+
+    # ?查快捷方式是否已存在，如果存在??除
+    if ($shell.CreateShortcut($ShortcutPath).FullName) {
+        Remove-Item $ShortcutPath -Force -ErrorAction SilentlyContinue
+    }
+
+    # ?建快捷方式
+    $shortcut = $shell.CreateShortcut($ShortcutPath)
+    $shortcut.TargetPath = $TargetPath
+    $shortcut.Save()
+
+    #Write-Host "Shortcut created at: $ShortcutPath"
+}
+
+function get-installedprogramlist {
+    # 取得所有安裝的軟體,底下安裝軟體會用到.
+
+    ### Win32_product的清單並不完整， Winnexus 並不在裡面.
+    ### $all_installed_program = Get-WmiObject -Class Win32_Product
+
+    ### 所有的軟體會在底下這三個登錄檔路徑中
+
+    $software_reg_path = @(
+        "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*",
+        "HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*",
+        "HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\*"
+    )
+
+    return (Get-ItemProperty -Path $software_reg_path -ErrorAction SilentlyContinue)
+}
+
+
 function update-pcsc {
     Write-Host "升級健保卡讀卡機控制軟體PCSC 5.1.5.7"
     # 軟體環境檢查
@@ -228,7 +271,7 @@ function update-virtualhc {
     #新的不用安裝, 只要復制資料夾再執行程式即可
 
     #取得舊版軟體
-    $installed_vhc = Get-WmiObject -Class Win32_Product | Where-Object -FilterScript { $_.name -like "虛擬健保卡控制軟體*" }
+    $installed_vhc = get-installedprogramlist | Where-Object -FilterScript { $_.Displayname -like "虛擬健保卡*" }
 
     $log_file = "\\172.20.1.14\update\0001-中榮系統環境設定\VirtualHC_254.log"
 
@@ -240,12 +283,21 @@ function update-virtualhc {
         Copy-Item -Path $vhc_path -Destination "c:\NHI\$($vhc_path.name)" -Recurse -Force -Verbose
 
         #移除軟體
-        $installed_vhc.uninstall()
+        $unistalll_strign = $installed_vhc.QuietUninstallString.Split("""")
+        Start-Process -FilePath $unistalll_strign[1] -ArgumentList $unistalll_strign[2] -Wait -ErrorAction SilentlyContinue -NoNewWindow
+        #$installed_vhc.uninstall()
         Start-Sleep -Seconds 3
 
         #復制捷徑到桌面及啟動
-        copy-item -Path "c:\NHI\$($vhc_path.name)\虛擬健保卡控制軟體.lnk" -Destination "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\StartUp\虛擬健保卡控制軟體.lnk" -Force
-        copy-item -Path "c:\NHI\$($vhc_path.name)\虛擬健保卡控制軟體.lnk" -Destination "C:\users\public\desktop\虛擬健保卡控制軟體.lnk" -Force
+        #copy-item -Path "c:\NHI\$($vhc_path.name)\虛擬健保卡控制軟體.lnk" -Destination "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\StartUp\虛擬健保卡控制軟體.lnk" -Force
+        #copy-item -Path "c:\NHI\$($vhc_path.name)\虛擬健保卡控制軟體.lnk" -Destination "C:\users\public\desktop\虛擬健保卡控制軟體.lnk" -Force
+
+        Create-Shortcut -TargetPath "C:\NHI\VHIC_virtual-nhicard+SDK+Setup-2.5.4\虛擬健保卡控制軟體-正式版.2.5.4.exe" -ShortcutPath "C:\users\public\desktop\虛擬健保卡控制軟體.lnk"
+        Create-Shortcut -TargetPath "C:\NHI\VHIC_virtual-nhicard+SDK+Setup-2.5.4\虛擬健保卡控制軟體-正式版.2.5.4.exe" -ShortcutPath "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\StartUp\虛擬健保卡控制軟體.lnk"
+    
+
+
+
 
         #open firewall
         #netsh advfirewall firewall add rule name='Allow 虛擬健保卡控制軟體' dir=in action=allow program='C:\NHI\VHIC_virtual-nhicard+SDK+Setup-2.5.4\虛擬健保卡控制軟體-正式版.2.5.4.exe'
