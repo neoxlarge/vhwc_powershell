@@ -219,8 +219,8 @@ function update-pcsc {
     foreach ($i in $setup_file_) {
             
         foreach ($j in $setup_file_target_path) {
-            $i_version = Get-ItemProperty -path "$j\$($i.name)" -ErrorAction SilentlyContinue
-            $result = $i.VersionInfo.ProductVersion -ne $i_version.VersionInfo.ProductVersion
+            $j_version = Get-ItemProperty -path "$j\$($i.name)" -ErrorAction SilentlyContinue
+            $result = $i.VersionInfo.ProductVersion -ne $j_version.VersionInfo.ProductVersion
             if ($result) {
                 copy-item -Path $i.FullName -Destination ($j + "\" + $i.Name) -Force
                 $count += 1

@@ -45,9 +45,12 @@ function import-module_func ($name) {
 
 function Enable-SMBv1 {
 
+    #Windows7預設己安裝.net framework 3, 不需要再裝
+    $check_win10 = (Get-WmiObject -Class Win32_OperatingSystem | Select-Object -Property Version).Version -like '10*'
+
     Write-Output "檢查SMBv1/CIFS是否啟用及測試連線172.20.1.14:"
 
-    if ($check_admin) {
+    if ($check_admin -and $check_win10) {
 
         #載入Dism模組
         import-module_func Dism
@@ -86,7 +89,7 @@ function Enable-SMBv1 {
 
     }
     else {
-        Write-Warning "沒有系統管理員權限,無法檢查SMB1.0/CIFS是否有啟用,請以系統管理員身分重新嘗試."
+        Write-Warning "非Win10或沒有系統管理員權限,無法檢查SMB1.0/CIFS是否有啟用,請以系統管理員身分重新嘗試."
     
     } 
     
