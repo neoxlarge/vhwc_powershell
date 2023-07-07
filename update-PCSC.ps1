@@ -196,10 +196,14 @@ function update-pcsc {
         if ($result) {
             Copy-Item -Path $source_dll.FullName -Destination $i -Force
             $count += 1
+            $log_string = "$($source_dll.FullName),>>,$i"  
+            $log_string | Add-Content -PassThru $log_file
+
         }
                 
     }
     if ($count -ne 0) {
+
         $log_string = "Dll copied$count,$env:COMPUTERNAME,$ipv4,$(Get-OSVersion),$env:PROCESSOR_ARCHITECTURE,$(Get-Date)" 
         $log_string | Add-Content -PassThru $log_file
     }
@@ -222,8 +226,10 @@ function update-pcsc {
             $j_version = Get-ItemProperty -path "$j\$($i.name)" -ErrorAction SilentlyContinue
             $result = $i.VersionInfo.ProductVersion -ne $j_version.VersionInfo.ProductVersion
             if ($result) {
-                copy-item -Path $i.FullName -Destination ($j + "\" + $i.Name) -Force
+                copy-item -Path $i.FullName -Destination $($j + "\" + $i.Name) -Force
                 $count += 1
+                $log_string = "$($i.FullName),>>,$($j + "\" + $i.Name)"  
+                $log_string | Add-Content -PassThru $log_file
             }
         }
     }
