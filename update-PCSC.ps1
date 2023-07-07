@@ -96,7 +96,7 @@ function update-pcsc {
     Write-Host "升級健保卡讀卡機控制軟體PCSC 5.1.5.7"
     # 軟體環境檢查
     # 1. 取得己安裝版本
-    $installedPCSC = Get-WmiObject -Class Win32_Product | Where-Object -FilterScript { $_.name -like "*PCSC*" }
+    $installedPCSC = Get-WmiObject -Class Win32_Product | Where-Object -FilterScript { $_.name -like "*PCSC" }
     
     # 2. 取得ip
     $ipv4 = Get-IPv4Address 
@@ -149,6 +149,25 @@ function update-pcsc {
         $log_string = "updated,$env:COMPUTERNAME,$ipv4,$(Get-OSVersion),$env:PROCESSOR_ARCHITECTURE,$(Get-Date)" 
         $log_string | Add-Content -PassThru $log_file
     }
+    elseif ( ($installedPCSC -eq $null) -and `
+        (test-path C:\NHI\sam\COMX1\0640140012001000005984.SAM) ) {
+        #這是一個曾經發生但原因不明的bug, 雲端模組被不明原因移除了. 
+        #所以安裝列表中不存在, 但SAM卻存在.
+        #發現這情形就再裝一次
+
+        #復制新版
+        $new_pcsc_path = "\\172.20.5.187\mis\23-讀卡機控制軟體\CMS_CS5.1.5.7_20220925\CS5.1.5.7版_20220925"
+    
+        $new_pcsc_path = Get-Item $new_pcsc_path
+        Copy-Item -Path $new_pcsc_path -Destination "C:\Vghtc\00_mis\$($new_pcsc_path.name)" -Recurse -Force -Verbose
+       
+        #安裝新版
+        Start-Process -FilePath "msiexec.exe" -ArgumentList "/i C:\Vghtc\00_mis\$($new_pcsc_path.name)\gCIE_Setup\gCIE_Setup.msi /quiet /norestart" -Wait 
+
+        #記錄內容
+        $log_string = "abnormal uninstall,$env:COMPUTERNAME,$ipv4,$(Get-OSVersion),$env:PROCESSOR_ARCHITECTURE,$(Get-Date)" 
+
+    }
     else {
         #不符升級條件
         
@@ -172,72 +191,76 @@ function update-pcsc {
 
     #復制CSHIS.dll到指定資料夾
 
-    $source_dll = Get-ItemProperty -Path "C:\NHI\LIB\CSHIS.dll"
+    $source_dll = Get-ItemProperty -Path "C:\NHI\LIB\CSHIS.dll" -ErrorAction SilentlyContinue
+
+    if ($source_dll -ne $null) {
         
-    $setup_file_ = @(
-        "C:\VGHTC\ICCard\CSHIS.dll",
-        "C:\ICCARD_HIS\CSHIS.dll",
-        "C:\vhgp\ICCard\CSHIS.dll"
-    )
+        $setup_file_ = @(
+            "C:\VGHTC\ICCard\CSHIS.dll",
+            "C:\ICCARD_HIS\CSHIS.dll",
+            "C:\vhgp\ICCard\CSHIS.dll"
+        )
 
-    #關閉下列程式,以防占用DLL.
-    Stop-Process -Name IccPrj -ErrorAction SilentlyContinue
-    Stop-Process -Name HISLogin -ErrorAction SilentlyContinue
-    Stop-Process -Name csfsim -ErrorAction SilentlyContinue
-    
-    $count = 0
+        #關閉下列程式,以防占用DLL.
+        Stop-Process -Name IccPrj -ErrorAction SilentlyContinue
+        Stop-Process -Name HISLogin -ErrorAction SilentlyContinue
+        Stop-Process -Name csfsim -ErrorAction SilentlyContinue
+        
+        $count = 0
 
-    foreach ($i in $setup_file_) {
+        foreach ($i in $setup_file_) {
 
-        $i_version = Get-ItemProperty -Path $i
+            $i_version = Get-ItemProperty -Path $i
 
-        $result = $source_dll.VersionInfo.ProductVersion -ne $i_version.VersionInfo.ProductVersion
-            
-        if ($result) {
-            Copy-Item -Path $source_dll.FullName -Destination $i -Force
-            $count += 1
-            $log_string = "$($source_dll.FullName),>>,$i"  
-            $log_string | Add-Content -PassThru $log_file
-
-        }
+            $result = $source_dll.VersionInfo.ProductVersion -ne $i_version.VersionInfo.ProductVersion
                 
-    }
-    if ($count -ne 0) {
+            if ($result) {
+                Copy-Item -Path $source_dll.FullName -Destination $i -Force
+                $count += 1
+                $log_string = "$($source_dll.FullName),>>,$i"  
+                $log_string | Add-Content -PassThru $log_file
 
-        $log_string = "Dll copied$count,$env:COMPUTERNAME,$ipv4,$(Get-OSVersion),$env:PROCESSOR_ARCHITECTURE,$(Get-Date)" 
-        $log_string | Add-Content -PassThru $log_file
-    }
-        
+            }
+                    
+        }
+        if ($count -ne 0) {
+
+            $log_string = "Dll copied$count,$env:COMPUTERNAME,$ipv4,$(Get-OSVersion),$env:PROCESSOR_ARCHITECTURE,$(Get-Date)" 
+            $log_string | Add-Content -PassThru $log_file
+        }
+    }       
     #copy dlls
     #就是復制"C:\NHI\LIB\"裡所有dll到3個資料夾.
-    $setup_file_ = Get-ChildItem -Path "C:\NHI\LIB\"
+    $setup_file_ = Get-ChildItem -Path "C:\NHI\LIB2\" -ErrorAction SilentlyContinue
+
+    if ($setup_file_ -ne $null) {
     
-    $setup_file_target_path = @(
-        "C:\ICCARD_HIS",
-        "C:\Windows\System32",
-        "C:\Windows\System"    
-    )
+        $setup_file_target_path = @(
+            "C:\ICCARD_HIS",
+            "C:\Windows\System32",
+            "C:\Windows\System"    
+        )
 
-    $count = 0
+        $count = 0
 
-    foreach ($i in $setup_file_) {
-            
-        foreach ($j in $setup_file_target_path) {
-            $j_version = Get-ItemProperty -path "$j\$($i.name)" -ErrorAction SilentlyContinue
-            $result = $i.VersionInfo.ProductVersion -ne $j_version.VersionInfo.ProductVersion
-            if ($result) {
-                copy-item -Path $i.FullName -Destination $($j + "\" + $i.Name) -Force
-                $count += 1
-                $log_string = "$($i.FullName),>>,$($j + "\" + $i.Name)"  
-                $log_string | Add-Content -PassThru $log_file
+        foreach ($i in $setup_file_) {
+                
+            foreach ($j in $setup_file_target_path) {
+                $j_version = Get-ItemProperty -path "$j\$($i.name)" -ErrorAction SilentlyContinue
+                $result = $i.VersionInfo.ProductVersion -ne $j_version.VersionInfo.ProductVersion
+                if ($result) {
+                    copy-item -Path $i.FullName -Destination $($j + "\" + $i.Name) -Force
+                    $count += 1
+                    $log_string = "$($i.FullName),>>,$($j + "\" + $i.Name)"  
+                    $log_string | Add-Content -PassThru $log_file
+                }
             }
         }
+        if ($count -ne 0) {
+            $log_string = "LibDll copied$count,$env:COMPUTERNAME,$ipv4,$(Get-OSVersion),$env:PROCESSOR_ARCHITECTURE,$(Get-Date)" 
+            $log_string | Add-Content -PassThru $log_file
+        }
     }
-    if ($count -ne 0) {
-        $log_string = "LibDll copied$count,$env:COMPUTERNAME,$ipv4,$(Get-OSVersion),$env:PROCESSOR_ARCHITECTURE,$(Get-Date)" 
-        $log_string | Add-Content -PassThru $log_file
-    }
-
 
     #檢查系統環境變數
     $setting_file = "C:\VGHTC\00_mis\中榮iccard環境變數設定.bat"
