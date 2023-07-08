@@ -96,7 +96,7 @@ function update-pcsc {
     Write-Host "升級健保卡讀卡機控制軟體PCSC 5.1.5.7"
     # 軟體環境檢查
     # 1. 取得己安裝版本
-    $installedPCSC = Get-WmiObject -Class Win32_Product | Where-Object -FilterScript { $_.name -like "*PCSC" }
+    $installedPCSC = Get-WmiObject -Class Win32_Product | Where-Object -FilterScript { $_.name -like "*PCSC*" }
     
     # 2. 取得ip
     $ipv4 = Get-IPv4Address 
@@ -122,7 +122,7 @@ function update-pcsc {
     #寫入記錄檔路徑
     $log_file = "\\172.20.1.14\update\0001-中榮系統環境設定\pcsc_5157.log"
     
-    $log_string = "Boot,$env:COMPUTERNAME,$ipv4,$(Get-OSVersion),$env:PROCESSOR_ARCHITECTURE,$(Get-Date)"
+    $log_string = "Boot,PCSC:$($installedPCSC.version),$env:COMPUTERNAME,$ipv4,$(Get-OSVersion),$env:PROCESSOR_ARCHITECTURE,$(Get-Date)"
     $log_string | Add-Content -PassThru $log_file
     
     #符合升級條件,進行升級
@@ -165,7 +165,7 @@ function update-pcsc {
         Start-Process -FilePath "msiexec.exe" -ArgumentList "/i C:\Vghtc\00_mis\$($new_pcsc_path.name)\gCIE_Setup\gCIE_Setup.msi /quiet /norestart" -Wait 
 
         #記錄內容
-        $log_string = "abnormal uninstall,$env:COMPUTERNAME,$ipv4,$(Get-OSVersion),$env:PROCESSOR_ARCHITECTURE,$(Get-Date)" 
+        $log_string = "abnormal uninstall,PCSC:$($installedPCSC.version),$env:COMPUTERNAME,$ipv4,$(Get-OSVersion),$env:PROCESSOR_ARCHITECTURE,$(Get-Date)" 
 
     }
     else {
@@ -217,7 +217,7 @@ function update-pcsc {
             if ($result) {
                 Copy-Item -Path $source_dll.FullName -Destination $i -Force
                 $count += 1
-                $log_string = "$($source_dll.FullName),>>,$i"  
+                $log_string = "$($source_dll.FullName):$($source_dll.VersionInfo.ProductVersion),>>,$i :$($i_version.VersionInfo.ProductVersion)"  
                 $log_string | Add-Content -PassThru $log_file
 
             }
@@ -251,7 +251,7 @@ function update-pcsc {
                 if ($result) {
                     copy-item -Path $i.FullName -Destination $($j + "\" + $i.Name) -Force
                     $count += 1
-                    $log_string = "$($i.FullName),>>,$($j + "\" + $i.Name)"  
+                    $log_string = "$($i.FullName): $($i.VersionInfo.ProductVersion ),>>,$($j + "\" + $i.Name): $($j_version.VersionInfo.ProductVersion)"  
                     $log_string | Add-Content -PassThru $log_file
                 }
             }
