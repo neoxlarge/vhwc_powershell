@@ -106,7 +106,7 @@ function update-pcsc {
     #2符合限制的IP
 
     #此段為powershell v2語法, v2 不支援-in語法
-    $installedVersions = "5.1.53", "5.1.55"
+    $installedVersions = "5.1.51","5.1.53", "5.1.55"
     $check_version = $false
 
     foreach ($version in $installedVersions) {
