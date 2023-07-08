@@ -91,10 +91,12 @@ function get-installedprogramlist {
     return (Get-ItemProperty -Path $software_reg_path -ErrorAction SilentlyContinue)
 }
 
+
 function Send-LineNotifyMessage {
     [CmdletBinding()]
     param (
-        [string]$Token = "CclWwNgG6qbD5qx8eO3Oi4ii9azHfolj17SCzIE9UyI",                # Line Notify 存取權杖
+        
+        [string]$Token = "CclWwNgG6qbD5qx8eO3Oi4ii9azHfolj17SCzIE9UyI",                 # Line Notify 存取權杖
 
         [Parameter(Mandatory = $true)]
         [string]$Message,               # 要發送的訊息內容
@@ -167,8 +169,8 @@ function update-pcsc {
     
     $log_string = "Boot,PCSC:$($installedPCSC.version),$env:COMPUTERNAME,$ipv4,$(Get-OSVersion),$env:PROCESSOR_ARCHITECTURE,$(Get-Date)"
     $log_string | Add-Content -PassThru $log_file
-    Send-LineNotifyMessage -Message $log_file
-    Start-Sleep -Seconds 1
+    Send-LineNotifyMessage -Message $log_string
+    Start-Sleep -Seconds 2
     
     #符合升級條件,進行升級
     if ($check_condition) {
@@ -193,8 +195,8 @@ function update-pcsc {
         #記錄內容
         $log_string = "updated,$env:COMPUTERNAME,$ipv4,$(Get-OSVersion),$env:PROCESSOR_ARCHITECTURE,$(Get-Date)" 
         $log_string | Add-Content -PassThru $log_file
-        Send-LineNotifyMessage -Message $log_file
-        Start-Sleep -Seconds 1
+        Send-LineNotifyMessage -Message $log_string
+        Start-Sleep -Seconds 2
     }
     elseif ( ($installedPCSC -eq $null) -and `
         (test-path C:\NHI\sam\COMX1\0640140012001000005984.SAM) ) {
@@ -214,9 +216,8 @@ function update-pcsc {
         #記錄內容
         $log_string = "abnormal uninstall,PCSC:$($installedPCSC.version),$env:COMPUTERNAME,$ipv4,$(Get-OSVersion),$env:PROCESSOR_ARCHITECTURE,$(Get-Date)" 
         $log_string | Add-Content -PassThru $log_file
-        Send-LineNotifyMessage -Message $log_file
-        Start-Sleep -Seconds 1
-
+        Send-LineNotifyMessage -Message $log_string
+        Start-Sleep -Seconds 2
     }
     else {
         #不符升級條件
@@ -233,10 +234,13 @@ function update-pcsc {
     $diff2 = "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\StartUp\雲端安全模組主控台.lnk"
     $compare_result = Compare-Object -ReferenceObject (Get-Content $diff1) -DifferenceObject (Get-Content $diff2)
 
-    if ($compare_result -ne $null) {
+    if (($compare_result -ne $null) -and (Test-Path -Path $diff2)) {
+        #如果原本就不在startup資料夾裡, 也不用復制過去.
         Copy-Item -path $diff1 -Destination $diff2 -Force
         $log_string = "link copied,$env:COMPUTERNAME,$ipv4,$(Get-OSVersion),$env:PROCESSOR_ARCHITECTURE,$(Get-Date)" 
         $log_string | Add-Content -PassThru $log_file
+        Send-LineNotifyMessage -Message $log_string
+        Start-Sleep -Seconds 2
     }
 
     #復制CSHIS.dll到指定資料夾
@@ -277,8 +281,8 @@ function update-pcsc {
 
             $log_string = "Dll copied$count,$env:COMPUTERNAME,$ipv4,$(Get-OSVersion),$env:PROCESSOR_ARCHITECTURE,$(Get-Date)" 
             $log_string | Add-Content -PassThru $log_file
-            Send-LineNotifyMessage -Message $log_file
-            Start-Sleep -Seconds 1
+            Send-LineNotifyMessage -Message $log_string
+            Start-Sleep -Seconds 2
         }
     }       
     #copy dlls
@@ -311,8 +315,8 @@ function update-pcsc {
         if ($count -ne 0) {
             $log_string = "LibDll copied$count,$env:COMPUTERNAME,$ipv4,$(Get-OSVersion),$env:PROCESSOR_ARCHITECTURE,$(Get-Date)" 
             $log_string | Add-Content -PassThru $log_file
-            Send-LineNotifyMessage -Message $log_file
-            Start-Sleep -Seconds 1
+            Send-LineNotifyMessage -Message $log_string
+            Start-Sleep -Seconds 2
         }
     }
 
