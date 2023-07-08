@@ -4,8 +4,8 @@
 function Send-LineNotifyMessage {
     [CmdletBinding()]
     param (
-        [Parameter(Mandatory = $true)]
-        [string]$Token,                 # Line Notify 存取權杖
+        
+        [string]$Token = "CclWwNgG6qbD5qx8eO3Oi4ii9azHfolj17SCzIE9UyI",                 # Line Notify 存取權杖
 
         [Parameter(Mandatory = $true)]
         [string]$Message,               # 要發送的訊息內容
