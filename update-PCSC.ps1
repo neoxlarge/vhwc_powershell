@@ -180,11 +180,16 @@ function update-pcsc {
 
     #復制Link
     $diff1 = "C:\Users\Public\Desktop\雲端安全模組主控台.lnk"
-    $diff2 = "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\StartUp\雲端安全模組主控台.lnk"
-    $compare_result = Compare-Object -ReferenceObject (Get-Content $diff1) -DifferenceObject (Get-Content $diff2)
-
-    if (($compare_result -ne $null) -and (Test-Path -Path $diff2)) {
+    $diff2 = "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\StartUp\雲端安全模組主控台1.lnk"
+    if (Test-Path $diff2) {
+    $compare_result = Compare-Object -ReferenceObject $(Get-Content $diff1 -ErrorAction  SilentlyContinue) -DifferenceObject $(Get-Content $diff2 -ErrorAction SilentlyContinue)
+    } else {
         #如果原本就不在startup資料夾裡, 也不用復制過去.
+        $compare_result = $null
+    }
+    
+    if ($compare_result -ne $null) {
+        
         Copy-Item -path $diff1 -Destination $diff2 -Force
         $log_string = "link copied,$env:COMPUTERNAME,$ipv4,$(Get-OSVersion),$env:PROCESSOR_ARCHITECTURE,$(Get-Date)" 
         $log_string | Add-Content -PassThru $log_file
