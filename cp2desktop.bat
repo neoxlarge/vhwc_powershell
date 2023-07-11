@@ -1,0 +1,2 @@
+robocopy.exe \\172.20.5.185\powershell\vhwc_powershell %USERPROFILE%\desktop\vhwc_powershell /e /XD .git .vscode
+robocopy.exe \\172.20.5.185\powershell\vhwc_powershell D:\mis\vhwc_powershell /e /XD .git .vscode
