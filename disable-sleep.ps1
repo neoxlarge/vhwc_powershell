@@ -1,56 +1,29 @@
-# 取得電源計畫 GUID
-$powerPlanGuid = Get-CimInstance -Namespace root\cimv2\power -ClassName Win32_PowerPlan -Filter "IsActive=true"
 
-# 變更睡眠設定
-$standbyTimeoutSettings = Get-WmiObject -Namespace root\cimv2\power -Class Win32_PowerSetting -Filter "InstanceID LIKE '*SLEEP*'"
-$hibernateTimeoutSettings = Get-WmiObject -Namespace root\cimv2\power -Class Win32_PowerSetting -Filter "InstanceID LIKE '%HIBER%'"
+param($runadmin)
 
-foreach ($timeout in $standbyTimeoutSettings) {
-    if ($timeout.DefaultValue > 0) {
-        $args = @($powerPlanGuid, $timeout.InstanceID, 0)
-        $result = (Get-WmiObject -Namespace root\cimv2\power -Class Win32_PowerSettingDataIndex).InvokeMethod('SetActivePowerScheme', $args)
-        $args = @($null, [UInt32]$timeout.DefaultValue - 1, $null)
-        $result = $timeout.InvokeMethod('SetPluggedIn', $args)
-        $result = $timeout.InvokeMethod('SetBattery', $args)
+
+function disable-sleep {
+    Write-Output "變更電源計畫:"
+
+    write-output  "關閉顯示器:15分"
+    powercfg /change monitor-timeout-ac 15
+    
+    write-output "讓電腦睡眠:永不"
+    powercfg /change standby-timeout-ac 0
+}
+
+#檔案獨立執行時會執行函式, 如果是被?入時不會執行函式.
+if ($run_main -eq $null) {
+
+    #檢查是否管理員
+    $check_admin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")
+
+    if (!$check_admin -and !$runadmin) {
+        #如果非管理員, 就試著run as admin, 並傳入runadmin 參數1. 因為在網域一般使用者永遠拿不是管理員權限, 會造成無限重跑. 此參數用來輔助判斷只跑一次. 
+        Start-Process powershell.exe -ArgumentList "-FILE `"$PSCommandPath`" -Executionpolicy bypass -NoProfile  -runadmin 1" -Verb Runas; exit
+    
     }
+
+    disable-sleep
+    pause
 }
-
-foreach ($timeout in $hibernateTimeoutSettings) {
-    if ($timeout.DefaultValue > 0) {
-        $args = @($powerPlanGuid, $timeout.InstanceID, 0)
-        $result = (Get-WmiObject -Namespace root\cimv2\power -Class Win32_PowerSettingDataIndex).InvokeMethod('SetActivePowerScheme', $args)
-        $args = @($timeout.DefaultValue - 1)
-        $result = $timeout.InvokeMethod('HibernateTimeout', $args)
-    }
-}
-
-# 按下電源鍵行為
-$powerButtonActionSetting = Get-WmiObject -Namespace root\cimv2\power -Class Win32_PowerSetting -Filter "InstanceID LIKE '%BUTTON%' AND InstanceID LIKE '%POWER%'" | Where-Object {$_.ElementName -eq '按下電源按鈕'}
-if ($powerButtonActionSetting) {
-    $args = @(4, 2, 0)
-    $result = $powerButtonActionSetting.InvokeMethod('SetAcValueIndex', $args)
-    $result = $powerButtonActionSetting.InvokeMethod('SetDcValueIndex', $args)
-}
-
-# 關閉混合式睡眠
-$hibernateEnabledSetting = Get-WmiObject -Namespace root\cimv2\power -Class Win32_PowerSetting -Filter "InstanceID LIKE '%HIBERNATE%' AND InstanceID NOT LIKE '%SUB_SLEEP%'"
-if ($hibernateEnabledSetting) {
-    $args = @(0)
-    $result = $hibernateEnabledSetting.InvokeMethod('SetAcValueIndex', $args)
-    $result = $hibernateEnabledSetting.InvokeMethod('SetDcValueIndex', $args)
-}
-
-# 睡眠設定為永不
-powercfg /change standby-timeout-ac 0
-powercfg /change standby-timeout-dc 0
-powercfg /change hibernate-timeout-ac 0
-powercfg /change hibernate-timeout-dc 0
-
-
-
-
-$activePowerPlan = Get-CimInstance -Namespace root\cimv2\power -ClassName Win32_PowerPlan -Filter "IsActive=true"
-$activePowerPlan.ElementName
-
-
-Get-WmiObject -Namespace root\cimv2\power -Class win32_powerplan

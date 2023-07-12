@@ -133,6 +133,10 @@ remove-apps
 import-module ((split-path $PSCommandPath) + "\Check-EnablePSRemoting.ps1")
 check-enablepsremoting
 
+#變更電源計畫
+import-module ((split-path $PSCommandPath) + "\disable-sleep.ps1")
+disable-sleep
+
 #關閉UAC
 Import-Module ((Split-Path $PSCommandPath) + "\Disable-UAC.ps1")
 Disable-UAC
