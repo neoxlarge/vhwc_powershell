@@ -180,7 +180,7 @@ function update-pcsc {
 
     #復制Link
     $diff1 = "C:\Users\Public\Desktop\雲端安全模組主控台.lnk"
-    $diff2 = "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\StartUp\雲端安全模組主控台1.lnk"
+    $diff2 = "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\StartUp\雲端安全模組主控台.lnk"
     if (Test-Path $diff2) {
     $compare_result = Compare-Object -ReferenceObject $(Get-Content $diff1 -ErrorAction  SilentlyContinue) -DifferenceObject $(Get-Content $diff2 -ErrorAction SilentlyContinue)
     } else {

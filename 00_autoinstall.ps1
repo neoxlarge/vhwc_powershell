@@ -113,14 +113,14 @@ Import-Module ((Split-Path $PSCommandPath) + "\install-PCSC.ps1")
 install-PCSC
 
 # 安裝Winnexus
-#Import-Module ((Split-Path $PSCommandPath) + "\install-Winnexus.ps1")
+Import-Module ((Split-Path $PSCommandPath) + "\install-Winnexus.ps1")
 
-#install-winNexus    
+install-winNexus    
 
 # 安裝防毒 Trend Micro Apex One Security Agent
-#Import-Module ((Split-Path $PSCommandPath) + "\install-AntiVir.ps1")
+Import-Module ((Split-Path $PSCommandPath) + "\install-AntiVir.ps1")
 
-#install-antivir
+install-antivir
 
 # 移除不必要的win10 程式
 Import-Module ((Split-Path $PSCommandPath) + "\remove-apps.ps1")
