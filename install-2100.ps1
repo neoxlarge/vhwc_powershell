@@ -56,6 +56,9 @@ function install-2100 {
         Start-Process -FilePath ($env:temp + "\" + $software_path.Name + "\package\tablePC_SDK.exe") -ArgumentList "/v/passive" -Wait
 
     }
+    #20230712
+    #取消重裝
+    <#
     else {
         Write-Output "Reinstall $software_name"
 
@@ -68,7 +71,9 @@ function install-2100 {
         Start-Process -FilePath ($env:temp + "\" + $software_path.Name + "\package\tablePC_SDK.exe") -ArgumentList "/v/passive" -wait
 
     }
+    #>
 
+    
     #安裝完, 再重新取得安裝資訊
     $all_installed_program = get-installedprogramlist
     $software_is_installed = $all_installed_program | Where-Object -FilterScript { $_.DisplayName -like $software_name }
