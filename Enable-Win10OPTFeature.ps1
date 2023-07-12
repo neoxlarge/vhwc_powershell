@@ -74,7 +74,7 @@ function Enable-SMBv1 {
             Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" -Name "EnableSecuritySignature" -Value "0" -Type DWord
 
             # 重啟SMB服務
-            Restart-Service -Name "LanmanServer"
+            Restart-Service -Name "LanmanServer" -force
 
             # 重啟計算機
             #Restart-Computer -Force -Confirm

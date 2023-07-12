@@ -34,9 +34,9 @@ function install-pdf {
             Write-Output "復制且解壓縮檔案: $zip_path"
             expand-archive -Path $zip_path -DestinationPath $env:TEMP\$software_path -Force
         
-            Start-Process -FilePath "msiexec.exe" -ArgumentList "/i $env:TEMP\$software_path\$software_msi /passive" -wait
+            Start-Process -FilePath "msiexec.exe" -ArgumentList "/i $env:TEMP\$software_path\$software_msi /passive /norestart" -wait
             Start-Sleep -Seconds 3
-            Start-Process -FilePath "msiexec.exe" -ArgumentList "/update $env:TEMP\$software_path\$software_msi_update /passive" -wait
+            Start-Process -FilePath "msiexec.exe" -ArgumentList "/update $env:TEMP\$software_path\$software_msi_update /passive /norestart" -wait
             Start-Sleep -Seconds 3
 
         }
