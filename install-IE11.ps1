@@ -51,7 +51,7 @@ function install-IE11 {
             # 安裝 MSU（Microsoft Update Standalone Package）安裝包，
             # 您可以使用 Start-Process 命令來執行 wusa.exe（Windows Update Standalone Installer）工具，並指定要安裝的 MSU 檔案。
             
-            $hotfix = get-childitem -Path "$env:temp\$($software_path.Name)\$($software_exec.Split("\")[1])\*" -Include "*.msu"
+            $hotfix = get-childitem -Path "$env:temp\$($software_path.Name)\$($software_exec.Split("\")[0])\*" -Include "*.msu"
 
             foreach ($h in $hotfix) {
                 Write-Output "Installing hotfix: $($h.Name) "
