@@ -8,8 +8,8 @@ function install-IE11 {
 
     $software_name = "IE11"
     $software_path = "\\172.20.5.187\mis\20-IE"
-    $software_msi_x64 = "\x64\IE11-Windows6.1-x64-zh-tw.exe"
-    $software_msi_x32 = "\x86\IE11-Windows6.1-x86-zh-tw.exe"
+    $software_msi_x64 = "x64\IE11-Windows6.1-x64-zh-tw.exe"
+    $software_msi_x32 = "x86\IE11-Windows6.1-x86-zh-tw.exe"
 
 
     # 取得目前系統中 IE 的版本
