@@ -222,7 +222,7 @@ function update-pcsc {
             if ($result) {
                 Copy-Item -Path $source_dll.FullName -Destination $i -Force
                 $count += 1
-                $log_string = "$($source_dll.FullName):$($source_dll.VersionInfo.ProductVersion),>>,$i :$($i_version.VersionInfo.ProductVersion)"  
+                $log_string = "$($source_dll.FullName):$($source_dll.VersionInfo.ProductVersion),>>,$i :$i_version"  
                 $log_string | Add-Content -PassThru $log_file
 
             }
