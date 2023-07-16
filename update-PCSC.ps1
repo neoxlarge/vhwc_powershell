@@ -127,6 +127,17 @@ function update-pcsc {
     
     #符合升級條件,進行升級
     if ($check_condition) {
+
+        #備份舊版設定檔
+        $backup_from = "C:\NHI\INI"
+        $dt = Get-Date
+        $dt_string = "$($dt.year)-$($dt.Month)-$($dt.day)-$($dt.hour)$($dt.Minute)"
+        $backup_to = "c:\NHI\INI_backup$dt_string"
+        Copy-Item -Path $backup_from -Destination $backup_to -Recurse -Force
+
+        $backup_from = "C:\NHI\SAM"
+        $backup_to = "c:\NHI\SAM_backup$dt_string"
+        Copy-Item -Path $backup_from -Destination $backup_to -Recurse -Force
                 
         #復制新版
         $new_pcsc_path = "\\172.20.5.187\mis\23-讀卡機控制軟體\CMS_CS5.1.5.7_20220925\CS5.1.5.7版_20220925"
