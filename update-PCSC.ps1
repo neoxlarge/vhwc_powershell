@@ -216,9 +216,8 @@ function update-pcsc {
 
         foreach ($i in $setup_file_) {
 
-            $i_version = Get-ItemProperty -Path $i
-
-            $result = $source_dll.VersionInfo.FileVersion -ne $i_version.VersionInfo.FileVersion
+            $i_version = (Get-ItemProperty -Path $i).VersionInfo.FileVersion
+            $result = $source_dll.VersionInfo.FileVersion -ne $i_version
                 
             if ($result) {
                 Copy-Item -Path $source_dll.FullName -Destination $i -Force
