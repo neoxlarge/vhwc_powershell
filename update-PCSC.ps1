@@ -247,7 +247,7 @@ function update-pcsc {
     }       
     #copy dlls
     #就是復制"C:\NHI\LIB\"裡所有dll到3個資料夾.
-    $setup_file_ = Get-ChildItem -Path "C:\NHI\LIB2\" -ErrorAction SilentlyContinue
+    $setup_file_ = Get-ChildItem -Path "C:\NHI\LIB\" -ErrorAction SilentlyContinue
 
     if ($setup_file_ -ne $null) {
     
@@ -262,12 +262,12 @@ function update-pcsc {
         foreach ($i in $setup_file_) {
                 
             foreach ($j in $setup_file_target_path) {
-                $j_version = Get-ItemProperty -path "$j\$($i.name)" -ErrorAction SilentlyContinue
-                $result = $i.VersionInfo.ProductVersion -ne $j_version.VersionInfo.ProductVersion
+                $j_version = (Get-ItemProperty -path "$j\$($i.name)" -ErrorAction SilentlyContinue).VersionInfo.ProductVersion
+                $result = $i.VersionInfo.ProductVersion -ne $j_version
                 if ($result) {
                     copy-item -Path $i.FullName -Destination $($j + "\" + $i.Name) -Force
                     $count += 1
-                    $log_string = "$($i.FullName): $($i.VersionInfo.ProductVersion ),>>,$($j + "\" + $i.Name): $($j_version.VersionInfo.ProductVersion)"  
+                    $log_string = "$($i.FullName): $($i.VersionInfo.ProductVersion ),>>,$($j + "\" + $i.Name): $j_version)"  
                     $log_string | Add-Content -PassThru $log_file
                 }
             }
