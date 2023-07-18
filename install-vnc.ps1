@@ -69,7 +69,7 @@ if ($run_main -eq $null) {
     }
 
     if ($check_admin) { 
-        install-EZUSB    
+        install-VNC    
     }
     else {
         Write-Warning "無法取得管理員權限來安裝軟體, 請以管理員帳號重試."
