@@ -3,6 +3,15 @@ param($runadmin)
 
 function copy-vghtc {
     
+    #先備份分散式列印的設定檔
+    $idms_ini = "C:\IDMSClient45\idmsclient.ini"
+
+    if (Test-Path -Path $idms_ini) {
+        $dt = get-date
+        Copy-Item -Path $idms_ini -Destination "$($idms_ini)_backup$($dt.GetDateTimeFormats('s').replace(':',''))"
+    }
+
+
     $system_list = @(
         "\\172.20.5.187\mis\11-中榮系統\02-client-PC\cloudMED",
         "\\172.20.5.187\mis\11-中榮系統\02-client-PC\ICCARD_HIS",
@@ -18,7 +27,7 @@ function copy-vghtc {
         foreach ($s in $system_list) {
             Write-Output "Copy $s"
             #robocopy.exe 請勿使用/mir, 危險,容易誤刪.
-            Start-Process -FilePath "robocopy.exe" -ArgumentList "$s C:\$($S.split("\")[-1]) /E /R:3 /W:5" -Wait
+            Start-Process -FilePath "robocopy.exe" -ArgumentList "$s C:\$($S.split("\")[-1]) /E /R:3 /W:5 /XF idmsclient.ini" -Wait
             
         }
     }
