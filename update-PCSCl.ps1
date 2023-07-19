@@ -3,6 +3,59 @@
 param($runadmin)
 
 
+$opd_table = @{
+    "opd101" = @{
+        "no" = "101";
+        "name" = "wnur-opd-pc01"; 
+        "ip" = "172.20.9.1"
+    };
+    "opd103" = @{
+        "no" = "103";
+        "name" = "wnur-pod-pc02";
+        "ip" = "172.20.9.2"
+    };
+    "opd105" = @{};
+    "opd106" = @{
+        "no" = "106";
+        "name" = "wnur-opd-pc04";
+        "ip" = "172.20.9.4"
+    };
+    "opd107" = @{
+        "no" = "107";
+        "name" = "wnur-opd-pc07";
+        "ip" = "172.20.9.7"
+    };
+    "opd108" = @{
+        "no" = "108";
+        "name" = "wnur-opd-pc06";
+        "ip" = "172.20.9.6"
+    };
+    "opd109" = @{
+        "no" = "109";
+        "name" = "wnur-opd-pc05";
+        "ip" = "172.20.9.5"
+    };
+    "opd201" = @{
+        "no" = "201";
+        "name" = "wnur-opd-pc23";
+        "ip" = "172.20.12.23"
+    };
+    "opd205" = @{};
+    "opd206" = @{};
+    "erx" = @{};
+    "wreh" = @{             #復建科
+        "no" = "wreh";
+        "name" = "wrch-000-pc01";
+        "ip" = "172.20.17.61"
+    }
+
+}
+
+foreach ($i in $opd_table.keys) {
+    Write-Output $opd_table.$i.name
+}
+
+
 function Get-IPv4Address {
     <#
     回傳找到的IP,只能在172.*才能用. 
