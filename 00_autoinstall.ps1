@@ -170,6 +170,11 @@ check-FirewallSettings
 Import-Module ((Split-Path $PSCommandPath) + "\check-VGHTCenv.ps1")
 check-VGHTCenv
 
+#設定SmartIris
+Import-Module ((split-p  $PSCommandPath) + "\check-SmartIris.ps1")
+Check-SmartIris.ps1
+
+
 #啟用微軟倉頡輸入法.
 Import-Module ((Split-Path $PSCommandPath) + "\Enable-ChangJieinput.ps1")
 enable-ChangJieinput
