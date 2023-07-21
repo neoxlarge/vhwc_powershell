@@ -171,7 +171,7 @@ Import-Module ((Split-Path $PSCommandPath) + "\check-VGHTCenv.ps1")
 check-VGHTCenv
 
 #³]©wSmartIris
-Import-Module ((split-p  $PSCommandPath) + "\check-SmartIris.ps1")
+Import-Module ((split-path  $PSCommandPath) + "\check-SmartIris.ps1")
 Check-SmartIris.ps1
 
 
