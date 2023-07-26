@@ -172,7 +172,7 @@ check-VGHTCenv
 
 #設定SmartIris
 Import-Module ((split-path  $PSCommandPath) + "\check-SmartIris.ps1")
-Check-SmartIris.ps1
+Check-SmartIris
 
 
 #啟用微軟倉頡輸入法.
