@@ -153,6 +153,10 @@ copy-shortcut
 Import-Module ((Split-Path $PSCommandPath) + "\Enable-DesktopIcons.ps1")
 Enable-DesktopIcons 
 
+#設定螢幕保護程式
+Import-Module ((Split-Path $PSCommandPath) + "\Set-ScreenSaver.ps1")
+Set-ScreenSaver
+
 #啟用NumLock
 import-module ((split-path $PSCommandPath) + "\check-numlock.ps1")
 check-numlock
