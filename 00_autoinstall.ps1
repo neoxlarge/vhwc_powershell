@@ -184,8 +184,8 @@ Import-Module ((Split-Path $PSCommandPath) + "\Enable-ChangJieinput.ps1")
 enable-ChangJieinput
 
 #設定Edge開啟IE為永不, IE停用IEtoEdge元件, 清除瀏覽器預設值."
-Import-Module ((Split-Path $PSCommandPath) + "\set-IEasDefault.ps1")
-set-IEasDefault
+Import-Module ((Split-Path $PSCommandPath) + "\set-IEtoEdageNever.ps1")
+set-IEtoEdageNever
 
 #設定IE,Edage,Chrome 預設開啟首頁為 "https://eip.vghtc.gov.tw"
 Import-Module ((Split-Path $PSCommandPath) + "\set-HomePage.ps1")
