@@ -11,23 +11,22 @@ function install-ps5 {
         $software_msi_x64 = "Win7-KB3191566-x64.zip"
         $software_msi_x32 = "Win7-KB3191566-x86.zip"
     
-        #檢查一下暫存目錄是否存在
-        if (!(Test-Path -Path "$env:TEMP\$($software_path.Split("\")[-1])")) {
-            switch ($env:PROCESSOR_ARCHITECTURE) {
-                "AMD64" { $zip_path = "$software_path\$software_msi_x64"}
-                "x86" { $zip_path = "$software_path\$software_msi_x32"}
-            }
-
-            New-Item -Path "$env:TEMP\$($software_path.Split("\")[-1])" -ItemType directory -Force
-            
-            Start-Process unzip.exe -ArgumentList "-o $zip_path -d $env:TEMP\$($software_path.Split("\")[-1])" -Wait -NoNewWindow
-
-            Invoke-Expression "$env:TEMP\$($software_path.Split("\")[-1])\Install-WMF5.1.ps1 -AcceptEULA -AllowRestart" 
-            
-            write-output "Pause, please enter ..."
-            
-            $null = Read-Host
+               
+        switch ($env:PROCESSOR_ARCHITECTURE) {
+            "AMD64" { $zip_path = "$software_path\$software_msi_x64" }
+            "x86" { $zip_path = "$software_path\$software_msi_x32" }
         }
+
+        New-Item -Path "$env:TEMP\$($software_path.Split("\")[-1])" -ItemType directory -Force
+            
+        Start-Process unzip.exe -ArgumentList "-o $zip_path -d $env:TEMP\$($software_path.Split("\")[-1])" -Wait -NoNewWindow
+
+        Invoke-Expression "$env:TEMP\$($software_path.Split("\")[-1])\Install-WMF5.1.ps1 -AcceptEULA -AllowRestart" 
+            
+        write-output "Installation finished, please enter ..."
+            
+        $null = Read-Host
+        
     }
 
 }

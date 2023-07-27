@@ -1,5 +1,4 @@
-#修改三個瀏覽器的預設首頁, IE, Edge, chrome.
-#20230329, 網域一般使用者無法寫入HKCU:\SOFTWARE\Policies, 改成由管理者寫到HKLM:\SOFTWARE\Policies
+#修改資料?的權限
 param($runadmin)
 
 function Grant-FullControlPermission {
@@ -9,21 +8,24 @@ function Grant-FullControlPermission {
     最後，您可以呼叫該函數，填入資料夾清單和使用者名稱，以授予指定的使用者完全控制權限。
     #>
 
-    $folders = "c:\2100", "C:\oracle", "c:\mis", "C:\cloudMED", "C:\ICCARD_HIS", "C:\IDMSClient45", "C:\NHI", "C:\TEDPC", "C:\VGHTC","C:\VghtcLogo", "C:\vhgp"
-    $userName = "User"
+    $folders = "c:\2100", "C:\oracle", "C:\cloudMED", "C:\ICCARD_HIS", "C:\IDMSClient45", "C:\NHI", "C:\TEDPC", "C:\VGHTC","C:\VghtcLogo", "C:\vhgp", "c:\mis", "d:\mis"
+    $userName = "Everyone"
 
-    foreach ($folderPath in $Folders) {
-        # 取得資料夾的 ACL
-        $acl = Get-Acl -Path $folderPath
-        
-        # 建立一個新的存取規則，授予指定使用者完全控制權限
-        $rule = New-Object System.Security.AccessControl.FileSystemAccessRule($UserName, "FullControl", "ContainerInherit, ObjectInherit", "None", "Allow")
-        
-        # 將存取規則新增至 ACL
-        $acl.SetAccessRule($rule)
-        
-        # 將修改後的 ACL 套用至資料夾
-        Set-Acl -Path $folderPath -AclObject $acl
+    foreach ($f in $Folders) {
+
+        if (Test-Path $f) {
+            # 取得資料夾的 ACL
+            $acl = Get-Acl -Path $f
+            
+            # 建立一個新的存取規則，授予指定使用者完全控制權限
+            $rule = New-Object System.Security.AccessControl.FileSystemAccessRule($UserName, "FullControl", "ContainerInherit, ObjectInherit", "None", "Allow")
+            
+            # 將存取規則新增至 ACL
+            $acl.SetAccessRule($rule)
+            
+            # 將修改後的 ACL 套用至資料夾
+            Set-Acl -Path $f -AclObject $acl
+        }
     }
 }
 

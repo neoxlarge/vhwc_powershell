@@ -10,7 +10,7 @@ function install-AntiVir {
     ## 找出軟體是否己安裝
 
     $software_name = "Trend Micro Apex One Security Agent"
-    $software_path = "\\172.20.1.14\share\software\officescan_antivir"
+    $software_path = "\\172.20.1.122\share\software\00newpc\officescan_antivir"
     $software_msi_x64 = "agent_cloud_x64.msi"
     $software_msi_x32 = "agent_cloud_x86.msi"
 
