@@ -5,11 +5,20 @@ param($runadmin)
 function disable-sleep {
     Write-Output "變更電源計畫:"
 
+    Write-Output "硬碟-關閉硬碟前的時間:0"
+    powercfg /change disk-timeout-ac 0
+
     write-output  "關閉顯示器:15分"
     powercfg /change monitor-timeout-ac 15
     
     write-output "讓電腦睡眠:永不"
     powercfg /change standby-timeout-ac 0
+
+    Write-Output "關閉混合式睡眠:關閉"
+    powercfg /hibernate off
+
+    Write-Output "睡眠-允許喚醒計時器:停用"
+    powercfg -setacvalueindex SCHEME_BALANCED SUB_SLEEP RTCWAKE 0
 }
 
 #檔案獨立執行時會執行函式, 如果是被?入時不會執行函式.
