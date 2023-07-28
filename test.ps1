@@ -1,77 +1,24 @@
+# 將變數 $json_file 設定為 JSON 檔案 "opd_list.json" 的路徑
+$json_file = "opd_list.json"
 
-function Send-WoLPacket {
-    param(
-        [Parameter(Mandatory = $true)]
-        [string]$MacAddress,
-        [Parameter(Mandatory = $false)]
-        [int]$Port = 9
-    )
+# 讀取 JSON 檔案的內容並將其儲存在變數 $json_content 中
+$json_content = Get-Content -Path $json_file -Raw
 
-    $macBytes = $MacAddress -split '[:-]' | ForEach-Object { [byte]('0x' + $_) }
+# 將 JSON 內容轉換為 PowerShell 物件並將其指派給變數 $opd_json
+$opd_json = ConvertFrom-Json -InputObject $json_content
 
-    $udpClient = New-Object System.Net.Sockets.UdpClient
-    $udpClient.Connect(([System.Net.IPAddress]::Broadcast), $Port)
+# 初始化變數 $opd，並將其設定為 null
+$opd = $null
 
-    $magicPacket = [byte[]](,0xFF * 6 + $macBytes * 16)
-    $udpClient.Send($magicPacket, $magicPacket.Length)
+# 找出符合電腦名稱的資料.
+foreach ($o in $opd_json.psobject.properties) {
 
-    $udpClient.Close()
+    $result = $o.Value.name -eq "wnur-opd-pc02"
+   
+    if ($result) {
+        $opd = $o.Value
+        break
+    }
+ 
 }
-
-function send-m {
-
-    $Mac = "C0:3F:B5:54:B0:62"
-$MacByteArray = $Mac -split "[:-]" | ForEach-Object { [Byte] "0x$_"}
-[Byte[]] $MagicPacket = (,0xFF * 6) + ($MacByteArray  * 16)
-$UdpClient = New-Object System.Net.Sockets.UdpClient
-$UdpClient.Connect(([System.Net.IPAddress]::Broadcast),7)
-$UdpClient.Send($MagicPacket,$MagicPacket.Length)
-$UdpClient.Close()
-}
-
-Add-Type -AssemblyName System.Windows.Forms
-
-# ?建窗体
-$Form = New-Object System.Windows.Forms.Form
-$Form.Text = "更改DHCP保留IP的MAC地址"
-$Form.Size = New-Object System.Drawing.Size(400, 200)
-$Form.FormBorderStyle = [System.Windows.Forms.FormBorderStyle]::FixedSingle
-
-# ?建IP地址??和文本框
-$IPLabel = New-Object System.Windows.Forms.Label
-$IPLabel.Text = "IP地址:"
-$IPLabel.Location = New-Object System.Drawing.Point(30, 30)
-$Form.Controls.Add($IPLabel)
-
-$IPTextBox = New-Object System.Windows.Forms.TextBox
-$IPTextBox.Location = New-Object System.Drawing.Point(120, 30)
-$Form.Controls.Add($IPTextBox)
-
-# ?建MAC地址??和文本框
-$MACLabel = New-Object System.Windows.Forms.Label
-$MACLabel.Text = "MAC地址:"
-$MACLabel.Location = New-Object System.Drawing.Point(30, 60)
-$Form.Controls.Add($MACLabel)
-
-$MACTextBox = New-Object System.Windows.Forms.TextBox
-$MACTextBox.Location = New-Object System.Drawing.Point(120, 60)
-$Form.Controls.Add($MACTextBox)
-
-# ?建确定按?
-$OKButton = New-Object System.Windows.Forms.Button
-$OKButton.Text = "确定"
-$OKButton.Location = New-Object System.Drawing.Point(150, 100)
-$OKButton.Add_Click({
-    $IP = $IPTextBox.Text
-    $MAC = $MACTextBox.Text
-
-    # ?行更改保留IP的MAC地址的命令
-    Set-DhcpServerv4Reservation -IPAddress $IP -ClientId $MAC
-
-    # ?示成功消息框
-    [System.Windows.Forms.MessageBox]::Show("已成功更改保留IP的MAC地址。")
-})
-$Form.Controls.Add($OKButton)
-
-# ?示窗体
-$Form.ShowDialog()
+    
