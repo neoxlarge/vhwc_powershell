@@ -1,25 +1,50 @@
-
+#修改三個瀏覽器的預設首頁, IE, Edge, chrome.
+#20230329, 網域一般使用者無法寫入HKCU:\SOFTWARE\Policies, 改成由管理者寫到HKLM:\SOFTWARE\Policies
 param($runadmin)
 
-function Set-ScreenSaver {
-    write-out "設定螢幕保護程式"
-  
-    # 設定特定的螢幕保護程式檔案路徑
-    $screenSaverFilePath = = "c:\screensaver.scr"
+function Set-HomePage {
+    if ($check_admin) {
+        $HomePage = "https://eip.vghtc.gov.tw"
+        Write-Output "設定IE,Edage,Chrome 預設開啟首頁為: $HomePage"
+        # Modify Edge home page
+        # 參考連結: https://learn.microsoft.com/en-us/deployedge/microsoft-edge-policies#restoreonstartup
+        $reg_path = "HKLM:\SOFTWARE\Policies\Microsoft\Edge\RestoreOnStartupURLs"
+        $result = Test-Path -Path $reg_path
+        if ($result -eq $false) {
+            New-Item -Path $reg_path -force
+        }
+        Set-ItemProperty -Path $reg_path -Name "1" -Value $HomePage
+        #Edge可以設定多個，name值是數字一直加.
+        #Set-ItemProperty -Path $reg_path -Name "2" -Value "https://www.vghtc.gov.tw"
+        Set-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Edge" -Name "RestoreOnStartup" -Value 4
 
-    # 設定螢幕保護程式
-    Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name ScreenSaveActive -Value 1
+        # Modify Chrome home page
+        $reg_path = "HKLM:\Software\Policies\Google\Chrome\RestoreOnStartupURLs"
+        $result = Test-Path -Path $reg_path
+        if ($result -eq $false) {
+            New-Item -Path $reg_path -force
+        }
+        Set-ItemProperty -Path $reg_path -Name "1" -Value $HomePage
+        Set-ItemProperty -Path "HKLM:\Software\Policies\Google\Chrome" -Name "RestoreOnStartup" -Value 4
 
-    # 設定螢幕保護程式等待時間（以秒為單位）
-    Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name ScreenSaveTimeOut -Value 900
+        # Modify Internet Explorer home page
+        Set-ItemProperty -Path "HKLM:\Software\Microsoft\Internet Explorer\Main" -Name "Start Page" -Value $HomePage
+        Set-ItemProperty -Path "HKLM:\Software\Microsoft\Internet Explorer\Main" -Name "Default_Page_URL" -Value $HomePage
+        Set-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Internet Explorer\Main" -Name "Start Page" -Value $HomePage
+        Set-ItemProperty -Path "HKCU:\Software\Microsoft\Internet Explorer\Main" -Name "Default_Page_URL" -Value $HomePage
 
-    # 設定螢幕保護程式的密碼保護狀態（0表示禁用，1表示啟用）
-    #Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name ScreenSaverIsSecure -Value 1
-
-    # 設定特定的螢幕保護程式檔案路徑
-    Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name SCRNSAVE.EXE -Value $screenSaverFilePath
-
+    } else {
+        
+        $HomePage = "https://eip.vghtc.gov.tw"
+        Set-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Internet Explorer\Main" -Name "Start Page" -Value $HomePage 
+        Set-ItemProperty -Path "HKCU:\Software\Microsoft\Internet Explorer\Main" -Name "Default_Page_URL" -Value $HomePage 
+        
+        Write-Warning "沒有系統管理員權限,無法設定Homepage,請以系統管理員身分重新嘗試。"
+    }
 }
+
+
+
 
 #檔案獨立執行時會執行函式, 如果是被?入時不會執行函式.
 if ($run_main -eq $null) {
@@ -32,6 +57,6 @@ if ($run_main -eq $null) {
         Start-Process powershell.exe -ArgumentList "-FILE `"$PSCommandPath`" -Executionpolicy bypass -NoProfile  -runadmin 1" -Verb Runas; exit
     }
 
-    set-ScreenSaver
+    Set-HomePage
     pause
 }
