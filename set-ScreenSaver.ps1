@@ -2,10 +2,10 @@
 param($runadmin)
 
 function Set-ScreenSaver {
-    write-out "設定螢幕保護程式"
+    write-output "設定螢幕保護程式"
   
     # 設定特定的螢幕保護程式檔案路徑
-    $screenSaverFilePath = = "c:\screensaver.scr"
+    $screenSaverFilePath = "c:\screensaver.scr"
 
     # 設定螢幕保護程式
     Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name ScreenSaveActive -Value 1
