@@ -135,8 +135,8 @@ function update-pcsc {
     $ipv4 = Get-IPv4Address 
 
     #條件:
-    #1安裝的版本為5.1.5.3 或 51.5.5
-    #2符合限制的IP
+    #1安裝的版本為5.1.5.1, 5.1.5.3 或 51.5.5
+    #2符合限制的IP 172.20.*.*
 
     #此段為powershell v2語法, v2 不支援-in語法
     $installedVersions = "5.1.51", "5.1.53", "5.1.55"
@@ -151,8 +151,7 @@ function update-pcsc {
 
     $check_condition = $check_version -and ($ipv4 -like "172.20.*")
 
-
-    #寫入記錄檔路徑
+    #寫入記錄檔路徑, 開機成功且有執行GPO.
     $log_file = "\\172.20.1.14\update\0001-中榮系統環境設定\pcsc_5157.log"
     
     $log_string = "Boot,PCSC:$($installedPCSC.version),$env:COMPUTERNAME,$ipv4,$(Get-OSVersion),$env:PROCESSOR_ARCHITECTURE,$(Get-Date)"
@@ -189,7 +188,7 @@ function update-pcsc {
         #安裝新版
         Start-Process -FilePath "msiexec.exe" -ArgumentList "/i C:\Vghtc\00_mis\$($new_pcsc_path.name)\gCIE_Setup\gCIE_Setup.msi /quiet /norestart" -Wait 
 
-        #記錄內容
+        #記錄內容, 升級完成
         $log_string = "updated,$env:COMPUTERNAME,$ipv4,$(Get-OSVersion),$env:PROCESSOR_ARCHITECTURE,$(Get-Date)" 
         $log_string | Add-Content -PassThru $log_file
     }
@@ -208,7 +207,7 @@ function update-pcsc {
         #安裝新版
         Start-Process -FilePath "msiexec.exe" -ArgumentList "/i C:\Vghtc\00_mis\$($new_pcsc_path.name)\gCIE_Setup\gCIE_Setup.msi /quiet /norestart" -Wait 
 
-        #記錄內容
+        #記錄內容, 不正常移除
         $log_string = "abnormal uninstall,PCSC:$($installedPCSC.version),$env:COMPUTERNAME,$ipv4,$(Get-OSVersion),$env:PROCESSOR_ARCHITECTURE,$(Get-Date)" 
 
     }
@@ -279,6 +278,7 @@ function update-pcsc {
             $log_string | Add-Content -PassThru $log_file
         }
     }       
+
     #copy dlls
     #就是復制"C:\NHI\LIB\"裡所有dll到3個資料夾.
     $setup_file_ = Get-ChildItem -Path "C:\NHI\LIB\" -ErrorAction SilentlyContinue
@@ -337,38 +337,59 @@ function update-pcsc {
 
     }
 
+    #重新啟健保卡程式.
+    Stop-Process -Name csfsim -Force -ErrorAction SilentlyContinue
+    Start-Sleep -Seconds 3
+    Start-Process -FilePath C:\nhi\BIN\csfsim.exe -ErrorAction SilentlyContinue
+    
+    Write-Output "升級完成."
+    Start-Sleep -Seconds 20
+
+
+
 }    
 
 
 function update-virtualhc {
     #升級虛擬健保卡SDK 2.5.4
 
-    #只有有裝過的才需要升級
-    #新的不用安裝, 只要復制資料夾再執行程式即可
+    #升級條件:
+    # 1. 診間醫生電腦才需要安裝.
+    # 2. 診間醫生電腦目前皆為win10.
+    # 所以要參考安裝列表opd_list.json 
+    
+    # 新版的虛擬健保卡SDK 2.5.4不用安裝, 只要復制資料夾再執行程式即可
 
-    # 檢查目前電腦名稱是否在升級名單(opd_list.json)內. 
-    $opd = check-OPDList
+    # 檢查目前電腦名稱是否在升級名單(opd_list.json)內.
+    # 底下check-OPDList為powershell v5 語法,無法在win7中執行. 就先限定在win10執行.
+    
+    if ($(Get-OSVersion) -eq "Windows 10") {
 
-    if ($opd.virturl_NHIcard) {
-        #如果virtual_NHIcar值是$true 表示可升級.
+        $ipv4 = Get-IPv4Address 
 
-        #取得舊版軟體
-        $installed_vhc = get-installedprogramlist | Where-Object -FilterScript { $_.Displayname -like "虛擬健保卡*" }
+        $opd = check-OPDList
 
-        $log_file = "\\172.20.1.14\update\0001-中榮系統環境設定\VirtualHC_254.log"
+        if ($opd.virturl_NHIcard) {
+            #如果virtual_NHIcar值是$true 表示可升級.
 
-        if ($installed_vhc -ne $null) {
+            #取得舊版軟體
+            $installed_vhc = get-installedprogramlist | Where-Object -FilterScript { $_.Displayname -like "虛擬健保卡*" }
+
+            $log_file = "\\172.20.1.14\update\0001-中榮系統環境設定\VirtualHC_254.log"
             
             #復制2.5.4版到本機
             $vhc_path = "\\172.20.5.187\mis\25-虛擬健保卡\診間\VHIC_virtual-nhicard+SDK+Setup-2.5.4"
             $vhc_path = Get-Item $vhc_path
             Copy-Item -Path $vhc_path -Destination "c:\NHI\$($vhc_path.name)" -Recurse -Force -Verbose
-
+            
             #移除軟體
-            $unistalll_strign = $installed_vhc.QuietUninstallString.Split("""")
-            Start-Process -FilePath $unistalll_strign[1] -ArgumentList $unistalll_strign[2] -Wait -ErrorAction SilentlyContinue -NoNewWindow
-            #$installed_vhc.uninstall()
-            Start-Sleep -Seconds 3
+            if ($installed_vhc -ne $null) {
+                
+                $unistalll_strign = $installed_vhc.QuietUninstallString.Split("""")
+                Start-Process -FilePath $unistalll_strign[1] -ArgumentList $unistalll_strign[2] -Wait -ErrorAction SilentlyContinue -NoNewWindow
+                #$installed_vhc.uninstall()
+                Start-Sleep -Seconds 3
+            }
 
             #復制捷徑到桌面及啟動
             Create-Shortcut -TargetPath "C:\NHI\VHIC_virtual-nhicard+SDK+Setup-2.5.4\虛擬健保卡控制軟體-正式版.2.5.4.exe" -ShortcutPath "C:\users\public\desktop\虛擬健保卡控制軟體.lnk"
@@ -379,11 +400,11 @@ function update-virtualhc {
             #netsh advfirewall firewall add rule name='Allow 虛擬健保卡控制軟體' dir=in action=allow program='C:\NHI\VHIC_virtual-nhicard+SDK+Setup-2.5.4\虛擬健保卡控制軟體-正式版.2.5.4.exe'
             Start-Process netsh.exe -ArgumentList "advfirewall firewall add rule name='Allow 虛擬健保卡控制軟體' dir=in action=allow program='C:\NHI\VHIC_virtual-nhicard+SDK+Setup-2.5.4\虛擬健保卡控制軟體-正式版.2.5.4.exe'"
 
-            $log_string = "update virtualHC$count,$env:COMPUTERNAME,$ipv4,$(Get-OSVersion),$env:PROCESSOR_ARCHITECTURE,$(Get-Date)" 
+            $log_string = "update V-NHICard,$env:COMPUTERNAME,$ipv4,$(Get-OSVersion),$env:PROCESSOR_ARCHITECTURE,$(Get-Date)" 
             $log_string | Add-Content -PassThru $log_file
         }
     }
-
+    
 
 }
 
@@ -408,11 +429,5 @@ if ($run_main -eq $null) {
         Write-Warning "無法取得管理員權限來安裝軟體, 請以管理員帳號重試."
     }
 
-    #重新啟健保卡程式.
-    Stop-Process -Name csfsim -Force -ErrorAction SilentlyContinue
-    Start-Sleep -Seconds 3
-    Start-Process -FilePath C:\nhi\BIN\csfsim.exe -ErrorAction SilentlyContinue
 
-    Write-Output "升級完成."
-    Start-Sleep -Seconds 20
 }
