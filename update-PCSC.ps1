@@ -92,6 +92,39 @@ function get-installedprogramlist {
 }
 
 
+function check-OPDList {
+    # 檢查目前電腦名稱是否在升級名單(opd_list.json)內. 有的話,回傳資料.
+   
+    # 將變數 $json_file 設定為 JSON 檔案 "opd_list.json" 的路徑
+    $json_file = "$PSCommandPath\opd_list.json"
+    #Write-Output $json_file
+    
+    # 電腦名稱
+    $pc_name = $env:COMPUTERNAME
+
+    # 讀取 JSON 檔案的內容並將其儲存在變數 $json_content 中
+    $json_content = Get-Content -Path $json_file -Raw
+
+    # 將 JSON 內容轉換為 PowerShell 物件並將其指派給變數 $opd_json
+    $opd_json = ConvertFrom-Json -InputObject $json_content
+
+    # 初始化變數 $opd，並將其設定為 null
+    $opd = $null
+
+    # 找出符合電腦名稱的資料.
+    foreach ($o in $opd_json.psobject.properties) {
+
+        $result = $o.Value.name -eq $pc_name
+   
+        if ($result) {
+            Write-Output $o.Value
+            return $o.Value
+            break
+        }
+ 
+    }
+}
+
 function update-pcsc {
     Write-Host "升級健保卡讀卡機控制軟體PCSC 5.1.5.7"
     # 軟體環境檢查
@@ -106,7 +139,7 @@ function update-pcsc {
     #2符合限制的IP
 
     #此段為powershell v2語法, v2 不支援-in語法
-    $installedVersions = "5.1.51","5.1.53", "5.1.55"
+    $installedVersions = "5.1.51", "5.1.53", "5.1.55"
     $check_version = $false
 
     foreach ($version in $installedVersions) {
@@ -193,8 +226,9 @@ function update-pcsc {
     $diff1 = "C:\Users\Public\Desktop\雲端安全模組主控台.lnk"
     $diff2 = "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\StartUp\雲端安全模組主控台.lnk"
     if (Test-Path $diff2) {
-    $compare_result = Compare-Object -ReferenceObject $(Get-Content $diff1 -ErrorAction  SilentlyContinue) -DifferenceObject $(Get-Content $diff2 -ErrorAction SilentlyContinue)
-    } else {
+        $compare_result = Compare-Object -ReferenceObject $(Get-Content $diff1 -ErrorAction  SilentlyContinue) -DifferenceObject $(Get-Content $diff2 -ErrorAction SilentlyContinue)
+    }
+    else {
         #如果原本就不在startup資料夾裡, 也不用復制過去.
         $compare_result = $null
     }
@@ -312,36 +346,42 @@ function update-virtualhc {
     #只有有裝過的才需要升級
     #新的不用安裝, 只要復制資料夾再執行程式即可
 
-    #取得舊版軟體
-    $installed_vhc = get-installedprogramlist | Where-Object -FilterScript { $_.Displayname -like "虛擬健保卡*" }
+    # 檢查目前電腦名稱是否在升級名單(opd_list.json)內. 
+    $opd = check-OPDList
 
-    $log_file = "\\172.20.1.14\update\0001-中榮系統環境設定\VirtualHC_254.log"
+    if ($opd.virturl_NHIcard) {
+        #如果virtual_NHIcar值是$true 表示可升級.
 
-    if ($installed_vhc -ne $null) {
+        #取得舊版軟體
+        $installed_vhc = get-installedprogramlist | Where-Object -FilterScript { $_.Displayname -like "虛擬健保卡*" }
+
+        $log_file = "\\172.20.1.14\update\0001-中榮系統環境設定\VirtualHC_254.log"
+
+        if ($installed_vhc -ne $null) {
             
-        #復制2.5.4版到本機
-        $vhc_path = "\\172.20.5.187\mis\25-虛擬健保卡\診間\VHIC_virtual-nhicard+SDK+Setup-2.5.4"
-        $vhc_path = Get-Item $vhc_path
-        Copy-Item -Path $vhc_path -Destination "c:\NHI\$($vhc_path.name)" -Recurse -Force -Verbose
+            #復制2.5.4版到本機
+            $vhc_path = "\\172.20.5.187\mis\25-虛擬健保卡\診間\VHIC_virtual-nhicard+SDK+Setup-2.5.4"
+            $vhc_path = Get-Item $vhc_path
+            Copy-Item -Path $vhc_path -Destination "c:\NHI\$($vhc_path.name)" -Recurse -Force -Verbose
 
-        #移除軟體
-        $unistalll_strign = $installed_vhc.QuietUninstallString.Split("""")
-        Start-Process -FilePath $unistalll_strign[1] -ArgumentList $unistalll_strign[2] -Wait -ErrorAction SilentlyContinue -NoNewWindow
-        #$installed_vhc.uninstall()
-        Start-Sleep -Seconds 3
+            #移除軟體
+            $unistalll_strign = $installed_vhc.QuietUninstallString.Split("""")
+            Start-Process -FilePath $unistalll_strign[1] -ArgumentList $unistalll_strign[2] -Wait -ErrorAction SilentlyContinue -NoNewWindow
+            #$installed_vhc.uninstall()
+            Start-Sleep -Seconds 3
 
-        #復制捷徑到桌面及啟動
-        Create-Shortcut -TargetPath "C:\NHI\VHIC_virtual-nhicard+SDK+Setup-2.5.4\虛擬健保卡控制軟體-正式版.2.5.4.exe" -ShortcutPath "C:\users\public\desktop\虛擬健保卡控制軟體.lnk"
-        Create-Shortcut -TargetPath "C:\NHI\VHIC_virtual-nhicard+SDK+Setup-2.5.4\虛擬健保卡控制軟體-正式版.2.5.4.exe" -ShortcutPath "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\StartUp\虛擬健保卡控制軟體.lnk"
+            #復制捷徑到桌面及啟動
+            Create-Shortcut -TargetPath "C:\NHI\VHIC_virtual-nhicard+SDK+Setup-2.5.4\虛擬健保卡控制軟體-正式版.2.5.4.exe" -ShortcutPath "C:\users\public\desktop\虛擬健保卡控制軟體.lnk"
+            Create-Shortcut -TargetPath "C:\NHI\VHIC_virtual-nhicard+SDK+Setup-2.5.4\虛擬健保卡控制軟體-正式版.2.5.4.exe" -ShortcutPath "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\StartUp\虛擬健保卡控制軟體.lnk"
     
 
-        #open firewall
-        #netsh advfirewall firewall add rule name='Allow 虛擬健保卡控制軟體' dir=in action=allow program='C:\NHI\VHIC_virtual-nhicard+SDK+Setup-2.5.4\虛擬健保卡控制軟體-正式版.2.5.4.exe'
-        Start-Process netsh.exe -ArgumentList "advfirewall firewall add rule name='Allow 虛擬健保卡控制軟體' dir=in action=allow program='C:\NHI\VHIC_virtual-nhicard+SDK+Setup-2.5.4\虛擬健保卡控制軟體-正式版.2.5.4.exe'"
+            #open firewall
+            #netsh advfirewall firewall add rule name='Allow 虛擬健保卡控制軟體' dir=in action=allow program='C:\NHI\VHIC_virtual-nhicard+SDK+Setup-2.5.4\虛擬健保卡控制軟體-正式版.2.5.4.exe'
+            Start-Process netsh.exe -ArgumentList "advfirewall firewall add rule name='Allow 虛擬健保卡控制軟體' dir=in action=allow program='C:\NHI\VHIC_virtual-nhicard+SDK+Setup-2.5.4\虛擬健保卡控制軟體-正式版.2.5.4.exe'"
 
-        $log_string = "update virtualHC$count,$env:COMPUTERNAME,$ipv4,$(Get-OSVersion),$env:PROCESSOR_ARCHITECTURE,$(Get-Date)" 
-        $log_string | Add-Content -PassThru $log_file
-           
+            $log_string = "update virtualHC$count,$env:COMPUTERNAME,$ipv4,$(Get-OSVersion),$env:PROCESSOR_ARCHITECTURE,$(Get-Date)" 
+            $log_string | Add-Content -PassThru $log_file
+        }
     }
 
 
