@@ -21,6 +21,12 @@ function Set-mac2ip {
 
     Write-Output "目前Mac Address: $mac_add"
 
+    #向DHCP server的保留區查詢對應到的IP
+
+    #目前的IP
+   
+
+
 }
 
 #檔案獨立執行時會執行函式, 如果是被?入時不會執行函式.
