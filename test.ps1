@@ -1,3 +1,5 @@
+function check-OPDList {
+
 # 將變數 $json_file 設定為 JSON 檔案 "opd_list.json" 的路徑
 $json_file = "opd_list.json"
 
@@ -21,4 +23,4 @@ foreach ($o in $opd_json.psobject.properties) {
     }
  
 }
-    
+}
