@@ -35,19 +35,24 @@ function Set-mac2ip {
         Get-DhcpServerv4Reservation -ScopeId $scopeId
     }
     
+
+    $result = $null
     foreach ($s in $Scopes) {
         # 獲取當前作用域中所有已保留的 IP 地址
         $ReservedIps = Invoke-Command -ComputerName $dhcp_serve -ScriptBlock $script_block -ArgumentList $s.ScopeId
-
+        #Write-Host $s.ScopeId
+        
         foreach ($r in $ReservedIps) {
 
             if ("$($r.IPAddress)" -eq "$target_ip") {
                 $result = $r
-                $r | gm
-                break 2
+                #$result | Select-Object -Property * | Write-Host
+                break 
                
             }
         }
+        if ($result -ne $null) {break}
+        
     }
 
     Write-Host "=========================="
