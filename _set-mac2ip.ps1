@@ -42,13 +42,40 @@ function Set-mac2ip {
         foreach ($r in $ReservedIps) {
 
             if ("$($r.IPAddress)" -eq "$target_ip") {
-                $r.ClientId
+                $result = $r
+                $r | gm
                 break 2
                
             }
         }
+    }
+
+    Write-Host "=========================="
+    Write-Host "IP: $($result.IPAddress) 綁定的MAC Address為"
+    write-host "MAC: $($result.ClientID)"
+    Write-Host "是否要更改綁定為"
+    Write-Host "MAC: $($curr_ipconf.mac)"
+    Write-Host "請檢查以上數值是否正確, 下一步將修改DHCP server 上的資料" -ForegroundColor Red
+    Write-Host "=========================="
+    $yn = Read-Host "請輸入Y/N" 
+    
+
+    if ($yn -eq "y") {
+
+        #Set-DhcpServerv4Reservation -ScopeId "172.20.5.0" -IPAddress "保留 IP 地址" -ClientId "ClientID" -MacAddress "新的 MAC 地址"
+
+
 
     }
+
+
+
+    
+    
+
+    
+
+
 
     #向DHCP server的保留區查詢對應到的IP()
 
