@@ -8,20 +8,49 @@ function Get-MacAddress {
     #>
 
     $mac_addr = Get-WmiObject -Class Win32_NetworkAdapterConfiguration |
-          Where-Object {$_.IPAddress -ne $null -and $_.IPAddress[0] -like "1*" } |
-          Select-Object -Property MACaddress
-          
-    return $mac_addr.MACaddress
+    Where-Object { $_.IPAddress -ne $null -and $_.IPAddress[0] -like "1*" } 
+
+    return @{"ip" = $mac_addr.IPAddress[0]; "mac" = $mac_addr.MACaddress }
 }
 
 
 function Set-mac2ip {
 
-    $mac_add = Get-MacAddress
+    $curr_ipconf = Get-MacAddress
+    $dhcp_serve = "wcdc2"
 
-    Write-Output "目前Mac Address: $mac_add"
+    Write-Output "=========================="
+    Write-Output "當前電腦ip confing"
+    Write-Output "IP: $($curr_ipconf.ip)"
+    Write-Output "Mac Address: $($curr_ipconf.mac)"
+    Write-Output "=========================="
+    $target_ip = Read-Host "請輸入要綁定的IP"
 
-    #向DHCP server的保留區查詢對應到的IP
+    write-host "查詣DHCP:$dhcp_serve 中,請等待..."
+
+    $Scopes = Invoke-Command -ComputerName $dhcp_serve -ScriptBlock { Get-DhcpServerv4Scope }
+
+    $script_block = {
+        param($scopeId)
+        Get-DhcpServerv4Reservation -ScopeId $scopeId
+    }
+    
+    foreach ($s in $Scopes) {
+        # 獲取當前作用域中所有已保留的 IP 地址
+        $ReservedIps = Invoke-Command -ComputerName $dhcp_serve -ScriptBlock $script_block -ArgumentList $s.ScopeId
+
+        foreach ($r in $ReservedIps) {
+
+            if ("$($r.IPAddress)" -eq "$target_ip") {
+                $r.ClientId
+                break 2
+               
+            }
+        }
+
+    }
+
+    #向DHCP server的保留區查詢對應到的IP()
 
     #目前的IP
    
