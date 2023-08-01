@@ -53,7 +53,7 @@ function Set-mac2ip {
                
             }
         }
-        if ($result -ne $null) {break}
+        if ($result -ne $null) { break }
         
     }
 
@@ -72,16 +72,22 @@ function Set-mac2ip {
 
         $script_block_setMAC = @{
             ComputerName = $dhcp_server;
-            ScriptBlock = { Set-DhcpServerv4Reservation -IPAddress $args[0] -ClientId $args[1] };
-            ArgumentList = @($($result.IPAddress),$($curr_ipconf.mac).replace(":","-"))
-            
+            ScriptBlock  = { Set-DhcpServerv4Reservation -IPAddress $args[0] -ClientId $args[1] };
+            ArgumentList = @($($result.IPAddress), $($curr_ipconf.mac).replace(":", "-")) #wmi查到的mac用:分隔,改成-號
         }
+
         Invoke-Command @script_block_setMAC
 
+        if (!$Error) {
 
-        #Set-DhcpServerv4Reservation -ScopeId $result.ScopeId -IPAddress $result.IPAddress -ClientId $curr_ipconf 
-        #Invoke-Command -ComputerName $dhcp_serve -ScriptBlock $script_block_setMAC -ArgumentList "-ip '$($result.IPAddress)' -mac '$($curr_ipconf.mac)'"
-        #Set-DhcpServerv4Reservation -ScopeId "172.20.5.128" -IPAddress "172.20.5.185" -ClientId "1c-69-7a-3d-50-b3" 
+            Write-Host "Mac Address綁定完成."
+
+            Write-Host "重新取得IP中,請等待..."
+
+            Invoke-Expression -Command "ipconfig /release"
+
+            Invoke-Expression -Command "ipconfig /renew"
+        }
 
     }
 
