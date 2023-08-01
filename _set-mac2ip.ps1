@@ -17,7 +17,7 @@ function Get-MacAddress {
 function Set-mac2ip {
 
     $curr_ipconf = Get-MacAddress
-    $dhcp_serve = "wcdc2"
+    $dhcp_server = "wcdc2"
 
     Write-Output "=========================="
     Write-Output "當前電腦ip confing"
@@ -26,27 +26,29 @@ function Set-mac2ip {
     Write-Output "=========================="
     $target_ip = Read-Host "請輸入要綁定的IP"
 
-    write-host "查詣DHCP:$dhcp_serve 中,請等待..."
+    write-host "查詣DHCP:$dhcp_server 中,請等待..."
 
-    $Scopes = Invoke-Command -ComputerName $dhcp_serve -ScriptBlock { Get-DhcpServerv4Scope }
+    $Scopes = Invoke-Command -ComputerName $dhcp_server -ScriptBlock { Get-DhcpServerv4Scope }
 
     $script_block = {
         param($scopeId)
         Get-DhcpServerv4Reservation -ScopeId $scopeId
     }
-    
+
+   
 
     $result = $null
     foreach ($s in $Scopes) {
         # 獲取當前作用域中所有已保留的 IP 地址
-        $ReservedIps = Invoke-Command -ComputerName $dhcp_serve -ScriptBlock $script_block -ArgumentList $s.ScopeId
+        $ReservedIps = Invoke-Command -ComputerName $dhcp_server -ScriptBlock $script_block -ArgumentList $s.ScopeId
         #Write-Host $s.ScopeId
         
         foreach ($r in $ReservedIps) {
 
             if ("$($r.IPAddress)" -eq "$target_ip") {
                 $result = $r
-                #$result | Select-Object -Property * | Write-Host
+                $result | Select-Object -Property * | Write-Host
+                
                 break 
                
             }
@@ -63,13 +65,23 @@ function Set-mac2ip {
     Write-Host "請檢查以上數值是否正確, 下一步將修改DHCP server 上的資料" -ForegroundColor Red
     Write-Host "=========================="
     $yn = Read-Host "請輸入Y/N" 
-    
+
+   
 
     if ($yn -eq "y") {
 
-        #Set-DhcpServerv4Reservation -ScopeId "172.20.5.0" -IPAddress "保留 IP 地址" -ClientId "ClientID" -MacAddress "新的 MAC 地址"
+        $script_block_setMAC = @{
+            ComputerName = $dhcp_server;
+            ScriptBlock = { Set-DhcpServerv4Reservation -IPAddress $args[0] -ClientId $args[1] };
+            ArgumentList = @($($result.IPAddress),$($curr_ipconf.mac).replace(":","-"))
+            
+        }
+        Invoke-Command @script_block_setMAC
 
 
+        #Set-DhcpServerv4Reservation -ScopeId $result.ScopeId -IPAddress $result.IPAddress -ClientId $curr_ipconf 
+        #Invoke-Command -ComputerName $dhcp_serve -ScriptBlock $script_block_setMAC -ArgumentList "-ip '$($result.IPAddress)' -mac '$($curr_ipconf.mac)'"
+        #Set-DhcpServerv4Reservation -ScopeId "172.20.5.128" -IPAddress "172.20.5.185" -ClientId "1c-69-7a-3d-50-b3" 
 
     }
 

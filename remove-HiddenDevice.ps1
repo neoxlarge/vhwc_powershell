@@ -7,6 +7,7 @@
 
 param($runadmin)
 
+#todo: 部分系統旳pnputil.exe沒有remove-device
 function remove-HiddenDevice {
 
   $dev =  Get-PnpDevice | Where-Object -FilterScript {$_.Present -eq $false -and $_.Class -in ('SmartCard','SmartCardReader','SmartCardFilter')}
