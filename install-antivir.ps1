@@ -29,8 +29,13 @@ function install-AntiVir {
 
         #復制檔案到temp
         $software_path = get-item -Path $software_path
-           
-        Copy-Item -Path $software_path -Destination $env:temp -Recurse -Force -Verbose -Credential $credential
+                
+        #copy-item 無法接認證, 須要從psdrive接, 所以要掛driver.
+        $net_driver = "vhwcdrive" #只是給個driver名字而己.
+        New-PSDrive -Name $net_driver -Root $software_path -PSProvider FileSystem -Credential $credential
+        Copy-Item -Path "$($net_driver):\" -Destination $env:TEMP -Recurse -Force -Verbose 
+        Remove-PSDrive -Name $net_driver
+
 
         ## 判斷OS是32(x86)或是64(AMD64), 其他值(ARM64)不安裝  
         switch ($env:PROCESSOR_ARCHITECTURE) {

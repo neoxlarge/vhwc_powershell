@@ -8,7 +8,7 @@ Import-Module ((Split-Path $PSCommandPath) + "\get-installedprogramlist.psm1")
 function install-WinNexus {
     # 安裝Winnexus
     $software_name = "WinNexus"
-    #$software_path = "\\172.20.5.187\mis\13-Winnexus\Winnexus_1.2.4.7"
+    #$software_path = "\\172.20.5.187\mis\13-Winnexus\Winnexus_1.2.4.7\13-Winnexus"
     $software_path = "\\172.20.1.122\share\software\00newpc\13-Winnexus"
     $software_exec = "Install_Desktop.1.2.4.7.exe"
 
@@ -29,8 +29,12 @@ function install-WinNexus {
 
         $software_path = get-item -Path $software_path
         
-        #復制檔案到D:\mis
-        Copy-Item -Path $software_path -Destination $env:TEMP -Recurse -Force -Verbose -Credential $credential
+        #復制檔案到temp
+        #copy-item 無法接認證, 須要從psdrive接, 所以要掛driver.
+        $net_driver = "vhwcdrive" #只是給個driver名字而己.
+        New-PSDrive -Name $net_driver -Root $software_path -PSProvider FileSystem -Credential $credential
+        Copy-Item -Path "$($net_driver):\" -Destination $env:TEMP -Recurse -Force -Verbose
+        Remove-PSDrive -Name $net_driver
 
         #installing...
         Start-Process -FilePath ($env:TEMP + "\" + $software_path.Name + "\" + $software_exec) -ArgumentList ("/suppressmsgboxes /log:install_winnexus.log") -Wait

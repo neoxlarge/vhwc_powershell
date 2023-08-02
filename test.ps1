@@ -24,3 +24,7 @@ foreach ($o in $opd_json.psobject.properties) {
  
 }
 }
+
+
+Write-Host (get-item -path $PSCommandPath).DirectoryName
+Pause
