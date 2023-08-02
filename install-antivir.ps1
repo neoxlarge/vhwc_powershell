@@ -14,6 +14,11 @@ function install-AntiVir {
     $software_msi_x64 = "agent_cloud_x64.msi"
     $software_msi_x32 = "agent_cloud_x86.msi"
 
+    $Username = "vhcy\vhwcmis"
+    $Password = "Mis20190610"
+    $securePassword = ConvertTo-SecureString $Password -AsPlainText -Force
+    $credential = New-Object System.Management.Automation.PSCredential($Username, $securePassword)
+
     $all_installed_program = get-installedprogramlist
       
     $software_is_installed = $all_installed_program | Where-Object -FilterScript { $_.DisplayName -like $software_name }
@@ -25,7 +30,7 @@ function install-AntiVir {
         #復制檔案到temp
         $software_path = get-item -Path $software_path
            
-        Copy-Item -Path $software_path -Destination $env:temp -Recurse -Force -Verbose
+        Copy-Item -Path $software_path -Destination $env:temp -Recurse -Force -Verbose -Credential $credential
 
         ## 判斷OS是32(x86)或是64(AMD64), 其他值(ARM64)不安裝  
         switch ($env:PROCESSOR_ARCHITECTURE) {

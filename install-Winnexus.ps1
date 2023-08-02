@@ -12,6 +12,11 @@ function install-WinNexus {
     $software_path = "\\172.20.1.122\share\software\00newpc\13-Winnexus"
     $software_exec = "Install_Desktop.1.2.4.7.exe"
 
+    $Username = "vhcy\vhwcmis"
+    $Password = "Mis20190610"
+    $securePassword = ConvertTo-SecureString $Password -AsPlainText -Force
+    $credential = New-Object System.Management.Automation.PSCredential($Username, $securePassword)
+
     ## 找出軟體是否己安裝
 
     $all_installed_program = get-installedprogramlist
@@ -25,7 +30,7 @@ function install-WinNexus {
         $software_path = get-item -Path $software_path
         
         #復制檔案到D:\mis
-        Copy-Item -Path $software_path -Destination $env:TEMP -Recurse -Force -Verbose
+        Copy-Item -Path $software_path -Destination $env:TEMP -Recurse -Force -Verbose -Credential $credential
 
         #installing...
         Start-Process -FilePath ($env:TEMP + "\" + $software_path.Name + "\" + $software_exec) -ArgumentList ("/suppressmsgboxes /log:install_winnexus.log") -Wait
