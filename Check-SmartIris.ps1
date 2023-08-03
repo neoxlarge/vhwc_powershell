@@ -87,11 +87,11 @@ function check-SmartIris {
 
     if (Test-Path -Path $ini_path) {
         Write-output "設定UltraQuery."
-        Write-Output "寫入電腦名稱$($env:COMPUTERNAME)到AEtitle."
+        Write-Output "寫入電腦名稱$(($env:COMPUTERNAME).toLower())到AEtitle."
 
         $ini = Parse-IniFile -Path $ini_path
         
-        $ini.LocalSetting.AETitle = $env:COMPUTERNAME
+        $ini.LocalSetting.AETitle = $($env:COMPUTERNAME).ToLower()
         
         save-iniFile -ini $ini -path $ini_path
     }
