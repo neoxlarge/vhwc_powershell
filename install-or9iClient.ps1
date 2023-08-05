@@ -54,7 +54,7 @@ function install-or9iclient {
         $responsefile = "$env:TEMP\$($responsefile.Split("\")[-1])"
 
         $install_exe = "$($DriverLetter):\install\win32\setup.exe"
-        $install_arrg = "-slient -nowelcome -responseFile $responsefile"
+        $install_arrg = "-silent -nowelcome -responseFile $responsefile"
 
 
         #安裝會呼叫javaw.exe來安裝，並且寫入log.
@@ -63,17 +63,19 @@ function install-or9iclient {
     
         #清空log
         switch ($env:PROCESSOR_ARCHITECTURE) {
-            "x86" { $log_path = "$($env:ProgramFiles)\Oracle\Inventory\log" }
-            "AMD64" { $log_path = "${env:ProgramFiles(x86)}\Oracle\Inventory\log" }
+            "x86" { $log_path = "$($env:ProgramFiles)\Oracle\Inventory\logs" }
+            "AMD64" { $log_path = "${env:ProgramFiles(x86)}\Oracle\Inventory\logs" }
         }
-        Remove-Item "$log_file\." -Recurse -Force
+
+        Remove-Item "$log_path\." -Recurse -Force -ErrorAction SilentlyContinue
 
         #執行安裝oracle 9i client
         Start-Process -FilePath $install_exe -ArgumentList $install_arrg -Wait 
 
         do {
-            $log = Get-ChildItem -Path $log_path -File "*.log"
+            $log = Get-ChildItem -Path $log_path -File "*.log" -ErrorAction SilentlyContinue
             Start-Sleep -Milliseconds 100
+            Write-Output "wait log"
         } until ( $log -ne $null )
 
         do {
@@ -114,7 +116,7 @@ function install-or9iclient {
         #復制oracle 9i 設定當
         $ora = "\\172.20.1.122\share\software\00newpc\01-Oracle9i_BDE\03-Oracle_ora\tnsnames.ora"
 
-        Copy-Item -Path $ora -Destination "C:\Oracle\network\ADMIN\" -Force -Verbose -Verbose
+        Copy-Item -Path $ora -Destination "C:\Oracle\network\ADMIN\" -Force -Verbose
 
         Write-Output "Oracle 9i Client 安裝結束."
 
@@ -123,7 +125,7 @@ function install-or9iclient {
 }
 
 
-install-BDE {
+function install-BDE {
     #install Borland DataBase Engine
 
 
