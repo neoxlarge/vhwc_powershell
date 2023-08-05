@@ -32,6 +32,13 @@ function install-SmartIris {
             Start-Sleep -Seconds 1
         }
 
+        #依照 \\172.19.1.14\Update\資訊室\共用程式\SmartIris\SmartIris更版SOP.doc
+        #步驟三：
+        #\\172.19.1.14\Update\資訊室\共用程式\SmartIris\UltraQuery_V1.1.1.0_Update_20200731
+        # 全選複製到C:\TEDPC\SmartIris\UltraQuery並覆蓋
+
+        copy-item -Path "\\172.19.1.14\Update\資訊室\共用程式\SmartIris\UltraQuery_V1.1.1.0_Update_20200731\*" -Destination "C:\TEDPC\SmartIris\UltraQuery" -Recurse -Force
+
         #復制設定檔到本機.
         copy-item -Path "\\172.20.5.187\mis\02-SmartIris\vhwc_UltraQuery_SysIni\*" -Destination "C:\TEDPC\SmartIris\UltraQuery\SysIni" -Force
  
