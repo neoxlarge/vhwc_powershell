@@ -40,9 +40,17 @@ function install-or9iclient {
     if ($check_or9i -eq $false) {
         Write-Host "Oracle 9i Client 進行安裝:"
 
-        #掛載oracle 9i client iso 檔.
+        #掛載oracle 9i client iso 檔. 再把磁硬機代號改到x:
         $MountedDisk = Mount-DiskImage -ImagePath $ImagePath -PassThru
         $DriverLetter = ($MountedDisk | Get-Volume).DriveLetter
+        # 獲取需要更改代號的分區
+        $partition = Get-Partition -DriveLetter "$($DriverLetter):"
+        # 移除原有的磁碟機代號
+        Remove-PartitionAccessPath -Partition $partition -AccessPath "$($DriverLetter):"
+        # 分配新的磁碟機代號
+        Set-Partition -Partition $partition -NewDriveLetter x:
+
+
         if ($Error) {
             # 控制台上輸出錯誤消息
             #注意，在某些情況下，如果掛載未成功，則 Mount-DiskImage 命令可能不會返回任何值。在這種情況下，您可以通過檢查 $Error 變量來確定是否發生錯誤
@@ -150,9 +158,9 @@ install-BDE {
         $os = Get-OSVersion
 
         switch ($os) {
-            "Windows 7" { $cfg_file = "\\172.20.1.122\share\software\00newpc\01-Oracle9i_BDE\03-BDE_cfg\idapi32-Win7-1100203.cfg"}
-            "Windows 10" { $cfg_file = "\\172.20.1.122\share\software\00newpc\01-Oracle9i_BDE\03-BDE_cfg\idapi32-Win10-1100217.cfg"} 
-            default { $cfg_file = "\\172.20.1.122\share\software\00newpc\01-Oracle9i_BDE\03-BDE_cfg\idapi32-Win10-1100217.cfg"}
+            "Windows 7" { $cfg_file = "\\172.20.1.122\share\software\00newpc\01-Oracle9i_BDE\03-BDE_cfg\idapi32-Win7-1100203.cfg" }
+            "Windows 10" { $cfg_file = "\\172.20.1.122\share\software\00newpc\01-Oracle9i_BDE\03-BDE_cfg\idapi32-Win10-1100217.cfg" } 
+            default { $cfg_file = "\\172.20.1.122\share\software\00newpc\01-Oracle9i_BDE\03-BDE_cfg\idapi32-Win10-1100217.cfg" }
         }
 
         switch ($env:PROCESSOR_ARCHITECTURE) {
