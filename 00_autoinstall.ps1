@@ -41,6 +41,11 @@ Enable-NetFx3
 Import-Module ((Split-Path $PSCommandPath) + "\copy-vghtc.ps1")
 copy-vghtc
 
+# install Oracle 9i Client and BDE
+Import-Module ((Split-Path $PSCommandPath) + "\install-or9iClient.ps1")
+install-or9iclient
+install-BDE
+
 # install 7z
 Import-Module ((Split-Path $PSCommandPath) + "\install-7z.ps1")
 install-7Z

@@ -165,7 +165,7 @@ function install-BDE {
         Start-Sleep -Seconds 2
 
         #復制BDE資料夾, 其中有SQLORA8.DLL等檔案
-        Copy-Item -Path "$($env:temp)\BDE\BDE DISK\Common\Borland Shared\BDE\*" -Destination "C:\Program Files (x86)\Common Files\Borland Shared\BDE\" -Force -Verbose -Recurse   
+        Copy-Item -Path "$($env:temp)\BDE\BDE DISK\Common\Borland Shared\BDE\*" -Destination "C:\Program Files (x86)\Common Files\Borland Shared\BDE\" -Force -Recurse   
 
         #復制設定檔
         #設定檔有分win7, win10
