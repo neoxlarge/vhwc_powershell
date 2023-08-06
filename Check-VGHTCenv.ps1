@@ -80,37 +80,45 @@ function Check-VGHTCenv {
 
     Remove-PSDrive -Name HKCR
 
-    #檢查系統環境變數 3
-    $setting_file = "C:\VGHTC\00_mis\中榮iccard環境變數設定.bat"
-    Write-Output "執行環境設定: $setting_file"
-    $path = "C:\VGHTC\ICCard"
-    $result = Check-EnvPathContains $path
-
-    if ($result -eq $false) {
+    #檢查系統環境變數
+    Write-Output "檢查系統環境變數:"
     
-        Write-Warning "系統環境變數中不包含 C:\VGHTC\ICCard"
+    #環境變數清單
+    $pathsToCheck = @(
+        "C:\vhgp",
+        "C:\vhgp\HISDll",
+        "C:\vhgp\ICCard",
+        "C:\VGHTC\ICCard",
+        "C:\oracle\ora92\bin",
+        "C:\Program Files\Oracle\jre\1.3.1\bin",
+        "C:\Program Files\Oracle\jre\1.1.8\bin",
+        "C:\Program Files\Oracle\oui\bin"
+    )
         
-        if ($check_admin) {
-            if (Test-Path $setting_file) {
-                Write-Output "執行設定檔: $setting_file"
-                Start-Process -FilePath "cmd.exe" -ArgumentList "/c $setting_file"  -Wait
-            }
-            else {
-                Write-Warning "設定檔不存在: $setting_file"
-            }
+    $currentPaths = $env:Path -split ';'
+        
+    foreach ($path in $pathsToCheck) {
+        if (-not $currentPaths.Contains($path)) {
+            $currentPaths += $path
+            Write-Warning "$path 不存在, 須新增"
         }
         else {
-        
-            Write-Warning "沒有系統管理員權限,無法執行$setting_file ,請以系統管理員身分重新嘗試."
+            Write-Output "$path 己存在"
         }
-    
     }
-    elseif ($result -eq $true) {
+        
+    $newPath = $currentPaths -join ';'
 
-        Write-Output "系統環境變數中包含$path"
-        Write-Output "不需執行 $setting_file "
 
+    if ($check_admin) {
+        #想要在系統中新增或更新環境變數需要使用 System.Environment 類別的 GetEnvironmentVariable 和 SetEnvironmentVariable 方法。
+        [Environment]::SetEnvironmentVariable("Path", $newPath, [EnvironmentVariableTarget]::Machine)
+        Write-Output "檢查系統環境變數更新完成" 
     }
+    else {
+        Write-Warning "沒有系統管理員權限,無法變更環境參數 ,請以系統管理員身分重新嘗試."
+    }
+
 }
 
 

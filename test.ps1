@@ -28,3 +28,12 @@ foreach ($o in $opd_json.psobject.properties) {
 
 Write-Host (get-item -path $PSCommandPath).DirectoryName
 Pause
+
+# 取得環境變數的值
+$paths = $env:Path -split ';'
+
+# 使用 Get-Unique cmdlet 排除重覆的路徑
+$uniquePaths = $paths | Get-Unique
+
+# 輸出結果
+Write-Output $uniquePaths
