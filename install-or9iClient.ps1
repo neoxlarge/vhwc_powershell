@@ -33,17 +33,18 @@ function install-or9iclient {
     #2. c:\oracle\ora92 是否存在
 
     $check_or9i = Test-Path -Path "c:\oracle\ora92\bin"
-
+    
+    #responsefile 為Oracle univeral Install 自動安裝 silent install時必須.
     $responsefile = "\\172.20.1.122\share\software\00newpc\01-Oracle9i_BDE\03-Oracle_ora\silentinstall.rsp"
+    #iso檔
     $ImagePath = "\\172.20.1.122\share\software\00newpc\01-Oracle9i_BDE\01-oracle9i_client.iso"
 
     if ($check_or9i -eq $false) {
         Write-Host "Oracle 9i Client 進行安裝:"
 
-        #掛載oracle 9i client iso 檔. 再把磁硬機代號改到x:
+        #掛載oracle 9i client iso 檔. 
         $MountedDisk = Mount-DiskImage -ImagePath $ImagePath -PassThru
         $DriverLetter = ($MountedDisk | Get-Volume).DriveLetter
-
 
         if ($Error) {
             # 控制台上輸出錯誤消息
@@ -51,10 +52,12 @@ function install-or9iclient {
             $Error[0].Exception.Message
         }
 
+
         #復制responsefile 到本機, 並更新路徑到本機
-        Copy-Item -Path $responsefile -Destination $env:TEMP -Force -Verbose
+        Copy-Item -Path $responsefile -Destination $env:TEMP -Force
         $responsefile = "$env:TEMP\$($responsefile.Split("\")[-1])"
 
+        #安裝檔的路徑和安裝參數
         $install_exe = "$($DriverLetter):\install\win32\setup.exe"
         $install_arrg = "-silent -nowelcome -responseFile $responsefile"
 
@@ -77,19 +80,21 @@ function install-or9iclient {
         do {
             $log = Get-ChildItem -Path $log_path -File "*.log" -ErrorAction SilentlyContinue
             Start-Sleep -Milliseconds 100
-            Write-Output "wait log"
+            Write-Output "等待Oracle 9i Client 安裝中: wait log"
         } until ( $log -ne $null )
 
         do {
             $proc = Get-Process -Name javaw -ErrorAction SilentlyContinue
             Start-Sleep -Milliseconds 100
-            Write-Host "wait javaw"
-        } until ( !$proc )
+            Write-Host "等待Oracle 9i Client 安裝中: wait javaw"
+        } until ( $proc -eq $null)
+        
         #silent安裝結束
 
+        #unmount iso
         Dismount-DiskImage -ImagePath $ImagePath
     
-        #修改環境變數
+        #修改系統環境變數
         #檢查清單: 必須都存在, jre路徑錯, 會讓net manager開不起來.
         #C:\oracle\ora92\bin
         #C:\Program Files\Oracle\jre\1.3.1\bin
@@ -118,13 +123,16 @@ function install-or9iclient {
         $newPath = $currentPaths -join ';'
         [Environment]::SetEnvironmentVariable("Path", $newPath, [EnvironmentVariableTarget]::Machine)
     
-        #復制oracle 9i 設定當
+        #復制oracle 9i 設定檔
         $ora = "\\172.20.1.122\share\software\00newpc\01-Oracle9i_BDE\03-Oracle_ora\tnsnames.ora"
 
         Copy-Item -Path $ora -Destination "C:\oracle\ora92\network\ADMIN" -Force -Verbose
 
         Write-Output "Oracle 9i Client 安裝結束."
 
+    }
+    else {
+        Write-Host "Oracle 9i Client 己安裝."
     }
 
 }
@@ -148,10 +156,15 @@ function install-BDE {
         Expand-Archive -Path $software_path -DestinationPath "$($env:temp)\BDE" -force
         $install_exe = Get-ChildItem -Path "$($env:temp)\BDE" -Name setup.exe -Recurse
 
+        #BDE的安裝似乎不是borland原始的安裝, 所以/S失去silent install作用, 
+        #用msiexec 的/passive安?, 再補上缺少的部分.
+        
+        #執行安裝
         Start-Process -FilePath "$($env:temp)\BDE\$install_exe" -ArgumentList "/S /V/passive" -Wait
-        #Start-Process -FilePath "D:\BDE DISK\setup.exe" -ArgumentList "/S /V/passive" -Wait
+        
         Start-Sleep -Seconds 2
 
+        #復制BDE資料夾, 其中有SQLORA8.DLL等檔案
         Copy-Item -Path "$($env:temp)\BDE\BDE DISK\Common\Borland Shared\BDE\*" -Destination "C:\Program Files (x86)\Common Files\Borland Shared\BDE\" -Force -Verbose -Recurse   
 
         #復制設定檔
@@ -173,52 +186,58 @@ function install-BDE {
         
         Copy-Item -Path $cfg_file -Destination $dest_path -Force
 
-        #調整設定值
-       $registryPath1 = "HKLM:\SOFTWARE\WOW6432Node\Borland\Database Engine\Settings\DRIVERS\ORACLE\DB OPEN"
-       $registryPath2 = "HKLM:\SOFTWARE\WOW6432Node\Borland\Database Engine\Settings\DRIVERS\ORACLE\INIT"
+        #調整設定值, 自動安裝不會建立底下的registry, 自行建立
+        $registryPath1 = "HKLM:\SOFTWARE\WOW6432Node\Borland\Database Engine\Settings\DRIVERS\ORACLE\DB OPEN"
+        $registryPath2 = "HKLM:\SOFTWARE\WOW6432Node\Borland\Database Engine\Settings\DRIVERS\ORACLE\INIT"
        
-       # 檢查並創建路徑
-       if (!(Test-Path $registryPath1)) {
-           New-Item -Path $registryPath1 -Force | Out-Null
-       }
-       if (!(Test-Path $registryPath2)) {
-           New-Item -Path $registryPath2 -Force | Out-Null
-       }
+        # 檢查並創建路徑
+        if (!(Test-Path $registryPath1)) {
+            New-Item -Path $registryPath1 -Force | Out-Null
+        }
+        if (!(Test-Path $registryPath2)) {
+            New-Item -Path $registryPath2 -Force | Out-Null
+        }
        
-       # 設置註冊表鍵值對
-       Set-ItemProperty -Path $registryPath1 -Name "SERVER NAME" -Value "ORA_SERVER"
-       Set-ItemProperty -Path $registryPath1 -Name "USER NAME" -Value "MYNAME"
-       Set-ItemProperty -Path $registryPath1 -Name "NET PROTOCOL" -Value "TNS"
-       Set-ItemProperty -Path $registryPath1 -Name "OPEN MODE" -Value "READ/WRITE"
-       Set-ItemProperty -Path $registryPath1 -Name "SCHEMA CACHE SIZE" -Value "8"
-       Set-ItemProperty -Path $registryPath1 -Name "LANGDRIVER" -Value ""
-       Set-ItemProperty -Path $registryPath1 -Name "SQLQRYMODE" -Value ""
-       Set-ItemProperty -Path $registryPath1 -Name "SQLPASSTHRU MODE" -Value "SHARED AUTOCOMMIT"
-       Set-ItemProperty -Path $registryPath1 -Name "SCHEMA CACHE TIME" -Value "-1"
-       Set-ItemProperty -Path $registryPath1 -Name "MAX ROWS" -Value "-1"
-       Set-ItemProperty -Path $registryPath1 -Name "BATCH COUNT" -Value "200"
-       Set-ItemProperty -Path $registryPath1 -Name "ENABLE SCHEMA CACHE" -Value "FALSE"
-       Set-ItemProperty -Path $registryPath1 -Name "SCHEMA CACHE DIR" -Value ""
-       Set-ItemProperty -Path $registryPath1 -Name "ENABLE BCD" -Value "FALSE"
-       Set-ItemProperty -Path $registryPath1 -Name "ENABLE INTEGERS" -Value "FALSE"
-       Set-ItemProperty -Path $registryPath1 -Name "LIST SYNONYMS" -Value "NONE"
-       Set-ItemProperty -Path $registryPath1 -Name "ROWSET SIZE" -Value "20"
-       Set-ItemProperty -Path $registryPath1 -Name "BLOBS TO CACHE" -Value "64"
-       Set-ItemProperty -Path $registryPath1 -Name "BLOB SIZE" -Value "32"
-       Set-ItemProperty -Path $registryPath1 -Name "OBJECT MODE" -Value "TRUE"
+        # 設置註冊表鍵值對
+        Set-ItemProperty -Path $registryPath1 -Name "SERVER NAME" -Value "ORA_SERVER"
+        Set-ItemProperty -Path $registryPath1 -Name "USER NAME" -Value "MYNAME"
+        Set-ItemProperty -Path $registryPath1 -Name "NET PROTOCOL" -Value "TNS"
+        Set-ItemProperty -Path $registryPath1 -Name "OPEN MODE" -Value "READ/WRITE"
+        Set-ItemProperty -Path $registryPath1 -Name "SCHEMA CACHE SIZE" -Value "8"
+        Set-ItemProperty -Path $registryPath1 -Name "LANGDRIVER" -Value ""
+        Set-ItemProperty -Path $registryPath1 -Name "SQLQRYMODE" -Value ""
+        Set-ItemProperty -Path $registryPath1 -Name "SQLPASSTHRU MODE" -Value "SHARED AUTOCOMMIT"
+        Set-ItemProperty -Path $registryPath1 -Name "SCHEMA CACHE TIME" -Value "-1"
+        Set-ItemProperty -Path $registryPath1 -Name "MAX ROWS" -Value "-1"
+        Set-ItemProperty -Path $registryPath1 -Name "BATCH COUNT" -Value "200"
+        Set-ItemProperty -Path $registryPath1 -Name "ENABLE SCHEMA CACHE" -Value "FALSE"
+        Set-ItemProperty -Path $registryPath1 -Name "SCHEMA CACHE DIR" -Value ""
+        Set-ItemProperty -Path $registryPath1 -Name "ENABLE BCD" -Value "FALSE"
+        Set-ItemProperty -Path $registryPath1 -Name "ENABLE INTEGERS" -Value "FALSE"
+        Set-ItemProperty -Path $registryPath1 -Name "LIST SYNONYMS" -Value "NONE"
+        Set-ItemProperty -Path $registryPath1 -Name "ROWSET SIZE" -Value "20"
+        Set-ItemProperty -Path $registryPath1 -Name "BLOBS TO CACHE" -Value "64"
+        Set-ItemProperty -Path $registryPath1 -Name "BLOB SIZE" -Value "32"
+        Set-ItemProperty -Path $registryPath1 -Name "OBJECT MODE" -Value "TRUE"
        
-       Set-ItemProperty -Path $registryPath2 -Name "VERSION" -Value "4.0"
-       Set-ItemProperty -Path $registryPath2 -Name "TYPE" -Value "SERVER"
-       Set-ItemProperty -Path $registryPath2 -Name "DLL32" -Value "SQLORA8.DLL"
-       Set-ItemProperty -Path $registryPath2 -Name "VENDOR INIT" -Value "OCI.DLL"
-       Set-ItemProperty -Path $registryPath2 -Name "DRIVER FLAGS" -Value ""
-       Set-ItemProperty -Path $registryPath2 -Name "TRACE MODE" -Value "0"
-       Set-ItemProperty -Path $registryPath2 -Name "VENDOR" -Value "OCI.DLL"
+        Set-ItemProperty -Path $registryPath2 -Name "VERSION" -Value "4.0"
+        Set-ItemProperty -Path $registryPath2 -Name "TYPE" -Value "SERVER"
+        Set-ItemProperty -Path $registryPath2 -Name "DLL32" -Value "SQLORA8.DLL"
+        Set-ItemProperty -Path $registryPath2 -Name "VENDOR INIT" -Value "OCI.DLL"
+        Set-ItemProperty -Path $registryPath2 -Name "DRIVER FLAGS" -Value ""
+        Set-ItemProperty -Path $registryPath2 -Name "TRACE MODE" -Value "0"
+        Set-ItemProperty -Path $registryPath2 -Name "VENDOR" -Value "OCI.DLL"
        
-        Write-Output "Borland DataBase Engine 安裝結束."
+        # Borland DataBase Engine 安裝結束
+
+        #安裝完, 再重新取得安裝資訊
+        $all_installed_program = get-installedprogramlist
+        $software_is_installed = $all_installed_program | Where-Object -FilterScript { $_.DisplayName -like $software_name }
 
     }
-   
+    
+    Write-Output ("Software has installed: " + $software_is_installed.DisplayName)
+    Write-Output ("Version: " + $software_is_installed.DisplayVersion)
     
 
 }
