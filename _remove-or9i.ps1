@@ -5,8 +5,12 @@ function remove-or9i {
 
     $path = "HKLM:\SOFTWARE\WOW6432Node\ORACLE", 
             "C:\oracle",
-            "C:\Program Files (x86)\Oracle"
-            "C:\Program Files\Oracle"
+            "C:\Program Files (x86)\Oracle",
+            "C:\Program Files\Oracle",
+            "C:\Program Files (x86)\Common Files\Borland Shared",
+            "HKLM:\SOFTWARE\WOW6432Node\Borland"
+
+
 
     foreach ($p in $path) {
         if (Test-Path -Path $p) {
