@@ -14,99 +14,108 @@ function Parse-IniFile {
     這個函數使用了 PowerShell 的進階參數處理機制來處理路徑參數，並在讀取 .ini 檔案的每一行時進行適當的解析。函數還使用了註解來說明每個部分的功能，讓程式碼更易於理解和維護。
     #>
     
-        # 使用 [CmdletBinding()] 屬性來開啟進階的參數處理
-        # 這允許在函數中使用進階參數，例如 Mandatory、ParameterSetName 等
-        [CmdletBinding()]
-        param (
-            # 使用 [Parameter()] 屬性來指定必要的路徑參數
-            [Parameter(Mandatory = $true)]
-            [string]$Path
-        )
+    # 使用 [CmdletBinding()] 屬性來開啟進階的參數處理
+    # 這允許在函數中使用進階參數，例如 Mandatory、ParameterSetName 等
+    [CmdletBinding()]
+    param (
+        # 使用 [Parameter()] 屬性來指定必要的路徑參數
+        [Parameter(Mandatory = $true)]
+        [string]$Path
+    )
      
-        # 確保檔案存在
-        if (-not (Test-Path $Path)) {
-            throw "The file '$Path' does not exist."
-        }
-     
-        # 初始化一個空的雜湊表，用於存儲解析後的 .ini 內容
-        $ini = @{}
-     
-        # 初始化一個空的節點名稱變數，用於解析目前的節點
-        $section = ""
-     
-        # 讀取 .ini 檔案中的每一行
-        Get-Content $Path | ForEach-Object {
-            # 去除每行前後的空格
-            $line = $_.Trim()
-     
-            # 如果該行是節點名稱，則解析出節點名稱並初始化一個新的雜湊表
-            if ($line -match "^\[.*\]$") {
-                $section = $line.Substring(1, $line.Length - 2)
-                $ini[$section] = @{}
-            }
-            # 如果該行是鍵值對，則解析出鍵和值，並將其存入目前節點的雜湊表中
-            elseif ($line -match "^([^=]+)=(.*)$") {
-                $key = $matches[1].Trim()
-                $value = $matches[2].Trim()
-                $ini[$section][$key] = $value
-            }
-        }
-     
-        # 返回解析後的 .ini 內容雜湊表
-        return $ini
-    
+    # 確保檔案存在
+    if (-not (Test-Path $Path)) {
+        throw "The file '$Path' does not exist."
     }
+     
+    # 初始化一個空的雜湊表，用於存儲解析後的 .ini 內容
+    $ini = @{}
+     
+    # 初始化一個空的節點名稱變數，用於解析目前的節點
+    $section = ""
+     
+    # 讀取 .ini 檔案中的每一行
+    Get-Content $Path | ForEach-Object {
+        # 去除每行前後的空格
+        $line = $_.Trim()
+     
+        # 如果該行是節點名稱，則解析出節點名稱並初始化一個新的雜湊表
+        if ($line -match "^\[.*\]$") {
+            $section = $line.Substring(1, $line.Length - 2)
+            $ini[$section] = @{}
+        }
+        # 如果該行是鍵值對，則解析出鍵和值，並將其存入目前節點的雜湊表中
+        elseif ($line -match "^([^=]+)=(.*)$") {
+            $key = $matches[1].Trim()
+            $value = $matches[2].Trim()
+            $ini[$section][$key] = $value
+        }
+    }
+     
+    # 返回解析後的 .ini 內容雜湊表
+    return $ini
+    
+}
     
 
-    function  save-iniFile {
-        #將ini寫回檔案
-        param (
-            [CmdletBinding()]
-            $ini,
-            [CmdletBinding()]
-            $path
-        )
+function  save-iniFile {
+    #將ini寫回檔案
+    param (
+        [CmdletBinding()]
+        $ini,
+        [CmdletBinding()]
+        $path
+    )
     
-        $ini_content = ""
+    $ini_content = ""
     
-        foreach ($i in $ini.keys) {
-            $ini_content += "[$i] `n"
+    foreach ($i in $ini.keys) {
+        $ini_content += "[$i] `n"
             
-            foreach ($j in $ini.$i.keys) {
-                $ini_content += "$j=$($ini.$i.$j.tostring()) `n"
-            }
+        foreach ($j in $ini.$i.keys) {
+            $ini_content += "$j=$($ini.$i.$j.tostring()) `n"
         }
-        #Write-Output $ini_content
-        Out-File -InputObject $ini_content -FilePath $path
     }
+    #Write-Output $ini_content
+    Out-File -InputObject $ini_content -FilePath $path
+}
     
     
 function check-SmartIris {
 
-    $ini_path = "C:\TEDPC\SmartIris\UltraQuery\SysIni\LocalSetting.ini"
+    $ini_path1 = "C:\TEDPC\SmartIris\UltraQuery\SysIni\LocalSetting.ini"
+    $ini_path2 = "C:\TEDPC\SmartIris\UltraQuery\SysIni\UltraQuery.ini"
 
-    if (Test-Path -Path $ini_path) {
-        Write-output "設定UltraQuery."
+    
+    Write-output "設定UltraQuery."
 
-        #依照 \\172.19.1.14\Update\資訊室\共用程式\SmartIris\SmartIris更版SOP.doc
-        #步驟三：
-        #\\172.19.1.14\Update\資訊室\共用程式\SmartIris\UltraQuery_V1.1.1.0_Update_20200731
-        # 全選複製到C:\TEDPC\SmartIris\UltraQuery並覆蓋
+    #依照 \\172.19.1.14\Update\資訊室\共用程式\SmartIris\SmartIris更版SOP.doc
+    #步驟三：
+    #\\172.19.1.14\Update\資訊室\共用程式\SmartIris\UltraQuery_V1.1.1.0_Update_20200731
+    # 全選複製到C:\TEDPC\SmartIris\UltraQuery並覆蓋
 
-        copy-item -Path "\\172.19.1.14\Update\資訊室\共用程式\SmartIris\UltraQuery_V1.1.1.0_Update_20200731\*" -Destination "C:\TEDPC\SmartIris\UltraQuery" -Recurse -Force
+    copy-item -Path "\\172.19.1.14\Update\資訊室\共用程式\SmartIris\UltraQuery_V1.1.1.0_Update_20200731\*" -Destination "C:\TEDPC\SmartIris\UltraQuery" -Recurse -Force
 
-        #復制設定檔到本機.
-        copy-item -Path "\\172.20.5.187\mis\02-SmartIris\vhwc_UltraQuery_SysIni\*" -Destination "C:\TEDPC\SmartIris\UltraQuery\SysIni" -Force
+    #復制設定檔到本機.
+    copy-item -Path "\\172.20.5.187\mis\02-SmartIris\vhwc_UltraQuery_SysIni\*" -Destination "C:\TEDPC\SmartIris\UltraQuery\SysIni" -Force
  
 
-        Write-Output "寫入電腦名稱$(($env:COMPUTERNAME).toLower())到AEtitle."
+    Write-Output "寫入電腦名稱$(($env:COMPUTERNAME).toLower())到AEtitle."
 
-        $ini = Parse-IniFile -Path $ini_path
+    $ini = Parse-IniFile -Path $ini_path1
         
-        $ini.LocalSetting.AETitle = $($env:COMPUTERNAME).ToLower()
+    $ini.LocalSetting.AETitle = $($env:COMPUTERNAME).ToLower()
         
-        save-iniFile -ini $ini -path $ini_path
-    }
+    save-iniFile -ini $ini -path $ini_path1
+
+    Write-Output "修改影像路徑."
+
+    $ini = Parse-IniFile -Path $ini_path2
+        
+    $ini.PathSetting.ImageDir  = "C:\Image_Root\"
+
+    save-iniFile -ini $ini -path $ini_path2
+    
 
 }
 
