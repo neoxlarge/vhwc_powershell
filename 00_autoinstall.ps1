@@ -43,6 +43,10 @@ copy-vghtc
 
 # install Oracle 9i Client and BDE
 Import-Module ((Split-Path $PSCommandPath) + "\install-or9iClient.ps1")
+Import-Module ((Split-Path $PSCommandPath) + "\remove-or9iandBDE.ps1")
+
+remove-or9i
+
 install-or9iclient
 install-BDE
 
@@ -199,6 +203,10 @@ set-IEtoEdageNever
 #設定IE,Edage,Chrome 預設開啟首頁為 "https://eip.vghtc.gov.tw"
 Import-Module ((Split-Path $PSCommandPath) + "\set-HomePage.ps1")
 set-HomePage
+
+#修補
+Import-Module ((Split-Path $PSCommandPath) + "\check-patch.ps1")
+set-patch
 
 #清理windows 暫存
 Import-Module ((Split-Path $PSCommandPath) + "\Clear-WindowsJunk.ps1")

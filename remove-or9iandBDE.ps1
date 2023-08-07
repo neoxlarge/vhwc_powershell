@@ -3,6 +3,13 @@ param($runadmin)
 
 function remove-or9i {
 
+    $BDE = Get-WmiObject -class Win32_product | where-object -FilterScript { $_.name -eq "Borland DataBase Engine"}
+
+    if ($BDE -ne $null) {
+        $BDE.Uninstall()
+    }
+
+
     $path = "HKLM:\SOFTWARE\WOW6432Node\ORACLE", 
             "C:\oracle",
             "C:\Program Files (x86)\Oracle",
@@ -14,7 +21,7 @@ function remove-or9i {
 
     foreach ($p in $path) {
         if (Test-Path -Path $p) {
-            Remove-Item -Path $p -Recurse -Force
+            Remove-Item -Path $p -Recurse -Force -ErrorAction SilentlyContinue
         }
 
 

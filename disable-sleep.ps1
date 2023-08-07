@@ -5,6 +5,9 @@ param($runadmin)
 function disable-sleep {
     Write-Output "變更電源計畫:"
 
+    write-output "設定電源計劃:平衡"
+    powercfg /setactive "SCHEME_BALANCED"
+
     Write-Output "硬碟-關閉硬碟前的時間:0"
     powercfg /change disk-timeout-ac 0
 
