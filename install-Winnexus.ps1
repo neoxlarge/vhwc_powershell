@@ -38,9 +38,6 @@ function install-WinNexus {
 
         #installing...
 
-        Write-Host "$env:TEMP\$($software_path.Name)\$software_exec"
-
-        pause
         Start-Process -FilePath "$env:TEMP\$($software_path.Name)\$software_exec" -ArgumentList ("/suppressmsgboxes /log:install_winnexus.log") -Wait
         Start-Sleep -Seconds 5 
    
