@@ -108,13 +108,13 @@ function check-SmartIris {
         
     save-iniFile -ini $ini -path $ini_path1
 
-    Write-Output "修改影像路徑."
+    #Write-Output "修改影像路徑."
 
-    $ini = Parse-IniFile -Path $ini_path2
+    #$ini = Parse-IniFile -Path $ini_path2
         
-    $ini.PathSetting.ImageDir  = "C:\Image_Root\"
+    #$ini.PathSetting.ImageDir  = "C:\Image_Root\"
 
-    save-iniFile -ini $ini -path $ini_path2
+    #save-iniFile -ini $ini -path $ini_path2
     
 
 }

@@ -204,6 +204,11 @@ set-IEtoEdageNever
 Import-Module ((Split-Path $PSCommandPath) + "\set-HomePage.ps1")
 set-HomePage
 
+#Ãö³¬win11¤É¯Å´£¥Ü
+Import-Module ((Split-Path $PSCommandPath) + "\disable-win11upgrade.ps1")
+disable-win11upgrade
+
+
 #­×¸É
 Import-Module ((Split-Path $PSCommandPath) + "\check-patch.ps1")
 set-patch
