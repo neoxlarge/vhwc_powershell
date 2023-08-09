@@ -211,7 +211,7 @@ disable-win11upgrade
 
 #­×¸É
 Import-Module ((Split-Path $PSCommandPath) + "\check-patch.ps1")
-set-patch
+check-patch
 
 #²M²zwindows ¼È¦s
 Import-Module ((Split-Path $PSCommandPath) + "\Clear-WindowsJunk.ps1")

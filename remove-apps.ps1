@@ -31,7 +31,9 @@ function Remove-AppsinWin10 {
         "Microsoft.XboxGamingOverlay",      
         "Microsoft.XboxGameOverlay",        
         "Microsoft.XboxApp",                
-        "Microsoft.Xbox.TCUI")              
+        "Microsoft.Xbox.TCUI",
+        "5A894077.McAfeeSecurity",
+        "B9ECED6F.ASUSPCAssistant")              
 
     # 遍歷每個要移除的應用程式
     foreach ($app in $appsToRemove) {
