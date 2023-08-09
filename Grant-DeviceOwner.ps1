@@ -2,44 +2,27 @@
 
 param($runadmin)
 
+
 function Grant-DeviceOwner {
    
 
     if ($check_admin) {
-<#         # 定義本機設備擁有者群組名稱和網域使用者群組名稱
-        $localGroup = "Device Owner"
-        $domainGroup = "vhcy\Domain Users"  
+        # 定義本機設備擁有者群組名稱和網域使用者群組名稱
+        $localGroup = "Device Owners"
+        $domainGroup = "vhcy.gov.tw/Domain Users"  
 
         # 取得本機設備擁有者群組物件
         $localGroupObject = [ADSI]"WinNT://$env:COMPUTERNAME/$localGroup,group"
 
         # 取得網域使用者群組物件
         $domainGroupObject = [ADSI]"WinNT://$domainGroup,group"
-
+        
         # 將網域使用者群組新增至本機設備擁有者群組中
         $localGroupObject.Add($domainGroupObject.Path)
 
         Write-Host "網域使用者群組已新增至設備擁有者群組中。"
- #>
-
-        $adGroup = "vhcy\Domain Users"
-        $localGroup = "Device Owners"
-        
-        $adGroupSID = (Get-ADGroup $adGroup).SID
-        $localGroupObj = Get-LocalGroup -Name $localGroup
-        
-        if ($localGroupObj) {
-            $localGroupObj.AddMember($adGroupSID)
-        } else {
-            Write-Host "Local group '$localGroup' not found."
+ 
         }
-
-
-
-
-
-
-
 
     }
     else {
@@ -60,6 +43,6 @@ if ($run_main -eq $null) {
         Start-Process powershell.exe -ArgumentList "-FILE `"$PSCommandPath`" -Executionpolicy bypass -NoProfile  -runadmin 1" -Verb Runas; exit
     }
 
-    Grant-FullControlPermission
+    Grant-DeviceOwner
     pause
 }
