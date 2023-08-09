@@ -68,7 +68,7 @@ function install-AnyDesk {
         }
 
         if ($software_exec -ne $null) {
-            Start-Process -FilePath "$($env:temp)\$($software_path.Name)\$software_exec" -ArgumentList "--silent --create-desktop-icon " -Wait
+            Start-Process -FilePath "$($env:temp)\$($software_path.Name)\$software_exec" -ArgumentList "--install ""c:\program files(x86)\AnyDesk"" --silent --create-desktop-icon " -Wait
             Start-Sleep -Seconds 5 
         }
         else {
@@ -102,8 +102,7 @@ if ($run_main -eq $null) {
     }
 
     if ($check_admin) { 
-        install-SMAConnectAgent
-        install-NX
+        install-AnyDesk
     }
     else {
         Write-Warning "無法取得管理員權限來安裝軟體, 請以管理員帳號重試."
