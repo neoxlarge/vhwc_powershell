@@ -6,7 +6,7 @@ function Grant-DeviceOwner {
    
 
     if ($check_admin) {
-        # 定義本機設備擁有者群組名稱和網域使用者群組名稱
+<#         # 定義本機設備擁有者群組名稱和網域使用者群組名稱
         $localGroup = "Device Owner"
         $domainGroup = "vhcy\Domain Users"  
 
@@ -20,6 +20,27 @@ function Grant-DeviceOwner {
         $localGroupObject.Add($domainGroupObject.Path)
 
         Write-Host "網域使用者群組已新增至設備擁有者群組中。"
+ #>
+
+        $adGroup = "vhcy\Domain Users"
+        $localGroup = "Device Owners"
+        
+        $adGroupSID = (Get-ADGroup $adGroup).SID
+        $localGroupObj = Get-LocalGroup -Name $localGroup
+        
+        if ($localGroupObj) {
+            $localGroupObj.AddMember($adGroupSID)
+        } else {
+            Write-Host "Local group '$localGroup' not found."
+        }
+
+
+
+
+
+
+
+
     }
     else {
         Write-Warning "沒有系統管理員權限,無法開啟資料?權限,請以系統管理員身分重新嘗試."
