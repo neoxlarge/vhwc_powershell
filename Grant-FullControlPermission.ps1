@@ -34,7 +34,7 @@ function Grant-FullControlPermission {
 
 
 
-#檔案獨立執行時會執行函式, 如果是被?入時不會執行函式.
+#檔案獨立執行時會執行函式, 如果是被匯入時不會執行函式.
 if ($run_main -eq $null) {
 
     #檢查是否管理員
