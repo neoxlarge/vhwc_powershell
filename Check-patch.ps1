@@ -67,11 +67,14 @@ function check-patch {
     Copy-Item -Path $sam_path1 -Destination $sam_path2 -Force
 
     # 2.移除虛擬健保卡連結, 只有診間需要預設執行.
-    Remove-Item -Path "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\startup\虛擬健保卡控制軟體.lnk" -Force -ErrorAction SilentlyContinue
+    if ($check_admin) {
+        Remove-Item -Path "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\startup\虛擬健保卡控制軟體.lnk" -Force -ErrorAction SilentlyContinue
+    }
 
     # 3.復制hisupdate 到預設執行
-    Copy-Item -Path C:\Users\Public\Desktop\HISUpdateLauncher.lnk 'C:\ProgramData\Microsoft\Windows\Start Menu\Programs\StartUp' -Force
-
+    if ($check_admin) {
+        Copy-Item -Path C:\Users\Public\Desktop\HISUpdateLauncher.lnk 'C:\ProgramData\Microsoft\Windows\Start Menu\Programs\StartUp' -Force
+    }
 
 }
 
