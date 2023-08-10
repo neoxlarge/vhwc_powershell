@@ -189,6 +189,7 @@ function install-BDE {
         #調整設定值, 自動安裝不會建立底下的registry, 自行建立
         $registryPath1 = "HKLM:\SOFTWARE\WOW6432Node\Borland\Database Engine\Settings\DRIVERS\ORACLE\DB OPEN"
         $registryPath2 = "HKLM:\SOFTWARE\WOW6432Node\Borland\Database Engine\Settings\DRIVERS\ORACLE\INIT"
+        $registryPath3 = "HKLM:\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\SharedDlls"
        
         # 檢查並創建路徑
         if (!(Test-Path $registryPath1)) {
@@ -227,6 +228,16 @@ function install-BDE {
         Set-ItemProperty -Path $registryPath2 -Name "DRIVER FLAGS" -Value ""
         Set-ItemProperty -Path $registryPath2 -Name "TRACE MODE" -Value "0"
         Set-ItemProperty -Path $registryPath2 -Name "VENDOR" -Value "OCI.DLL"
+
+        New-ItemProperty -PropertyType
+        Set-ItemProperty -Path $registryPath3 -Name "C:\\Program Files (x86)\\Common Files\\Borland Shared\\BDE\\sqlora32.dll" -Value "00000001" -Type DWORD
+        Set-ItemProperty -Path $registryPath3 -Name "C:\\Program Files (x86)\\Common Files\\Borland Shared\\BDE\\sqlora8.dll" -Value "00000001" -Type DWORD
+        Set-ItemProperty -Path $registryPath3 -Name "C:\\Program Files (x86)\\Common Files\\Borland Shared\\BDE\\BDEADMIN.TOC" -Value "00000001" -Type DWORD
+        Set-ItemProperty -Path $registryPath3 -Name "C:\\Program Files (x86)\\Common Files\\Borland Shared\\BDE\\sql_ora.cnf" -Value "00000001" -Type DWORD
+        Set-ItemProperty -Path $registryPath3 -Name "C:\\Program Files (x86)\\Common Files\\Borland Shared\\BDE\\sql_ora8.cnf" -Value "00000001" -Type DWORD
+      
+
+
        
         # Borland DataBase Engine 安裝結束
 
