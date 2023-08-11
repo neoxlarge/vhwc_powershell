@@ -18,7 +18,7 @@ function remove-HiddenDevice {
  # $dev =  Get-PnpDevice | Where-Object -FilterScript {$_.Present -eq $false -and $_.Class -in ('SmartCard','SmartCardReader','SmartCardFilter')}
 
   # 部分舊win10系統旳pnputil.exe沒有remove-device, 所以copy了一份, 再跟os裡的比一下新舊.
-  $pnputil = "$((get-item -path $PSCommandPath).DirectoryName)\pnputil.exe"
+  $pnputil = "D:\mis\vhwc_powershell\pnputil.exe"
   $pnputil_os = "C:\Windows\system32\pnputil.exe"
   $result = (Get-ItemPropertyValue -Path $pnputil -name VersionInfo).productVersion -lt (Get-ItemPropertyValue -Path $pnputil_os -name VersionInfo).productVersion
   if ($result) {$pnputil = $pnputil_os}
@@ -42,7 +42,7 @@ function remove-HiddenDevice {
 
     }
     
-    Start-Sleep -Seconds 3600
+    Start-Sleep -Seconds 600
   } until ( $false )
 
 
