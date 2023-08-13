@@ -28,7 +28,41 @@ function Set-mac2ip {
 
     write-host "查詣DHCP:$dhcp_server 中,請等待..."
 
-    $Scopes = Invoke-Command -ComputerName $dhcp_server -ScriptBlock { Get-DhcpServerv4Scope }
+    #原本向DHCP查所有的scope, 但是DHCP scope幾乎不會變,所以就抄下來就好, 也減輕DHCP負擔.
+    #$scopes = Invoke-Command -ComputerName $dhcp_server -ScriptBlock { Get-DhcpServerv4Scope }
+
+    $scopes = @("172.20.1.64",
+        "172.20.2.0",  
+        "172.20.2.64", 
+        "172.20.2.128",
+        "172.20.2.192",
+        "172.20.3.0",  
+        "172.20.3.128",
+        "172.20.4.0",  
+        "172.20.5.0",  
+        "172.20.5.128",
+        "172.20.7.0",  
+        "172.20.8.0",  
+        "172.20.9.0",  
+        "172.20.11.0", 
+        "172.20.12.0", 
+        "172.20.13.0", 
+        "172.20.15.0", 
+        "172.20.16.0", 
+        "172.20.17.0", 
+        "172.20.18.0", 
+        "172.20.19.0", 
+        "172.20.20.0", 
+        "172.20.34.0", 
+        "172.20.35.0", 
+        "172.20.64.0", 
+        "172.20.65.0", 
+        "172.20.66.0") 
+
+
+    $curr_ip_split = $curr_ipconf.ip.Split(".")[0..2]
+    $curr_subnet = "$($curr_ip_split -join ".").*"
+    $scopes = $scopes | Where-Object -FilterScript { $_ -like $curr_subnet }
 
     $script_block = {
         param($scopeId)
@@ -40,15 +74,14 @@ function Set-mac2ip {
     $result = $null
     foreach ($s in $Scopes) {
         # 獲取當前作用域中所有已保留的 IP 地址
-        $ReservedIps = Invoke-Command -ComputerName $dhcp_server -ScriptBlock $script_block -ArgumentList $s.ScopeId
+        $ReservedIps = Invoke-Command -ComputerName $dhcp_server -ScriptBlock $script_block -ArgumentList $s
         #Write-Host $s.ScopeId
         
         foreach ($r in $ReservedIps) {
 
             if ("$($r.IPAddress)" -eq "$target_ip") {
                 $result = $r
-                $result | Select-Object -Property * | Write-Host
-                
+                #$result | Select-Object -Property * | Write-Host
                 break 
                
             }

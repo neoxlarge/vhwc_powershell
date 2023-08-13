@@ -23,9 +23,9 @@ function Set-IEtoEdageNever {
         #底下功能暫取消
 
         #預設IE瀏覽器無法在本機群組原則套用. Registry也無法指定IE, 只能先清除.
-        #Write-Output "清除預設瀏覽器設定,讓使用者第一次執行自行選擇"
-        #Remove-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Windows\Shell\Associations\UrlAssociations\http\UserChoice" -Name "Progid" -ErrorAction SilentlyContinue
-        #Remove-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Windows\Shell\Associations\UrlAssociations\https\UserChoice" -Name "Progid" -ErrorAction SilentlyContinue
+        Write-Output "清除預設瀏覽器設定,讓使用者第一次執行自行選擇"
+        Remove-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Windows\Shell\Associations\UrlAssociations\http\UserChoice" -Name "Progid" -ErrorAction SilentlyContinue
+        Remove-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Windows\Shell\Associations\UrlAssociations\https\UserChoice" -Name "Progid" -ErrorAction SilentlyContinue
     }
 
 }
