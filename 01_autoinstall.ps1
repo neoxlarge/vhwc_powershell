@@ -142,7 +142,7 @@ remove-apps
 import-module ((split-path $PSCommandPath) + "\Check-EnablePSRemoting.ps1")
 check-enablepsremoting
 
-##修改資料?的權限
+##修改資料匣的權限
 import-module ((split-path $PSCommandPath) + "\grant-FullControlPermission.ps1")
 Grant-FullControlPermission
 
@@ -203,6 +203,11 @@ set-IEtoEdageNever
 #設定IE,Edage,Chrome 預設開啟首頁為 "https://eip.vghtc.gov.tw"
 Import-Module ((Split-Path $PSCommandPath) + "\set-HomePage.ps1")
 set-HomePage
+
+#檢查雲端藥歷的設定
+Import-Module ((Split-Path $PSCommandPath) + "\check-cloudMED.ps1")
+check-cloudMED
+
 
 #關閉win11升級提示
 Import-Module ((Split-Path $PSCommandPath) + "\disable-win11upgrade.ps1")
