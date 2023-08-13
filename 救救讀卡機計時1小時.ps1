@@ -25,6 +25,7 @@ function remove-HiddenDevice {
 
   # todo:  win7要用devcon.exe, win10也有但要另安裝windows10 WDK
   # Win7的要再測看看.
+  #devcon.exe download: https://superuser.com/questions/1002950/quick-method-to-install-devcon-exe
 
   do {
     $dev =  Get-PnpDevice | Where-Object -FilterScript {$_.Present -eq $false -and $_.Class -in ('SmartCard','SmartCardReader','SmartCardFilter')}
