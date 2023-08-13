@@ -5,6 +5,9 @@
 #底下設定可以不用修改.
 #1. Localsetting.ini中的ip,程式執行時會自動抓取， 不用手動設定。 
 #2. Serverlist.ini中的主機列表, 正常不會變動. 不用再設定. 
+#
+#20230809, HIS call PACS, 112年新電腦無法正確執行, 沂圻找到正確並修正ultraquery.ini後,正常, 但影响該功能的設定值不明. 暫無獨立檢查該設定的方法.
+
 
 param($runadmin)
 

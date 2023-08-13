@@ -211,6 +211,11 @@ set-IEtoEdageNever
 Import-Module ((Split-Path $PSCommandPath) + "\set-HomePage.ps1")
 set-HomePage
 
+#檢查雲端藥歷的設定
+Import-Module ((Split-Path $PSCommandPath) + "\check-cloudMED.ps1")
+check-cloudMED
+
+
 #關閉win11升級提示
 Import-Module ((Split-Path $PSCommandPath) + "\disable-win11upgrade.ps1")
 disable-win11upgrade
