@@ -96,7 +96,8 @@ function check-OPDList {
     # 檢查目前電腦名稱是否在升級名單(opd_list.json)內. 有的話,回傳資料.
    
     # 將變數 $json_file 設定為 JSON 檔案 "opd_list.json" 的路徑
-    $json_file = "$PSCommandPath\opd_list.json"
+    $path = get-item -Path $PSCommandPath
+    $json_file = "$($Path.DirectoryName)\opd_list.json"
     #Write-Output $json_file
     
     # 電腦名稱
