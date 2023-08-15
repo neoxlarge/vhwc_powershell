@@ -60,5 +60,11 @@
         "name": "wrch-000-pc01",
         "ip": "172.20.17.61",
         "virturl_NHIcard": "False"
+    },
+    "wmis": {
+        "no": "wmis",
+        "name": "wmis-000-pc05",
+        "ip": "172.20.5.185",
+        "virturl_NHIcard": "True"
     }
 }
