@@ -4,13 +4,15 @@ param($runadmin)
 
 function Get-MacAddress {
     <#
-    只能在172.*才能用.
+    只能在172.20.*才能用.
     #>
 
     $mac_addr = Get-WmiObject -Class Win32_NetworkAdapterConfiguration |
-    Where-Object { $_.IPAddress -ne $null -and $_.IPAddress[0] -like "1*" } 
+    Where-Object { $_.IPAddress -ne $null -and $_.IPAddress[0] -like "172.20.*" } 
 
+    if ($mac_addr) {
     return @{"ip" = $mac_addr.IPAddress[0]; "mac" = $mac_addr.MACaddress }
+    } else {return $null}
 }
 
 
@@ -18,6 +20,20 @@ function Set-mac2ip {
 
     $curr_ipconf = Get-MacAddress
     $dhcp_server = "wcdc2"
+
+    $isJoinAD = (Get-WmiObject -Class Win32_ComputerSystem).PartOfDomain
+
+    if (!$isJoinAD) {
+        Write-Host "未加入網域!! 請加入網域再執行." -ForegroundColor Red
+        pause
+        break
+    }
+
+    if ($curr_ipconf -eq $null) {
+        Write-Host "未發現符合灣橋網路的IP, 請檢查網路設定."
+        Pause
+        break
+    }
 
     Write-Output "=========================="
     Write-Output "當前電腦ip confing"
