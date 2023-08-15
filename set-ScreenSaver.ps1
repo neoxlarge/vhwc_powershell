@@ -6,8 +6,9 @@ function Set-ScreenSaver {
   
     # 設定特定的螢幕保護程式檔案路徑
     $screenSaverFilePath = "c:\screensaver.scr"
-    if ($check_admin) {
-    Copy-Item -Path \\172.20.1.14\update\Vghtc_Update\ScreenSaver\ScreenSaver.scr -Destination $screenSaverFilePath -Force -ErrorAction SilentlyContinue
+    $result = !(Test-Path -Path $screenSaverFilePath) -and $check_admin
+    if ($result) {
+    Copy-Item -Path "\\172.20.1.14\update\Vghtc_Update\ScreenSaver\ScreenSaver.scr" -Destination $screenSaverFilePath -Force 
     }
     # 設定螢幕保護程式
     Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name ScreenSaveActive -Value 1

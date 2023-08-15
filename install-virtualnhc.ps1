@@ -133,8 +133,11 @@ function install-virtualnhc {
             Copy-Item -Path $vhc_path -Destination "c:\NHI\$($vhc_path.name)" -Recurse -Force -Verbose
                             
             #復制捷徑到桌面及啟動
-            if ($check_admin) {
-            Create-Shortcut -TargetPath "C:\NHI\VHIC_virtual-nhicard+SDK+Setup-2.5.4\虛擬健保卡控制軟體-正式版.2.5.4.exe" -ShortcutPath "C:\users\public\desktop\虛擬健保卡控制軟體.lnk"
+            $target_path = "C:\users\public\desktop\虛擬健保卡控制軟體.lnk"
+            $result = !(Test-Path -Path $target_path) -and $check_admin
+            if ($result) {
+            Create-Shortcut -TargetPath "C:\NHI\VHIC_virtual-nhicard+SDK+Setup-2.5.4\虛擬健保卡控制軟體-正式版.2.5.4.exe" -ShortcutPath $target_path
+            #暫時拿掉啟動的, 不是所有電腦有需要跑
             #Create-Shortcut -TargetPath "C:\NHI\VHIC_virtual-nhicard+SDK+Setup-2.5.4\虛擬健保卡控制軟體-正式版.2.5.4.exe" -ShortcutPath "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\StartUp\虛擬健保卡控制軟體.lnk"
             }
 

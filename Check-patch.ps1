@@ -1,4 +1,5 @@
 ﻿#修正
+#only for 112 new pc
 
 param($runadmin)
 
