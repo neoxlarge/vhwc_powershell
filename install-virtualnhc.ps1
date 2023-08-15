@@ -85,7 +85,7 @@ function check-OPDList {
     }
 }
 
-function update-virtualhc {
+function update-virtualnhc {
     #升級虛擬健保卡SDK 2.5.4
 
     #升級條件:
@@ -104,7 +104,8 @@ function update-virtualhc {
 
         $opd = check-OPDList
 
-        if ($opd.virturl_NHIcard) {
+        #if ($opd.virturl_NHIcard) {
+        if ($true) {    
             #如果virtual_NHIcar值是$true 表示可升級.
             #這版2.5.4, 不好判斷是否己經安裝, 就直接再裝一次.
             #診間醫師電腦都有最高權限, 在此就暫不考慮權限問題. 一般使用者會無法使用.
@@ -133,7 +134,7 @@ function update-virtualhc {
                             
             #復制捷徑到桌面及啟動
             Create-Shortcut -TargetPath "C:\NHI\VHIC_virtual-nhicard+SDK+Setup-2.5.4\虛擬健保卡控制軟體-正式版.2.5.4.exe" -ShortcutPath "C:\users\public\desktop\虛擬健保卡控制軟體.lnk"
-            Create-Shortcut -TargetPath "C:\NHI\VHIC_virtual-nhicard+SDK+Setup-2.5.4\虛擬健保卡控制軟體-正式版.2.5.4.exe" -ShortcutPath "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\StartUp\虛擬健保卡控制軟體.lnk"
+            #Create-Shortcut -TargetPath "C:\NHI\VHIC_virtual-nhicard+SDK+Setup-2.5.4\虛擬健保卡控制軟體-正式版.2.5.4.exe" -ShortcutPath "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\StartUp\虛擬健保卡控制軟體.lnk"
     
 
             #open firewall

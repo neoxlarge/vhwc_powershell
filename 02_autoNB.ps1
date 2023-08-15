@@ -119,6 +119,11 @@ install-libreoffice
 Import-Module ((Split-Path $PSCommandPath) + "\install-PCSC.ps1")
 install-PCSC
 
+#安裝虛擬健保卡
+Import-Module ((Split-Path $PSCommandPath) + "\install-virtualnhc.ps1")
+install-virtualnhc
+
+
 # 安裝sslvpn
 Import-Module ((Split-Path $PSCommandPath) + "\install-sslvpn.ps1")
 install-SMAConnectAgent
