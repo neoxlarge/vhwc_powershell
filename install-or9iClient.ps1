@@ -229,7 +229,6 @@ function install-BDE {
         Set-ItemProperty -Path $registryPath2 -Name "TRACE MODE" -Value "0"
         Set-ItemProperty -Path $registryPath2 -Name "VENDOR" -Value "OCI.DLL"
 
-        New-ItemProperty -PropertyType
         Set-ItemProperty -Path $registryPath3 -Name "C:\\Program Files (x86)\\Common Files\\Borland Shared\\BDE\\sqlora32.dll" -Value "00000001" -Type DWORD
         Set-ItemProperty -Path $registryPath3 -Name "C:\\Program Files (x86)\\Common Files\\Borland Shared\\BDE\\sqlora8.dll" -Value "00000001" -Type DWORD
         Set-ItemProperty -Path $registryPath3 -Name "C:\\Program Files (x86)\\Common Files\\Borland Shared\\BDE\\BDEADMIN.TOC" -Value "00000001" -Type DWORD

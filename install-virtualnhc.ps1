@@ -85,7 +85,7 @@ function check-OPDList {
     }
 }
 
-function update-virtualnhc {
+function install-virtualnhc {
     #升級虛擬健保卡SDK 2.5.4
 
     #升級條件:
@@ -133,9 +133,10 @@ function update-virtualnhc {
             Copy-Item -Path $vhc_path -Destination "c:\NHI\$($vhc_path.name)" -Recurse -Force -Verbose
                             
             #復制捷徑到桌面及啟動
+            if ($check_admin) {
             Create-Shortcut -TargetPath "C:\NHI\VHIC_virtual-nhicard+SDK+Setup-2.5.4\虛擬健保卡控制軟體-正式版.2.5.4.exe" -ShortcutPath "C:\users\public\desktop\虛擬健保卡控制軟體.lnk"
             #Create-Shortcut -TargetPath "C:\NHI\VHIC_virtual-nhicard+SDK+Setup-2.5.4\虛擬健保卡控制軟體-正式版.2.5.4.exe" -ShortcutPath "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\StartUp\虛擬健保卡控制軟體.lnk"
-    
+            }
 
             #open firewall
             #netsh advfirewall firewall add rule name='Allow 虛擬健保卡控制軟體' dir=in action=allow program='C:\NHI\VHIC_virtual-nhicard+SDK+Setup-2.5.4\虛擬健保卡控制軟體-正式版.2.5.4.exe'
@@ -186,7 +187,7 @@ if ($run_main -eq $null) {
     }
 
     if ($check_admin) { 
-        update-virtualhc
+        install-virtualhc
     }
     else {
         Write-Warning "無法取得管理員權限來安裝軟體, 請以管理員帳號重試."

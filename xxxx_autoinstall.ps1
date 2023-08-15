@@ -45,8 +45,6 @@ copy-vghtc
 Import-Module ((Split-Path $PSCommandPath) + "\install-or9iClient.ps1")
 Import-Module ((Split-Path $PSCommandPath) + "\remove-or9iandBDE.ps1")
 
-remove-or9i
-
 install-or9iclient
 install-BDE
 

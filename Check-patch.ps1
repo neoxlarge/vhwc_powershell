@@ -62,7 +62,7 @@ function check-patch {
 
     # 1.修正重新copy SAM檔.
     #copy灣橋SAM檔-至指定位置
-    $sam_path1 = "C:\VGHTC\00_mis\CMS_CS5.1.5.5-讀卡機控制軟體\0640140012001000005984.SAM"
+    $sam_path1 = "\\172.20.5.187\mis\23-讀卡機控制軟體\CMS_CS5.1.5.7_20220925\CS5.1.5.7版_20220925\0640140012001000005984.SAM"
     $sam_path2 = "C:\NHI\SAM\COMX1\0640140012001000005984.SAM"
     Copy-Item -Path $sam_path1 -Destination $sam_path2 -Force
 

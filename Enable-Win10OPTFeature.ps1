@@ -57,12 +57,9 @@ function Enable-SMBv1 {
 
         $result = Get-WindowsOptionalFeature -Online -FeatureName "SMB1Protocol"
 
-        if (
-            !($result.State -ne "Enabled") -and
-            !(Test-Path -Path "\\172.20.1.14\update" )
-        ) {
+        if ($result.State -ne "Enabled" ) {
             
-            Write-Output "SMBv1/CIFS未啟用或連線失測,進行啟用SMBv1/CIFS, 等待完成後必須重新開機."
+            Write-Output "SMBv1/CIFS未啟用,進行啟用SMBv1/CIFS, 等待完成後必須重新開機."
 
             # 安裝SMB1.0/CIFS功能
             Enable-WindowsOptionalFeature -Online -FeatureName "SMB1Protocol-Client", "SMB1Protocol-Server", "SMB1Protocol" -NoRestart
@@ -83,7 +80,7 @@ function Enable-SMBv1 {
         }
         else {
         
-            Write-Output "SMB己安娤且172.20.1.14可連線."
+            Write-Output "SMB己安娤."
         
         }
 
