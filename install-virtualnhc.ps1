@@ -149,20 +149,40 @@ function install-virtualnhc {
             $rule_name1 = "Allow 虛擬健保卡控制軟體 ($($env:USERNAME) main) "
             $rule_name2 = "Allow 虛擬健保卡控制軟體 ($($env:USERNAME) VHCNHI_Silent)"
 
-            if (Get-NetFirewallRule -DisplayName $rule_name1 -ErrorAction SilentlyContinue) {
-                Remove-NetFirewallRule -DisplayName $rule_name1
+            #管理者權限vhwcmis的證書.
+            $Username = "vhwcmis"
+            $Password = "Mis20190610"
+            $securePassword = ConvertTo-SecureString $Password -AsPlainText -Force
+            $credential = New-Object System.Management.Automation.PSCredential($Username, $securePassword)
+            
+            $cimsession = New-CimSession -ComputerName $env:COMPUTERNAME -Credential $credential
+
+            if (Get-NetFirewallRule -DisplayName $rule_name1 -CimSession $cimsession -ErrorAction SilentlyContinue) {
+                Remove-NetFirewallRule -DisplayName -CimSession $cimsession $rule_name1
             }
-            if (Get-NetFirewallRule -DisplayName $rule_name2 -ErrorAction SilentlyContinue) {
-                Remove-NetFirewallRule -DisplayName $rule_name2
+            if (Get-NetFirewallRule -DisplayName $rule_name2 -CimSession $cimsession -ErrorAction SilentlyContinue) {
+                Remove-NetFirewallRule -DisplayName $rule_name2 -CimSession $cimsession
             }
 
             $arg1 = "advfirewall firewall add rule name=""$rule_name1 "" dir=in action=allow program=""$exe_path1"""
             Write-Output  "建立firewall rule: $arg1"
-            Start-Process netsh.exe -ArgumentList $arg1 -NoNewWindow -wait
+            #Start-Process netsh.exe -ArgumentList $arg1 -NoNewWindow -wait -Credential $credential
+            Invoke-Command -ComputerName $env:COMPUTERNAME -Credential $credential -ScriptBlock {
+                param ($argument1)
+                netsh.exe $argument1
+            } -ArgumentList $arg1
+
+
 
             $arg2 = "advfirewall firewall add rule name=""$rule_name2"" dir=in action=allow program=""$exe_path2"""
             write-output "建立firewall rule: $arg2"
-            Start-Process netsh.exe -ArgumentList $arg2 -NoNewWindow -wait
+            #Start-Process netsh.exe -ArgumentList $arg2 -NoNewWindow -wait -Credential $credential
+            Invoke-Command -ComputerName $env:COMPUTERNAME -Credential $credential -ScriptBlock {
+                param ($argument2)
+                netsh.exe $argument2
+            } -ArgumentList $arg2
+
+
 
             $log_string = "update V-NHICard,$env:COMPUTERNAME,$ipv4,$(Get-OSVersion),$env:PROCESSOR_ARCHITECTURE,$(Get-Date)" 
             $log_string | Add-Content -PassThru $log_file
