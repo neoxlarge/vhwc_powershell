@@ -15,22 +15,37 @@ function remove-HiddenDevice {
   $securePassword = ConvertTo-SecureString $Password -AsPlainText -Force
   $credential = New-Object System.Management.Automation.PSCredential($Username, $securePassword)
 
-  $dev =  Get-PnpDevice | Where-Object -FilterScript {$_.Present -eq $false -and $_.Class -in ('SmartCard','SmartCardReader','SmartCardFilter','USB','HIDClass','Keyboard')}
+ # $dev =  Get-PnpDevice | Where-Object -FilterScript {$_.Present -eq $false -and $_.Class -in ('SmartCard','SmartCardReader','SmartCardFilter')}
 
   # 部分舊win10系統旳pnputil.exe沒有remove-device, 所以copy了一份, 再跟os裡的比一下新舊.
-  $pnputil = "$((get-item -path $PSCommandPath).DirectoryName)\pnputil.exe"
+  $pnputil = "D:\mis\vhwc_powershell\pnputil.exe"
   $pnputil_os = "C:\Windows\system32\pnputil.exe"
   $result = (Get-ItemPropertyValue -Path $pnputil -name VersionInfo).productVersion -lt (Get-ItemPropertyValue -Path $pnputil_os -name VersionInfo).productVersion
   if ($result) {$pnputil = $pnputil_os}
 
   # todo:  win7要用devcon.exe, win10也有但要另安裝windows10 WDK
   # Win7的要再測看看.
+  #devcon.exe download: https://superuser.com/questions/1002950/quick-method-to-install-devcon-exe
+
+  do {
+    $dev =  Get-PnpDevice | Where-Object -FilterScript {$_.Present -eq $false -and $_.Class -in ('SmartCard','SmartCardReader','SmartCardFilter')}
+
+    if ($dev.count -ne 0) {
+      foreach ($d in $dev) {
+        Write-Output "刪除設備: $($d.FriendlyName)"
+        if ($check_admin) {
+          Start-Process -FilePath $pnputil -ArgumentList "/remove-device $($d.instanceID)" -Wait -NoNewWindow
+        } else {
+        Start-Process -FilePath $pnputil -ArgumentList "/remove-device $($d.instanceID)" -Credential $credential -Wait -NoNewWindow
+        }
+      }
 
 
-  foreach ($d in $dev) {
-    Write-Host "del hidden device: $($d.FriendlyName)"
-    Start-Process -FilePath $pnputil -ArgumentList "/remove-device $($d.instanceID)" -Credential $credential -Wait -NoNewWindow
-  }
+    }
+    
+    Start-Sleep -Seconds 3600
+  } until ( $false )
+
 
 }
 
