@@ -68,7 +68,7 @@ function install-AnyDesk {
         }
 
         if ($software_exec -ne $null) {
-            Start-Process -FilePath "$($env:temp)\$($software_path.Name)\$software_exec" -ArgumentList "--install ""c:\program files(x86)\AnyDesk"" --silent --create-desktop-icon " -Wait
+            Start-Process -FilePath "$($env:temp)\$($software_path.Name)\$software_exec" -ArgumentList "--install ""c:\Program Files (x86)\AnyDesk"" --silent --create-desktop-icon " -Wait
             Start-Sleep -Seconds 5 
         }
         else {
