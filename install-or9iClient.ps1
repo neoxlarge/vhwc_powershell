@@ -235,9 +235,18 @@ function install-BDE {
         Set-ItemProperty -Path $registryPath3 -Name "C:\\Program Files (x86)\\Common Files\\Borland Shared\\BDE\\sql_ora.cnf" -Value "00000001" -Type DWORD
         Set-ItemProperty -Path $registryPath3 -Name "C:\\Program Files (x86)\\Common Files\\Borland Shared\\BDE\\sql_ora8.cnf" -Value "00000001" -Type DWORD
       
-
-
+        #20230818, wadm-reg-pc01 掛號室112年新PC更換一台, 曉婷位置出現無法同時實執2個同時使用BDE的錯誤BDE $210D, 錯誤可以參考底下URL解決.
+        # https://techjourney.net/error-2501-210d-while-attempting-to-initialize-borland-database-engine-bde/
+        # https://www.fox-saying.com/blog/post/44256505
+        #
        
+        $registryPath4 = "HKLM:\SOFTWARE\WOW6432Node\Borland\Database Engine\Settings\SYSTEM\INIT"
+        Set-ItemProperty -Path $registryPath4 -Name "SHAREDMEMLOCATION" -Value "0x5BDE"
+        Set-ItemProperty -Path $registryPath4 -Name "SHAREDMEMSIZE" -Value "4096"
+        #底下這個順手改的,不確定是不有影?
+        Set-ItemProperty -Path $registryPath4 -Name "LANGDRIVER" -Value "taiwan"
+        
+
         # Borland DataBase Engine 安裝結束
 
         #安裝完, 再重新取得安裝資訊
@@ -267,11 +276,12 @@ if ($run_main -eq $null) {
     }
 
     if ($check_admin) { 
+        #沒有管理員權限不執行.
         install-or9iclient    
         install-BDE
     }
     else {
-        Write-Warning "無法取得管理員權限來安裝軟體, 請以管理員帳號重試."
+        Write-Warning "無法取得管理員權限來安裝oracle9i client & BDE 軟體, 請以管理員帳號重試."
     }
     pause
 }

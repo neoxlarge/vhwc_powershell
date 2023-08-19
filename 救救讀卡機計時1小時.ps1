@@ -4,6 +4,7 @@
 #powershell V2無法執行, get-pnpdevice是V5的語法.
 #
 #win32_pnpentity中不會列出?藏的設備, 無法用win32_pnpentity來作.
+#2020819, 
 
 param($runadmin)
 
@@ -18,10 +19,24 @@ function remove-HiddenDevice {
  # $dev =  Get-PnpDevice | Where-Object -FilterScript {$_.Present -eq $false -and $_.Class -in ('SmartCard','SmartCardReader','SmartCardFilter')}
 
   # 部分舊win10系統旳pnputil.exe沒有remove-device, 所以copy了一份, 再跟os裡的比一下新舊.
-  $pnputil = "$((get-item -path $PSCommandPath).DirectoryName)\pnputil.exe"
+  $pnputil_paths = "$((get-item -path $PSCommandPath).DirectoryName)\pnputil.exe",
+            "$($env:USERPROFILE)\desktop\vhwc_powershell\pnputil.exe",
+            "D:\mis\vhwc_powershell\pnputil.exe"
+  foreach ($p in $pnputil_paths) {
+    if (Test-Path -Path $p)
+    {
+      $pnputil = $p
+      break
+    }
+  }
+
   $pnputil_os = "C:\Windows\system32\pnputil.exe"
   $result = (Get-ItemPropertyValue -Path $pnputil -name VersionInfo).productVersion -lt (Get-ItemPropertyValue -Path $pnputil_os -name VersionInfo).productVersion
+  #Write-Host (Get-ItemPropertyValue -Path $pnputil -name VersionInfo).productVersion
+  #Write-Host (Get-ItemPropertyValue -Path $pnputil_os -name VersionInfo).productVersion
+  
   if ($result) {$pnputil = $pnputil_os}
+  Write-Output "pnputil path: $pnputil"
 
   # todo:  win7要用devcon.exe, win10也有但要另安裝windows10 WDK
   # Win7的要再測看看.
@@ -32,11 +47,22 @@ function remove-HiddenDevice {
 
     if ($dev.count -ne 0) {
       foreach ($d in $dev) {
-        Write-Output "刪除設備: $($d.FriendlyName)"
+        
         if ($check_admin) {
+          #登入者有管理者權限
+          Write-Output "(Admin)刪除設備: $($d.FriendlyName)"
           Start-Process -FilePath $pnputil -ArgumentList "/remove-device $($d.instanceID)" -Wait -NoNewWindow
         } else {
-        Start-Process -FilePath $pnputil -ArgumentList "/remove-device $($d.instanceID)" -Credential $credential -Wait -NoNewWindow
+          Write-Output "(User)刪除設備: $($d.FriendlyName)"
+          #Start-Process -FilePath $pnputil -ArgumentList "/remove-device $($d.instanceID)" -Credential $credential -Wait -NoNewWindow
+          #如果沒權限就需用invoke-command
+          Invoke-Command -ScriptBlock {
+            Param (
+             [string]$PnpUtilPath,
+             [string]$DeviceInstanceID)
+
+            Start-Process -FilePath $pnputil -ArgumentList "/remove-device $DeviceInstanceID" -Wait -NoNewWindow  
+          } -Credential $credential -ComputerName "localhost" -ArgumentList $pnputil,$($d.instanceID)
         }
       }
 
