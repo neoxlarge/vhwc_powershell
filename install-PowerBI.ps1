@@ -11,8 +11,8 @@ function install-PowerBI{
     $software_path = "\\172.20.5.187\mis\26-PowerBI"
     $software_exec = "PBIDesktopSetup_x64.exe"
 
-    $Username = "vhcy\73058"
-    $Password = "Q1220416+"
+    $Username = "vhcy\vhwcmis"
+    $Password = "Mis20190610"
     $securePassword = ConvertTo-SecureString $Password -AsPlainText -Force
     $credential = New-Object System.Management.Automation.PSCredential($Username, $securePassword)
 
