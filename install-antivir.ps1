@@ -28,12 +28,12 @@ function install-AntiVir {
         Write-Output "Start to insall: $software_name"
 
         #復制檔案到temp
-        $software_path = get-item -Path $software_path
+        #$software_path = get-item -Path $software_path
                 
         #copy-item 無法接認證, 須要從psdrive接, 所以要掛driver.
         $net_driver = "vhwcdrive" #只是給個driver名字而己.
         New-PSDrive -Name $net_driver -Root $software_path -PSProvider FileSystem -Credential $credential
-        Copy-Item -Path "$($net_driver):\" -Destination $env:TEMP -Recurse -Force -Verbose 
+        Copy-Item -Path "$($net_driver):\" -Destination "$($env:TEMP)\$software_name" -Recurse -Force -Verbose 
         Remove-PSDrive -Name $net_driver
 
 
@@ -45,7 +45,7 @@ function install-AntiVir {
         }
 
         if ($software_exec -ne $null) {
-            Start-Process -FilePath "msiexec.exe" -ArgumentList "/i $($env:temp + "\" + $software_path.Name + "\" + $software_exec) /passive /log install_officescan.log" -Wait
+            Start-Process -FilePath "msiexec.exe" -ArgumentList "/i ""$($env:temp + "\" + $software_Name + "\" + $software_exec)"" /passive /log install_officescan.log" -Wait
             Start-Sleep -Seconds 5 
         }
         else {

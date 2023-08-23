@@ -5,6 +5,20 @@ param($runadmin)
 Import-Module ((Split-Path $PSCommandPath) + "\get-installedprogramlist.psm1")
 
 
+#取得OS的版本
+function Get-OSVersion {
+    $os = (Get-WmiObject -Class Win32_OperatingSystem).Caption
+
+    if ($os -like "*Windows 7*") {
+        return "Windows 7"
+    }
+    elseif ($os -like "*Windows 10*") {
+        return "Windows 10"
+    }
+    else {
+        return "Unknown OS"
+    }
+}
 
 function Get-IPv4Address {
     <#
@@ -155,6 +169,7 @@ function install-virtualnhc {
             $securePassword = ConvertTo-SecureString $Password -AsPlainText -Force
             $credential = New-Object System.Management.Automation.PSCredential($Username, $securePassword)
             
+            <#
             $cimsession = New-CimSession -ComputerName $env:COMPUTERNAME -Credential $credential
 
             if (Get-NetFirewallRule -DisplayName $rule_name1 -CimSession $cimsession -ErrorAction SilentlyContinue) {
@@ -182,7 +197,7 @@ function install-virtualnhc {
                 netsh.exe $argument2
             } -ArgumentList $arg2
 
-
+#>
 
             $log_string = "update V-NHICard,$env:COMPUTERNAME,$ipv4,$(Get-OSVersion),$env:PROCESSOR_ARCHITECTURE,$(Get-Date)" 
             $log_string | Add-Content -PassThru $log_file
@@ -210,7 +225,7 @@ if ($run_main -eq $null) {
     }
 
     if ($check_admin) { 
-        install-virtualhc
+        install-virtualnhc
     }
     else {
         Write-Warning "無法取得管理員權限來安裝軟體, 請以管理員帳號重試."

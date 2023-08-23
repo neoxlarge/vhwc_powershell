@@ -76,7 +76,9 @@ function check-patch {
     if ($check_admin) {
         Copy-Item -Path C:\Users\Public\Desktop\HISUpdateLauncher.lnk 'C:\ProgramData\Microsoft\Windows\Start Menu\Programs\StartUp' -Force
     }
-
+    
+    # 4. apply gop
+    #Start-Process -FilePath gpupdate -ArgumentList "/force" -NoNewWindow | Out-Null
 }
 
 

@@ -27,18 +27,18 @@ function install-WinNexus {
     if ($software_is_installed -eq $null) {
         Write-OutPut "Start to install: $software_name"
 
-        $software_path = get-item -Path $software_path
+        #$software_path = get-item -Path $software_path
         
         #復制檔案到temp
         #copy-item 無法接認證, 須要從psdrive接, 所以要掛driver.
         $net_driver = "vhwcdrive" #只是給個driver名字而己.
         New-PSDrive -Name $net_driver -Root $software_path -PSProvider FileSystem -Credential $credential
-        Copy-Item -Path "$($net_driver):\" -Destination $env:TEMP -Recurse -Force -Verbose
+        Copy-Item -Path "$($net_driver):\" -Destination $($env:TEMP)\$software_name -Recurse -Force -Verbose
         Remove-PSDrive -Name $net_driver
 
         #installing...
 
-        Start-Process -FilePath "$env:TEMP\$($software_path.Name)\$software_exec" -ArgumentList ("/suppressmsgboxes /log:install_winnexus.log") -Wait
+        Start-Process -FilePath "$env:TEMP\$software_Name\$software_exec" -ArgumentList ("/suppressmsgboxes /log:install_winnexus.log") -Wait
         Start-Sleep -Seconds 5 
    
      

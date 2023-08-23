@@ -1,7 +1,13 @@
 ﻿$remoteComputerName = "wnur-opd-pc18"
 $processName = "opdnurse"
 
-$credential = Get-Credential  # 您需要提供遠端電腦的驗證憑證
+#$credential = Get-Credential  # 您需要提供遠端電腦的驗證憑證
+$Username = "vhcy\vhwcmis"
+$Password = "Mis20190610"
+$securePassword = ConvertTo-SecureString $Password -AsPlainText -Force
+$credential = New-Object System.Management.Automation.PSCredential($Username, $securePassword)
+
+
 
 Write-Host "程式名稱: $($process.Name)"
 
