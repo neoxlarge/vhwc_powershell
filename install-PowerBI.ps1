@@ -5,15 +5,14 @@ param($runadmin)
 Import-Module ((Split-Path $PSCommandPath) + "\get-installedprogramlist.psm1")
 
 
-function install-WinNexus {
+function install-PowerBI{
     # 安裝Winnexus
-    $software_name = "WinNexus"
-    #$software_path = "\\172.20.5.187\mis\13-Winnexus\Winnexus_1.2.4.7\13-Winnexus"
-    $software_path = "\\172.20.1.122\share\software\00newpc\13-Winnexus\Winnexus_1.2.4.7"
-    $software_exec = "Install_Desktop.1.2.4.7.exe"
+    $software_name = "Microsoft PowerBI Desktop (x64)"
+    $software_path = "\\172.20.5.187\mis\26-PowerBI"
+    $software_exec = "PBIDesktopSetup_x64.exe"
 
-    $Username = "vhcy\vhwcmis"
-    $Password = "Mis20190610"
+    $Username = "vhcy\73058"
+    $Password = "Q1220416+"
     $securePassword = ConvertTo-SecureString $Password -AsPlainText -Force
     $credential = New-Object System.Management.Automation.PSCredential($Username, $securePassword)
 
@@ -27,18 +26,18 @@ function install-WinNexus {
     if ($software_is_installed -eq $null) {
         Write-OutPut "Start to install: $software_name"
 
-        #$software_path = get-item -Path $software_path
+        $software_path_name = $software_path.Split("\")[-1]
         
         #復制檔案到temp
         #copy-item 無法接認證, 須要從psdrive接, 所以要掛driver.
         $net_driver = "vhwcdrive" #只是給個driver名字而己.
         New-PSDrive -Name $net_driver -Root $software_path -PSProvider FileSystem -Credential $credential
-        Copy-Item -Path "$($net_driver):\" -Destination "$($env:TEMP)\$software_name" -Recurse -Force -Verbose
+        Copy-Item -Path "$($net_driver):\*" -Destination "$($env:TEMP)\$software_path_name" -Force -Verbose
         Remove-PSDrive -Name $net_driver
 
         #installing...
 
-        Start-Process -FilePath "$($env:TEMP)\$software_Name\$software_exec" -ArgumentList ("/suppressmsgboxes /log:install_winnexus.log") -Wait
+        Start-Process -FilePath "$($env:TEMP)\$software_path_name\$software_exec" -ArgumentList "-passive -norestart ACCEPT_EULA=1" -Wait
         Start-Sleep -Seconds 5 
    
      
@@ -69,7 +68,7 @@ if ($run_main -eq $null) {
     }
 
     if ($check_admin) { 
-        install-WinNexus
+        install-PowerBI
     }
     else {
         Write-Warning "無法取得管理員權限來安裝軟體, 請以管理員帳號重試."
