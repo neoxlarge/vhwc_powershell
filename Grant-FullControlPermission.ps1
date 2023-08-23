@@ -8,8 +8,12 @@ function Grant-FullControlPermission {
     最後，您可以呼叫該函數，填入資料夾清單和使用者名稱，以授予指定的使用者完全控制權限。
     #>
 
-    $folders = "c:\2100", "C:\oracle", "C:\cloudMED", "C:\ICCARD_HIS", "C:\IDMSClient45", "C:\NHI", "C:\TEDPC", "C:\VGHTC", "C:\VghtcLogo", "C:\vhgp", "c:\mis", "d:\mis"
-    $userName = "Everyone"
+    $folders = "c:\2100", "C:\oracle", "C:\cloudMED", "C:\ICCARD_HIS", "C:\IDMSClient45", 
+                "C:\NHI", "C:\TEDPC", "C:\VGHTC", "C:\VghtcLogo", "C:\vhgp", "c:\mis", "d:\mis",
+                "C:\Program Files (x86)\Common Files\Borland Shared\BDE",
+                "C:\Program Files\Common Files\Borland Shared\BDE"
+
+    $userName = "Users"
     if ($check_admin) {
         foreach ($f in $Folders) {
     

@@ -181,10 +181,18 @@ function install-BDE {
             "x86" { $dest_path = "$($env:ProgramFiles)\Common Files\Borland Shared\BDE\idapi32.cfg" }
             "AMD64" { $dest_path = "$(${env:ProgramFiles(x86)})\Common Files\Borland Shared\BDE\idapi32.cfg" }
             default { $dest_path = "$(${env:ProgramFiles(x86)})\Common Files\Borland Shared\BDE\idapi32.cfg" }
-
         }
         
         Copy-Item -Path $cfg_file -Destination $dest_path -Force
+
+        #20230823, add copy pdoxsusr.net 以避免出現unknow table type 錯誤. 要開啟讀取權限給使用者, 這在grant-fullcontrolpermission作.
+        switch ($env:PROCESSOR_ARCHITECTURE) {
+            "x86" { $dest_path = "$($env:ProgramFiles)\Common Files\Borland Shared\BDE\" }
+            "AMD64" { $dest_path = "$(${env:ProgramFiles(x86)})\Common Files\Borland Shared\BDE\" }
+            default { $dest_path = "$(${env:ProgramFiles(x86)})\Common Files\Borland Shared\BDE\" }
+        }
+
+        Copy-Item -Path "\\172.20.1.122\share\software\00newpc\01-Oracle9i_BDE\03-BDE_cfg\PDOXUSRS.NET" -Destination $dest_path -Force
 
         #調整設定值, 自動安裝不會建立底下的registry, 自行建立
         $registryPath1 = "HKLM:\SOFTWARE\WOW6432Node\Borland\Database Engine\Settings\DRIVERS\ORACLE\DB OPEN"
