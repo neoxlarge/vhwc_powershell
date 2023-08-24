@@ -45,8 +45,6 @@ copy-vghtc
 Import-Module ((Split-Path $PSCommandPath) + "\install-or9iClient.ps1")
 Import-Module ((Split-Path $PSCommandPath) + "\remove-or9iandBDE.ps1")
 
-remove-or9i
-
 install-or9iclient
 install-BDE
 
@@ -126,7 +124,7 @@ Import-Module ((Split-Path $PSCommandPath) + "\install-virtualnhc.ps1")
 install-virtualnhc
 
 #安裝powerBI
-Import-Module ((Split-Path $PSCommandPath) + "\install-PowerBI.ps1")
+Import-Module ((Split-Path $PSCommandPath) + "\install-powerBI.ps1")
 install-PowerBI
 
 # 安裝Winnexus
