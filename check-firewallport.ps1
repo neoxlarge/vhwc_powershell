@@ -39,7 +39,7 @@ function Get-IPv4Address {
 function check-firewallport {
     param (
     $computerName = (Get-IPv4Address),
-    $ports = @(5800,5900)
+    $ports = @(5800,5900,3033)
         )
     
     Write-Output "檢查 $computerName firewall port 是否有開啟:"
