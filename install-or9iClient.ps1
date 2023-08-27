@@ -1,4 +1,5 @@
 # 安裝Oracle 9i Client
+#20230827, Win7 不可用, 裝了powershell 5.1, 仍然沒有mount-diskimage可用. 可能另外import-module stroage試試.
 
 param($runadmin)
 

@@ -13,7 +13,7 @@ function Grant-FullControlPermission {
                 "C:\Program Files (x86)\Common Files\Borland Shared\BDE",
                 "C:\Program Files\Common Files\Borland Shared\BDE"
 
-    $userName = "Users"
+    $userName = "everyone"
     if ($check_admin) {
         foreach ($f in $Folders) {
     
