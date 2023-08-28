@@ -36,11 +36,12 @@ function check-FirewallSettings {
     $firewallProfiles = Get-NetFirewallProfile
 
     foreach ($profile in $firewallProfiles) {
-        Write-Host "配置檔案：$($profile.Name)"
-        Write-Host "  狀態：$($profile.Enabled)"
-        Write-Host "  允許入站：$($profile.AllowInbound)"
-        Write-Host "  允許出站：$($profile.AllowOutbound)"
-        Write-Host ""
+        if ($($profile.Enabled)) {
+            Write-output "配置檔案：$($profile.Name) : $($profile.Enabled)" 
+        }else {
+            write-warning "配置檔案：$($profile.Name) : $($profile.Enabled)" 
+        }
+        
     }
 
 
@@ -48,7 +49,7 @@ function check-FirewallSettings {
     Write-Output "檢查firewall中是否充許軟體通過."
 
     #要檢查firewall中的軟體是否充許的關鍵字
-    $Applications = @("vnc", "chrome", "edge")
+    $Applications = @("vnc", "chrome", "edge","bbb")
 
     if ($check_admin) {
     
@@ -58,16 +59,16 @@ function check-FirewallSettings {
             $firewallRules = Get-NetFirewallRule
         
             foreach ($rule in $firewallRules) {
-                if ($rule.Enabled -and $rule.Action -eq 'Allow' -and $rule.ApplicationName -like "*$app*") {
+                if ($rule.Enabled -and $rule.Action -eq 'Allow' -and $rule.DisplayName -like "*$app*") {
                     $allowed = $true
                     break
                 }
             }
         
             if ($allowed) {
-                Write-Host "防火牆允許應用程式 '$app' 通過。"
+                Write-output "防火牆允許應用程式 '$app' 通過。"
             } else {
-                Write-Host "防火牆不允許應用程式 '$app' 通過。"
+                Write-Warning "防火牆不允許應用程式 '$app' 通過。" 
             }
         }
     }
