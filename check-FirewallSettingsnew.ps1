@@ -28,30 +28,33 @@ function check-FirewallSettings {
     [CmdletBinding()]
     param()
 
-    #載入模組 NetSecurity
-    import-module_func NetSecurity
-    
-    Write-Output "檢查防火牆啟用狀態."    
-    # 取得Windows防火牆物件
-    $firewallProfiles = Get-NetFirewallProfile
-
-    foreach ($profile in $firewallProfiles) {
-        if ($($profile.Enabled)) {
-            Write-output "配置檔案：$($profile.Name) : $($profile.Enabled)" 
-        }else {
-            write-warning "配置檔案：$($profile.Name) : $($profile.Enabled)" 
-        }
-        
-    }
-
-
-    #檢查firewall中是否充許軟體通過.
-    Write-Output "檢查firewall中是否充許軟體通過."
-
-    #要檢查firewall中的軟體是否充許的關鍵字
-    $Applications = @("vnc", "chrome", "edge","bbb")
-
     if ($check_admin) {
+
+        #載入模組 NetSecurity
+        import-module_func NetSecurity
+    
+        Write-Output "檢查防火牆啟用狀態."    
+        # 取得Windows防火牆物件
+        $firewallProfiles = Get-NetFirewallProfile
+
+        foreach ($profile in $firewallProfiles) {
+            if ($($profile.Enabled)) {
+                Write-output "配置檔案：$($profile.Name) : $($profile.Enabled)" 
+            }
+            else {
+                write-warning "配置檔案：$($profile.Name) : $($profile.Enabled)" 
+            }
+        
+        }
+
+
+        #檢查firewall中是否充許軟體通過.
+        Write-Output "檢查firewall中是否充許軟體通過."
+
+        #要檢查firewall中的軟體是否充許的關鍵字
+        $Applications = @("vnc", "chrome", "edge", "bbb")
+
+    
     
         foreach ($app in $Applications) {
             $allowed = $false
@@ -67,14 +70,42 @@ function check-FirewallSettings {
         
             if ($allowed) {
                 Write-output "防火牆允許應用程式 '$app' 通過。"
-            } else {
+            }
+            else {
                 Write-Warning "防火牆不允許應用程式 '$app' 通過。" 
             }
         }
+
+        write-output "檢查是否回應Ping:"
+
+        $icmpRule = Get-NetFirewallRule | Where-Object { $_.Name -like "*CoreNet-Diag-ICMP?-EchoRequest-In*" }
+        #系統預設的應該有個, 全都打開.
+    
+        foreach ($i in $icmpRule) {
+    
+            if ($i.enabled -eq $false) {
+                Write-Output "進行啟用firewall rule: $($i.Displayname)"
+                $i | Set-NetFirewallRule -Enabled $true
+            }
+            else {
+                Write-Output "已啟用: $($i.DisplayName)"
+            }
+    
+        }
+    
+
+
     }
     else {
         Write-Warning "沒有系統管理員權限,無法檢查允許軟體,請以系統管理員身分重新嘗試."
     }
+
+
+   
+
+
+
+
 }
 
 
