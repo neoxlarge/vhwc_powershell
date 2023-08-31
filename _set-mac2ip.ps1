@@ -12,7 +12,9 @@ function Get-MacAddress {
     Where-Object { $_.IPAddress -ne $null -and $_.IPAddress[0] -like "172.20.*" } 
 
     if ($mac_addr) {
-    return @{"ip" = $mac_addr.IPAddress[0]; "mac" = $mac_addr.MACaddress }
+    return @{"ip" = $mac_addr.IPAddress[0]; 
+            "mac" = $mac_addr.MACaddress;
+            "DHCPEnabled" = $mac_addr.DHCPEnabled }
     } else {return $null}
 }
 
@@ -76,7 +78,7 @@ function Set-mac2ip {
         "172.20.65.0", 
         "172.20.66.0") 
 
-
+    #把目前的ip, 取到172.20.2.*, 比對有那些scopes是符合的.
     $curr_ip_split = $curr_ipconf.ip.Split(".")[0..2]
     $curr_subnet = "$($curr_ip_split -join ".").*"
     $scopes = $scopes | Where-Object -FilterScript { $_ -like $curr_subnet }
@@ -103,12 +105,14 @@ function Set-mac2ip {
                
             }
         }
-        if ($result -ne $null) { break }
+        if ($result -ne $null) { break } #如果有找到, 跳出第一層foreach.
         
     }
 
+    if ($result) {
+
     Write-Host "=========================="
-    Write-Host "IP: $($curr_ipconf.ip) 綁定的MAC Address為"
+    Write-Host "IP: $($result.ip) 綁定的MAC Address為"
     write-host "MAC: $($result.ClientID)"
     Write-Host "是否要更改綁定為"
     Write-Host "MAC: $($curr_ipconf.mac)"
@@ -116,14 +120,18 @@ function Set-mac2ip {
     Write-Host "=========================="
     $yn = Read-Host "請輸入Y/N" 
 
-   
+    } else {
+        Write-Host "無法在DHCP中的保留區找到$($curr_ipconf.ip), 請連絡管理員或需手動新增保留區." -ForegroundColor Red
+        Pause
+        break
+    }
 
     if ($yn -eq "y") {
 
         $script_block_setMAC = @{
             ComputerName = $dhcp_server;
             ScriptBlock  = { Set-DhcpServerv4Reservation -IPAddress $args[0] -ClientId $args[1] };
-            ArgumentList = @($($curr_ipconf.ip), $($curr_ipconf.mac).replace(":", "-")) #wmi查到的mac用:分隔,改成-號
+            ArgumentList = @($($result.ip), $($curr_ipconf.mac).replace(":", "-")) #wmi查到的mac用:分隔,改成-號
         }
 
         Invoke-Command @script_block_setMAC
@@ -132,11 +140,16 @@ function Set-mac2ip {
 
             Write-Host "Mac Address綁定完成."
 
-            Write-Host "重新取得IP中,請等待..."
+            
+            if ($curr_ipconf.DHCPEnabled) {
+                Write-Host "重新取得IP中,請等待..."
+                
+                Invoke-Expression -Command "ipconfig /release"
 
-            Invoke-Expression -Command "ipconfig /release"
-
-            Invoke-Expression -Command "ipconfig /renew"
+                Invoke-Expression -Command "ipconfig /renew"
+            } else {
+                Write-Host "請記得把IP設定改為DHCP自動取得. 謝謝." -ForegroundColor Yellow
+            }
         }
 
     }
