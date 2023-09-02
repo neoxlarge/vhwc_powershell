@@ -89,7 +89,9 @@ function Enable-ChangJieinput {
     
             Set-WinUserLanguageList -LanguageList $user_language -Force
             #設定預設輸入模式為"英數字元"
-            Set-ItemProperty -Path HKCU:\SOFTWARE\Microsoft\IME\15.0\IMETC -Name "Default Input Mode" -Value "0x00000001" -Type String
+            Set-ItemProperty -Path HKCU:\SOFTWARE\Microsoft\IME\15.0\IMETC -Name "Default Input Mode" -Value "0x00000001" -Type String -Force
+
+            Set-ItemProperty -Path HKCU:\SOFTWARE\Microsoft\InputMethod\Settings\CHT -name "Default Input Mode Changjie" -Value "0x00000000" -Type String -Force
         }
 
 
