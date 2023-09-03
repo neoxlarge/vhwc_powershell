@@ -1,20 +1,20 @@
-<# 安裝31-庫賈氏病勾稽查詢系統
-
+<#  安裝31-庫賈氏病勾稽查詢系統
+    * 此安裝程式不會在移除列表中留記錄. 在路徑中確認有無安裝.
+    * 桌面捷徑更名.
 #>
 
 
 param($runadmin)
 
-Import-Module ((Split-Path $PSCommandPath) + "\get-installedprogramlist.psm1")
+function install-cdcalert {
 
 
-function install-AnyDesk {
-
-
-    $software_name = "AnyDesk"
+    $software_name = "庫賈氏病勾稽查詢系統"
     $software_path = "\\172.20.5.187\mis\31-庫賈氏病勾稽查詢系統\cdcClinic"
-    $software_msi_x64 = "AnyDesk.exe"  #64bit 32bit 都同一個
-    $software_msi_x32 = "AnyDesk.exe"
+    $software_msi_x64 = "cdcalert.msi"  #64bit 32bit 都同一個
+    $software_msi_x32 = "cdcalert.msi"
+
+    $software_installed = "C:\Program Files (x86)\Changingtec\cdcClinic\cdcalert.exe"
 
     #用來連線172.20.1.112的認證
     $Username = "vhcy\vhwcmis"
@@ -22,13 +22,11 @@ function install-AnyDesk {
     $securePassword = ConvertTo-SecureString $Password -AsPlainText -Force
     $credential = New-Object System.Management.Automation.PSCredential($Username, $securePassword)
 
-    $all_installed_program = get-installedprogramlist
-      
-    $software_is_installed = $all_installed_program | Where-Object -FilterScript { $_.DisplayName -like $software_name }
+    $check_installedpath = Test-Path -Path $software_installed
 
-    if ($software_is_installed -eq $null) {
-    
-        Write-Output "Start to insall: $software_name"
+    if ($check_installedpath -eq $false) {
+        
+        Write-Output "Start to install: $software_name"
 
         #復制檔案到temp
         $software_path = get-item -Path $software_path
@@ -38,10 +36,9 @@ function install-AnyDesk {
         #掛載路徑
         New-PSDrive -Name $net_driver -Root $software_path -PSProvider FileSystem -Credential $credential
         #復制
-        Copy-Item -Path "$($net_driver):\" -Destination $env:TEMP -Recurse -Force -Verbose 
+        Copy-Item -Path "$($net_driver):\" -Destination "$($env:TEMP)\$($software_path.Name)" -Recurse -Force -Verbose 
         #unmount路徑
         Remove-PSDrive -Name $net_driver
-
 
         ## 判斷OS是32(x86)或是64(AMD64), 其他值(ARM64)不安裝  
         switch ($env:PROCESSOR_ARCHITECTURE) {
@@ -50,23 +47,27 @@ function install-AnyDesk {
             default { Write-OutPut "Unsupport CPU or OS:"  $env:PROCESSOR_ARCHITECTURE; $software_exec = $null }
         }
 
-        if ($software_exec -ne $null) {
-            Start-Process -FilePath "$($env:temp)\$($software_path.Name)\$software_exec" -ArgumentList "--install ""c:\Program Files (x86)\AnyDesk"" --silent --create-desktop-icon " -Wait
-            Start-Sleep -Seconds 5 
-        }
-        else {
-            Write-Warning "$software_name 無法正常安裝."
-        }
-      
-             
-        #安裝完, 再重新取得安裝資訊
-        $all_installed_program = get-installedprogramlist
-        $software_is_installed = $all_installed_program | Where-Object -FilterScript { $_.DisplayName -like $software_name }
-    
+        Start-Process -FilePath msiexec.exe Get-NetFirewallRule " /i $($env:TEMP)\$($software_path.Name)\$software_exec /passive" -Wait
+
+        Start-Sleep -Seconds 2
+
+        $software_property = Get-ItemProperty -Path $software_installed 
+
+    }
+    else {
+        $software_property = Get-ItemProperty -Path $software_installed   
     }
 
-    Write-Output ("Software has installed: " + $software_is_installed.DisplayName)
-    Write-Output ("Version: " + $software_is_installed.DisplayVersion)
+    Write-Output ("Software has installed: " + $software_name)
+    Write-Output ("Version: " + $software_property.versioninfo)
+
+    #更名捷徑
+    
+    if (Test-Path "$($env:PUBLIC)\desktop\cdcalert.link") {
+        Rename-Item -Path "$($env:PUBLIC)\desktop\cdcalert.link" -NewName "$software_name.lnk"
+        }
+
+
 
 }
 
@@ -85,7 +86,7 @@ if ($run_main -eq $null) {
     }
 
     if ($check_admin) { 
-        install-AnyDesk
+        install-cdcalert
     }
     else {
         Write-Warning "無法取得管理員權限來安裝軟體, 請以管理員帳號重試."
