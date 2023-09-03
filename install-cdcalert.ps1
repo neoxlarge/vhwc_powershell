@@ -1,4 +1,5 @@
-<# 杆畐基ん痝
+<# 杆31-畐鸽ん痜つ絔琩高╰参
+
 #>
 
 
@@ -11,7 +12,7 @@ function install-AnyDesk {
 
 
     $software_name = "AnyDesk"
-    $software_path = "\\172.20.1.122\share\software\00newpc\35-anydesk"
+    $software_path = "\\172.20.5.187\mis\31-畐鸽ん痜つ絔琩高╰参\cdcClinic"
     $software_msi_x64 = "AnyDesk.exe"  #64bit 32bit 常
     $software_msi_x32 = "AnyDesk.exe"
 
