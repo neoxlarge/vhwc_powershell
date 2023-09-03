@@ -123,6 +123,10 @@ install-PCSC
 Import-Module ((Split-Path $PSCommandPath) + "\install-virtualnhc.ps1")
 install-virtualnhc
 
+#安裝庫賈氏病勾稽查詢系統
+Import-Module ((Split-Path $PSCommandPath) + "\install-cdcalert.ps1")
+install-cdcalert
+
 
 # 安裝sslvpn
 Import-Module ((Split-Path $PSCommandPath) + "\install-sslvpn.ps1")

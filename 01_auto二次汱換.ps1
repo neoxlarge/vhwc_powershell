@@ -127,6 +127,10 @@ install-virtualnhc
 Import-Module ((Split-Path $PSCommandPath) + "\install-powerBI.ps1")
 install-PowerBI
 
+#安裝庫賈氏病勾稽查詢系統
+Import-Module ((Split-Path $PSCommandPath) + "\install-cdcalert.ps1")
+install-cdcalert
+
 # 安裝Winnexus
 Import-Module ((Split-Path $PSCommandPath) + "\install-Winnexus.ps1")
 

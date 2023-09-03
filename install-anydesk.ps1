@@ -55,7 +55,7 @@ function install-AnyDesk {
         #±¾¸ü¸ô®|
         New-PSDrive -Name $net_driver -Root $software_path -PSProvider FileSystem -Credential $credential
         #´_¨î
-        Copy-Item -Path "$($net_driver):\" -Destination $env:TEMP -Recurse -Force -Verbose 
+        Copy-Item -Path "$($net_driver):\" -Destination "$($env:TEMP)\$($software_path.Name)" -Recurse -Force -Verbose 
         #unmount¸ô®|
         Remove-PSDrive -Name $net_driver
 

@@ -91,7 +91,7 @@ function install-NX {
         #copy-item 無法接認證, 須要從psdrive接, 所以要掛driver.
         $net_driver = "vhwcdrive" #只是給個driver名字而己.
         New-PSDrive -Name $net_driver -Root $software_path -PSProvider FileSystem -Credential $credential
-        Copy-Item -Path "$($net_driver):\" -Destination $env:TEMP -Recurse -Force -Verbose 
+        Copy-Item -Path "$($net_driver):\" -Destination "$($env:temp)\$($software_path.name)" -Recurse -Force -Verbose 
         Remove-PSDrive -Name $net_driver
 
 

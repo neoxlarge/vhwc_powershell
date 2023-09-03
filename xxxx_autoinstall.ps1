@@ -123,6 +123,13 @@ install-PCSC
 Import-Module ((Split-Path $PSCommandPath) + "\install-virtualnhc.ps1")
 install-virtualnhc
 
+#安裝庫賈氏病勾稽查詢系統
+Import-Module ((Split-Path $PSCommandPath) + "\install-cdcalert.ps1")
+install-cdcalert
+
+#安裝powerBI
+Import-Module ((Split-Path $PSCommandPath) + "\install-PowerBI.ps1")
+install-PowerBI
 
 # 安裝Winnexus
 Import-Module ((Split-Path $PSCommandPath) + "\install-Winnexus.ps1")

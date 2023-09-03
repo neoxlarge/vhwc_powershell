@@ -47,7 +47,7 @@ function install-cdcalert {
             default { Write-OutPut "Unsupport CPU or OS:"  $env:PROCESSOR_ARCHITECTURE; $software_exec = $null }
         }
 
-        Start-Process -FilePath msiexec.exe Get-NetFirewallRule " /i $($env:TEMP)\$($software_path.Name)\$software_exec /passive" -Wait
+        Start-Process -FilePath "msiexec.exe" -ArgumentList  "/i $($env:TEMP)\$($software_path.Name)\$software_exec /passive" -Wait
 
         Start-Sleep -Seconds 2
 
@@ -59,15 +59,14 @@ function install-cdcalert {
     }
 
     Write-Output ("Software has installed: " + $software_name)
-    Write-Output ("Version: " + $software_property.versioninfo)
+    Write-Output ("Version: " + $software_property.versioninfo.productversion)
 
-    #更名捷徑
+    #更名移動捷徑
     
-    if (Test-Path "$($env:PUBLIC)\desktop\cdcalert.link") {
-        Rename-Item -Path "$($env:PUBLIC)\desktop\cdcalert.link" -NewName "$software_name.lnk"
-        }
-
-
+    if (Test-Path -Path "$($env:USERPROFILE)\desktop\cdcalert.exe.lnk") {
+        move-Item -Path "$($env:USERPROFILE)\desktop\cdcalert.exe.lnk" -Destination "$($env:PUBLIC)\desktop\$software_name.lnk" -Force
+        
+    }
 
 }
 
@@ -89,7 +88,7 @@ if ($run_main -eq $null) {
         install-cdcalert
     }
     else {
-        Write-Warning "無法取得管理員權限來安裝軟體, 請以管理員帳號重試."
+        Write-Warning "?L?k???o??z???v????w??n??, ??H??z???b??????."
     }
     pause
 }
