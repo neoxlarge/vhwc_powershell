@@ -2,14 +2,37 @@
 
 param($runadmin)
 
-<# 
+<# 20230906
+refer to https://www.adobe.com/devnet-docs/acrobatetk/tools/PrefRef/Windows/Updater-Win.html?zoom_highlight=updates#idkeyname_1_20396
+
+禁止更新按鈕
+[HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Adobe\Acrobat Reader\DC\FeatureLockDown]
+"bUpdater"=dword:00000000
+
+0: Disables and locks the Updater.
+1: No effect.
+
+
+禁用自動更新
+電腦\HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Adobe\Adobe ARM\Legacy\Reader\{AC76BA86-7AD7-1028-7B44-AC0F074E4100}
+"Mode"=0
+
+0: Do not download or install updates automatically.
+1: Do not download or install updates automatically. Same as 0.
+2: Automatically download updates but let the user choose when to install them.
+3: Automatically download and install updates.
+4: Notify the user downloads are available but do not download them.
+#>
+
+
+<# 底下資料己不適用
 Windows Registry Editor Version 5.00
 
 [HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Adobe\Acrobat Reader\DC\FeatureLockDown]
 "bUpdateToSingleApp"=dword:00000000
-#>
-#新版adobe reader改名為adobe acrobat, registry應隨著變更為Adobe Arcobate.
 
+#新版adobe reader改名為adobe acrobat, registry應隨著變更為Adobe Arcobate.
+#>
 
 Import-Module ((Split-Path $PSCommandPath) + "\get-installedprogramlist.psm1")
 
@@ -54,12 +77,14 @@ function install-pdf {
 
 function check-pdf {
 
-    $reg_path = @("HKLM:\SOFTWARE\Policies\Adobe\Adobe Acrobat\DC\FeatureLockDown",
+    $reg_path_disableUpdateButton= @("HKLM:\SOFTWARE\Policies\Adobe\Adobe Acrobat\DC\FeatureLockDown",
         "HKLM:\SOFTWARE\Policies\Adobe\Acrobat Reader\DC\FeatureLockDown")
 
-    foreach ($r in $reg_path) {
+    $reg_path_disableAutoupdate = "HKLM:\SOFTWARE\WOW6432Node\Adobe\Adobe ARM\Legacy\Reader\{AC76BA86-7AD7-1028-7B44-AC0F074E4100}"
+
+    foreach ($r in $reg_path_disableUpdateButton) {
         if (Test-Path -Path $r) {
-            $is_update = Get-ItemProperty -Path $r -Name "bUpdateToSingleApp" -ErrorAction SilentlyContinue
+            $is_update = Get-ItemProperty -Path $r -Name "bUpdater" -ErrorAction SilentlyContinue
 
             if ($is_update.bUpdateToSingleApp -eq 0) {
                 Write-Output "Adobe PDF Reader 己設定不自動更新."
@@ -67,7 +92,8 @@ function check-pdf {
             else {
                 if ($check_admin) {
                     Write-Output "正在設定Adobe PDF Reader 為不自動新更中."
-                    Set-ItemProperty -Path $r -Name "bUpdateToSingleApp" -Value 00000000 -type DWord -Force
+                    Set-ItemProperty -Path $r -Name "bUpdater" -Value 00000000 -type DWord -Force
+                    Set-ItemProperty -Path $reg_path_disableAutoupdate -Name "Mode" -Value 0 -Force -type Dword
                 }
                 else {
                     Write-Warning "沒有系統管理員權限,且Adobe PDF Reader未設定不自動新,請以系統管理員身分重新嘗試."
