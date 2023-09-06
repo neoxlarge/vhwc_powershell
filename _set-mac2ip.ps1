@@ -112,7 +112,7 @@ function Set-mac2ip {
     if ($result) {
 
     Write-Host "=========================="
-    Write-Host "IP: $($result.ip) 綁定的MAC Address為"
+    Write-Host "IP: $($result.IpAddress) 綁定的MAC Address為"
     write-host "MAC: $($result.ClientID)"
     Write-Host "是否要更改綁定為"
     Write-Host "MAC: $($curr_ipconf.mac)"
@@ -131,7 +131,7 @@ function Set-mac2ip {
         $script_block_setMAC = @{
             ComputerName = $dhcp_server;
             ScriptBlock  = { Set-DhcpServerv4Reservation -IPAddress $args[0] -ClientId $args[1] };
-            ArgumentList = @($($result.ip), $($curr_ipconf.mac).replace(":", "-")) #wmi查到的mac用:分隔,改成-號
+            ArgumentList = @($($result.IpAddress), $($curr_ipconf.mac).replace(":", "-")) #wmi查到的mac用:分隔,改成-號
         }
 
         Invoke-Command @script_block_setMAC
