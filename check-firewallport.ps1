@@ -4,14 +4,15 @@
 param($runadmin)
 
 function import-module_func ($name) {
-#此function會檢查本機上是否有要載入的模組. 如果沒有, 就連線到wcdc2.vhcy.gov.tw上下載. 可能Win7沒有內建該模組. 
+    #此function會檢查本機上是否有要載入的模組. 如果沒有, 就連線到wcdc2.vhcy.gov.tw上下載. 可能Win7沒有內建該模組. 
     $result = get-module -ListAvailable $name
 
     if ($result -ne $null) {
 
         Import-Module -Name $name -ErrorAction Stop
 
-    } else {
+    }
+    else {
         
         #管理者權限vhwcmis的證書.
         $Username = "vhwcmis"
@@ -28,19 +29,19 @@ function import-module_func ($name) {
 
 function Get-IPv4Address {
     $ip = Get-WmiObject -Class Win32_NetworkAdapterConfiguration |
-          Where-Object {$_.IPAddress -ne $null -and $_.IPAddress[0] -like "172.*" } |
-          Select-Object -ExpandProperty IPAddress |
-          Where-Object { $_ -match "\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}" } |
-          Select-Object -First 1
+    Where-Object { $_.IPAddress -ne $null -and $_.IPAddress[0] -like "172.*" } |
+    Select-Object -ExpandProperty IPAddress |
+    Where-Object { $_ -match "\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}" } |
+    Select-Object -First 1
     return $ip
 }
 
 
 function check-firewallport {
     param (
-    $computerName = (Get-IPv4Address),
-    $ports = @(5800,5900,3033)
-        )
+        $computerName = (Get-IPv4Address),
+        $ports = @(5800, 5900, 3033)
+    )
     
     Write-Output "檢查 $computerName firewall port 是否有開啟:"
 
@@ -58,6 +59,21 @@ function check-firewallport {
         }
         else {
             Write-Output "Port $port is closed."
+            if ($check_admin) {
+                Write-Output "新增允許port $port inbound規則至firewall."
+                $rule = New-NetFirewallRule -DisplayName "enable port $port inbound" -Direction Inbound -Enabled True -Protocol TCP -LocalPort $port
+
+                if ($rule) {
+                    Write-Output "port $port inbound 新增成功."
+                }
+                else {
+                    Write-Warning "port $port inbound 新增成功, 請檢查firewall rule."
+                }
+
+            }
+            else {
+                Write-Warning "沒有管理者限權, 無法新增允許port $port inbound規則至firewall."
+            }
         }
     }
 
@@ -73,8 +89,8 @@ if ($run_main -eq $null) {
     $check_admin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")
 
     if (!$check_admin -and !$runadmin) {
-    #如果非管理員, 就試著run as admin, 並傳入runadmin 參數1. 因為在網域一般使用者永遠拿不是管理員權限, 會造成無限重跑. 此參數用來輔助判斷只跑一次. 
-    Start-Process powershell.exe -ArgumentList "-FILE `"$PSCommandPath`" -Executionpolicy bypass -NoProfile  -runadmin 1" -Verb Runas; exit
+        #如果非管理員, 就試著run as admin, 並傳入runadmin 參數1. 因為在網域一般使用者永遠拿不是管理員權限, 會造成無限重跑. 此參數用來輔助判斷只跑一次. 
+        Start-Process powershell.exe -ArgumentList "-FILE `"$PSCommandPath`" -Executionpolicy bypass -NoProfile  -runadmin 1" -Verb Runas; exit
     
     }
 
