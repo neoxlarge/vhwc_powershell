@@ -16,29 +16,33 @@ function remove-HiddenDevice {
   $securePassword = ConvertTo-SecureString $Password -AsPlainText -Force
   $credential = New-Object System.Management.Automation.PSCredential($Username, $securePassword)
 
- # $dev =  Get-PnpDevice | Where-Object -FilterScript {$_.Present -eq $false -and $_.Class -in ('SmartCard','SmartCardReader','SmartCardFilter')}
+  # 部分舊win10系統旳pnputil.exe沒有remove-device功能, 目前手上己更新的22H2中的版本為10.0.19041.3155, 以此為準. 
+  # 比這版舊的都更新到這版.
 
-  # 部分舊win10系統旳pnputil.exe沒有remove-device, 所以copy了一份, 再跟os裡的比一下新舊.
-  $pnputil_paths = "$((get-item -path $PSCommandPath).DirectoryName)\pnputil.exe",
-            "$($env:USERPROFILE)\desktop\vhwc_powershell\pnputil.exe",
-            "D:\mis\vhwc_powershell\pnputil.exe"
-  foreach ($p in $pnputil_paths) {
-    if (Test-Path -Path $p)
-    {
-      $pnputil = $p
-      break
+  $pnputil_version = Get-ItemPropertyValue -Path "$env:windir\system32\pnputil.exe" -name VersionInfo
+
+  if ($pnputil_version.FileVersion -lt [version]"10.0.19041.3324") {
+    #版本低於10.1.19041.3324, 在底下的路徑中找到復制符合的版本, 復制到c:\windows\system32
+    $pnputil_files = @( "$((get-item -path $PSCommandPath).DirectoryName)\pnputil.exe",
+                        "$($env:USERPROFILE)\desktop\vhwc_powershell\pnputil.exe",
+                        "D:\mis\vhwc_powershell\pnputil.exe",
+                        "\\172.20.5.185\powershell\vhwc_powershell\pnputil.exe"
+    )
+
+    foreach ($f in $pnputil_files) {
+      $pnputil_version = = Get-ItemPropertyValue -Path $f -name VersionInfo
+      if ($pnputil_version.FileVersion -ge [Version]"10.0.19041.3324") {
+        Copy-Item -Path $f -Destination -Path "$env:windir\system32\" -Force
+        break
+      }
+      
     }
   }
 
-  $pnputil_os = "C:\Windows\system32\pnputil.exe"
-  $result = (Get-ItemPropertyValue -Path $pnputil -name VersionInfo).productVersion -lt (Get-ItemPropertyValue -Path $pnputil_os -name VersionInfo).productVersion
-  #Write-Host (Get-ItemPropertyValue -Path $pnputil -name VersionInfo).productVersion
-  #Write-Host (Get-ItemPropertyValue -Path $pnputil_os -name VersionInfo).productVersion
-  
-  if ($result) {$pnputil = $pnputil_os}
-  Write-Output "pnputil path: $pnputil"
+  $pnputil_version = Get-ItemPropertyValue -Path "$env:windir\system32\pnputil.exe" -name VersionInfo
+  Write-Output "$($pnputil_version.Filename) : $($pnputil_version.FileVersion)"
 
-  # todo:  win7要用devcon.exe, win10也有但要另安裝windows10 WDK
+   # todo:  win7要用devcon.exe, win10也有但要另安裝windows10 WDK
   # Win7的要再測看看.
   #devcon.exe download: https://superuser.com/questions/1002950/quick-method-to-install-devcon-exe
 
@@ -51,18 +55,11 @@ function remove-HiddenDevice {
         if ($check_admin) {
           #登入者有管理者權限
           Write-Output "(Admin)刪除設備: $($d.FriendlyName)"
-          Start-Process -FilePath $pnputil -ArgumentList "/remove-device $($d.instanceID)" -Wait -NoNewWindow
+          Start-Process -FilePath $($pnputil_version.Filename) -ArgumentList "/remove-device $($d.instanceID)" -Wait -NoNewWindow
         } else {
           Write-Output "(User)刪除設備: $($d.FriendlyName)"
-          #Start-Process -FilePath $pnputil -ArgumentList "/remove-device $($d.instanceID)" -Credential $credential -Wait -NoNewWindow
-          #如果沒權限就需用invoke-command
-          Invoke-Command -ScriptBlock {
-            Param (
-             [string]$PnpUtilPath,
-             [string]$DeviceInstanceID)
-
-            Start-Process -FilePath $pnputil -ArgumentList "/remove-device $DeviceInstanceID" -Wait -NoNewWindow  
-          } -Credential $credential -ComputerName "localhost" -ArgumentList $pnputil,$($d.instanceID)
+          Start-Process -FilePath $($pnputil_version.Filename) -ArgumentList "/remove-device $($d.instanceID)" -Credential $credential -Wait -NoNewWindow
+                    
         }
       }
 
