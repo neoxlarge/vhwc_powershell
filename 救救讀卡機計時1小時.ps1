@@ -31,7 +31,7 @@ function remove-HiddenDevice {
     )
 
     foreach ($f in $pnputil_files) {
-      $pnputil_version = = Get-ItemPropertyValue -Path $f -name VersionInfo
+      $pnputil_version = Get-ItemPropertyValue -Path $f -name VersionInfo
       if ($pnputil_version.FileVersion -ge [Version]"10.0.19041.3324") {
         Copy-Item -Path $f -Destination -Path "$env:windir\system32\" -Credential $credential -Force
         break
