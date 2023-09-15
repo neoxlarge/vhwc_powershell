@@ -70,11 +70,11 @@ function remove-HiddenDevice {
         if ($check_admin) {
           #登入者有管理者權限
           Write-Output "(Admin)刪除設備: $($d.FriendlyName)"
-          Start-Process -FilePath "pnputil.exe" -ArgumentList "/remove-device $($d.instanceID)" -Wait -NoNewWindow
+          Start-Process -FilePath $pnputil_path -ArgumentList "/remove-device $($d.instanceID)" -Wait -NoNewWindow
         }
         else {
           Write-Output "(User)刪除設備: $($d.FriendlyName)"
-          $result = Start-Process -FilePath "pnputil.exe" -ArgumentList "/remove-device $($d.instanceID)" -Credential $credential -PassThru -NoNewWindow #這行用-wait會出現權限不足, 以下行替代.
+          $result = Start-Process -FilePath $pnputil_path -ArgumentList "/remove-device $($d.instanceID)" -Credential $credential -PassThru -NoNewWindow #這行用-wait會出現權限不足, 以下行替代.
           $result.WaitForExit()
                     
         }
