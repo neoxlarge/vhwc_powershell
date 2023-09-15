@@ -11,10 +11,10 @@ param($runadmin)
 function Compare-Versions {
   param (
     [Parameter(Mandatory = $true)]
-    [string]$Version1, # 第一?版本
+    [string]$Version1, # 第一個版本
 
     [Parameter(Mandatory = $true)]
-    [string]$Version2     # 第二?版本
+    [string]$Version2     # 第二個版本
   )
 
   # 將版本號拆分成陣列，以便逐個比較各個部分
@@ -121,14 +121,18 @@ function remove-HiddenDevice {
   
 #檔案獨立執行時會執行函式, 如果是被匯入時不會執行函式.
 if ($run_main -eq $null) {
-
   #檢查是否管理員
   $check_admin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")
 
   if (!$check_admin -and !$runadmin) {
+    #關閉快速編輯模式,以防滑鼠誤按造成停止.
+    Set-ItemProperty -Path "hkcu:\Console\%SystemRoot%_SysWOW64_WindowsPowerShell_v1.0_powershell.exe\" -Name "QuickEdit" -Value 0 
+
     #如果非管理員, 就試著run as admin, 並傳入runadmin 參數1. 因為在網域一般使用者永遠拿不是管理員權限, 會造成無限重跑. 此參數用來輔助判斷只跑一次. 
-    Start-Process powershell.exe -ArgumentList "-FILE `"$PSCommandPath`" -Executionpolicy bypass -NoProfile  -runadmin 1" -Verb Runas; exit
-    
+    Start-Process powershell.exe -ArgumentList "-FILE `"$PSCommandPath`" -Executionpolicy bypass -NoProfile -runadmin 1" -WindowStyle Minimized -Verb Runas; exit
+    #恢復快速編輯模式.
+    Set-ItemProperty -Path "hkcu:\Console\%SystemRoot%_SysWOW64_WindowsPowerShell_v1.0_powershell.exe\" -Name "QuickEdit" -Value 1 
+
   }
 
   remove-HiddenDevice
