@@ -1,9 +1,9 @@
-#從裝置管理員中移除?藏的設備
+#從裝置管理員中移除隱藏的設備
 #
-#只會移除ScmarCard ,SmartCardReader和SmartCardFilter這3個和讀卡機相關的?藏的設備.
+#只會移除ScmarCard ,SmartCardReader和SmartCardFilter這3個和讀卡機相關的隱藏的設備.
 #powershell V2無法執行, get-pnpdevice是V5的語法.
 #
-#win32_pnpentity中不會列出?藏的設備, 無法用win32_pnpentity來作.
+#win32_pnpentity中不會列出隱藏的設備, 無法用win32_pnpentity來作.
 #2020819, 
 
 param($runadmin)
@@ -19,28 +19,39 @@ function remove-HiddenDevice {
   # 部分舊win10系統旳pnputil.exe沒有remove-device功能, 目前手上己更新的22H2中的版本為10.0.19041.3155, 以此為準. 
   # 比這版舊的都更新到這版.
 
-  $pnputil_version = Get-ItemPropertyValue -Path "$env:windir\system32\pnputil.exe" -name VersionInfo
+  #pnputil.exe 先找本機裡的, 如果沒有再復制網路上的到$env:temp
+  $pnputil_path = $null
 
-  if ($pnputil_version.FileVersion -lt [version]"10.0.19041.3324") {
-    #版本低於10.1.19041.3324, 在底下的路徑中找到復制符合的版本, 復制到c:\windows\system32
-    $pnputil_files = @( "$((get-item -path $PSCommandPath).DirectoryName)\pnputil.exe",
-      "$($env:USERPROFILE)\desktop\vhwc_powershell\pnputil.exe",
-      "D:\mis\vhwc_powershell\pnputil.exe",
+  $pnputil_files = @(
+    "C:\Windows\system32\pnputil.exe",
+    "$((get-item -path $PSCommandPath).DirectoryName)\pnputil.exe"
+  )
+  foreach ($p in $pnputil_files) {
+    $p_version = Get-ItemPropertyValue -Path $p -Name VersionInfo
+    if ($p_version.FileVersion -ge [version]"10.0.19041.3323") {
+      $pnputil_path = $p
+      break
+    }
+  }
+
+  if (!$pnputil_path) {
+    $pnputil_files = @(
       "\\172.20.5.185\powershell\vhwc_powershell\pnputil.exe",
       "\\172.20.1.122\share\software\00newpc\vhwc_powershell\pnputil.exe"
     )
 
-    foreach ($f in $pnputil_files) {
-      $pnputil_version = Get-ItemPropertyValue -Path $f -name VersionInfo
-      if ($pnputil_version.FileVersion -ge [Version]"10.0.19041.3324") {
-        Copy-Item -Path $f -Destination -Path "$env:windir\system32\" -Credential $credential -Force
+    foreach ($p in $pnputil_files) {
+      $p_version = Get-ItemPropertyValue -Path $p -Name VersionInfo
+      if ($p_version.FileVersion -ge [version]"10.0.19041.3323") {
+        Copy-Item -Path $p -Destination $env:TEMP -Force -Verbose
+        $pnputil_path = "$($env:temp)\pnputil.exe"
         break
       }
-      
     }
+
   }
 
-  $pnputil_version = Get-ItemPropertyValue -Path "$env:windir\system32\pnputil.exe" -name VersionInfo
+  $pnputil_version = Get-ItemPropertyValue -Path $pnputil_path -name VersionInfo
   Write-Host "救救讀卡機"
   Write-Output "$($pnputil_version.Filename) : $($pnputil_version.FileVersion)"
 
