@@ -9,6 +9,7 @@
 param($runadmin)
 
 function Compare-Versions {
+  <#比對2個版本, $version1 大於等於 $version2 回傳$Ture #>
   param (
     [Parameter(Mandatory = $true)]
     [string]$Version1, # 第一個版本
