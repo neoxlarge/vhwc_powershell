@@ -11,7 +11,8 @@ function Grant-FullControlPermission {
     $folders = "c:\2100", "C:\oracle", "C:\cloudMED", "C:\ICCARD_HIS", "C:\IDMSClient45", 
                 "C:\NHI", "C:\TEDPC", "C:\VGHTC", "C:\VghtcLogo", "C:\vhgp", "c:\mis", "d:\mis",
                 "C:\Program Files (x86)\Common Files\Borland Shared\BDE",
-                "C:\Program Files\Common Files\Borland Shared\BDE"
+                "C:\Program Files\Common Files\Borland Shared\BDE",
+                "C:\Program Files\TEDPC"
 
     $userName = "everyone"
     if ($check_admin) {

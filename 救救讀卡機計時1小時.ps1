@@ -130,6 +130,7 @@ if ($run_main -eq $null) {
 
     #如果非管理員, 就試著run as admin, 並傳入runadmin 參數1. 因為在網域一般使用者永遠拿不是管理員權限, 會造成無限重跑. 此參數用來輔助判斷只跑一次. 
     Start-Process powershell.exe -ArgumentList "-FILE `"$PSCommandPath`" -Executionpolicy bypass -NoProfile -runadmin 1" -WindowStyle Minimized -Verb Runas; exit
+    
     #恢復快速編輯模式.
     Set-ItemProperty -Path "hkcu:\Console\%SystemRoot%_SysWOW64_WindowsPowerShell_v1.0_powershell.exe\" -Name "QuickEdit" -Value 1 
 
