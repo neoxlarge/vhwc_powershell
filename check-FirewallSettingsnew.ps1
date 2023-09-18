@@ -33,26 +33,26 @@ function check-FirewallSettings {
         #載入模組 NetSecurity
         import-module_func NetSecurity
     
-        Write-Output "檢查防火牆啟用狀態."    
+        Write-Output "檢查防火牆啟用狀態:"    
         # 取得Windows防火牆物件
         $firewallProfiles = Get-NetFirewallProfile
 
         foreach ($profile in $firewallProfiles) {
             if ($($profile.Enabled)) {
-                Write-output "配置檔案：$($profile.Name) : $($profile.Enabled)" 
+                Write-output "Profile: $($profile.Name) : $($profile.Enabled)" 
             }
             else {
-                write-warning "配置檔案：$($profile.Name) : $($profile.Enabled)" 
+                write-warning "Profile:$($profile.Name) : $($profile.Enabled)" 
             }
         
         }
 
 
         #檢查firewall中是否充許軟體通過.
-        Write-Output "檢查firewall中是否充許軟體通過."
+        Write-Output "檢查firewall中是否充許軟體通過:"
 
-        #要檢查firewall中的軟體是否充許的關鍵字
-        $Applications = @("vnc", "chrome", "edge", "虛擬健保卡控制軟體")
+        #要檢查firewall中的軟體的rule是否正確, profile 有domain, action 是allow.
+        
         $Applications = @(
             @{"DisplayName" = "winvnc.exe" ; "Path" = "C:\Program Files\uvnc bvba\UltraVNC\winvnc.exe" },
             @{"DisplayName" = "csFSIM 5.1版" ; "Path" = "C:\nhi\bin\csfsim.exe" } ,
@@ -64,60 +64,50 @@ function check-FirewallSettings {
             
         )
 
-
+        # 取得所有firewall rule.
         $firewallRules = Get-NetFirewallRule
 
         foreach ($app in $Applications) {
+            # 先以 displayname  和 方向 過濾
             $rule = $firewallRules | Where-Object -FilterScript { $_.DisplayName -like "*$($app.DisplayName)*" `
                     -and $_.Direction -eq "Inbound" `
                                                                     
             }
             if (!$rule) {
+                
                 Write-Output "Firewall rule 不存在, :$($app.DisplayName)"
                 Write-Output "新增 Firewall ruel:"
                 New-NetFirewallRule -DisplayName $app.DisplayName -Direction "Inbound" -Action "Allow" -program $app.Path
             }
             else {
-            
+                
+                # firewall rule 存在.
+
                 $in_profle = $rule | Where-Object { $_.profile -contains "Domain" }
                 if (!$in_profle) {
+                    Write-Warning "Firewall rule: $($rule[0].DisplayName), set profile Domain, Public, Private."
                     Set-NetFirewallRule -InputObject $rule[0] -Profile Domain, Public, Private
                 }
             
                 $is_block = $rule | Where-Object { $_.action -eq "Block" }
                 foreach ($b in $is_block) {
+                    Write-Warning "Firewall rule: $($b.DisplayName), set action allow."
                     Set-NetFirewallRule -InputObject $b -Action allow
                 }
-            }
-        }
 
-
-
-        #######################################
-        foreach ($app in $Applications) {
-            $allowed = $false
-        
-            $firewallRules = Get-NetFirewallRule
-        
-            foreach ($rule in $firewallRules) {
-                if ($rule.Enabled -and $rule.Action -eq 'Allow' -and $rule.DisplayName -like "*$app*") {
-                    $allowed = $true
-                    break
+                if (!$in_profle -and !$is_block) {
+                    Write-Output "Firewall rule: $($rule.DisplayName) , OK"
                 }
-            }
-        
-            if ($allowed) {
-                Write-output "防火牆允許應用程式 '$app' 通過。"
-            }
-            else {
-                Write-Warning "防火牆不允許應用程式 '$app' 通過。" 
+
             }
         }
+
+
 
         write-output "檢查是否回應Ping:"
 
         $icmpRule = Get-NetFirewallRule | Where-Object { $_.Name -like "*CoreNet-Diag-ICMP?-EchoRequest-In*" }
-        #系統預設的應該有個, 全都打開.
+        #系統預設的應該有這些imcp rule, 全都打開.
     
         foreach ($i in $icmpRule) {
     
