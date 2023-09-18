@@ -52,10 +52,48 @@ function check-FirewallSettings {
         Write-Output "檢查firewall中是否充許軟體通過."
 
         #要檢查firewall中的軟體是否充許的關鍵字
-        $Applications = @("vnc", "chrome", "edge", "bbb")
+        $Applications = @("vnc", "chrome", "edge", "虛擬健保卡控制軟體")
+        $Applications = @(
+            @{"DisplayName" = "winvnc.exe" ; "Path" = "C:\Program Files\uvnc bvba\UltraVNC\winvnc.exe" },
+            @{"DisplayName" = "csFSIM 5.1版" ; "Path" = "C:\nhi\bin\csfsim.exe" } ,
+            @{"DisplayName" = "Allow 虛擬健保卡控制軟體"; "Path" = "C:\users\%username%\appdata\local\temp\c\vnhi\虛擬健保卡控制軟體 .exe"},
+            @{"DisplayName" = "Allow 虛擬健保卡控制軟體silent"; "path" = "C:\users\%username%\appdata\local\programs\virtual-nhicard\resources\app\vhcnhi_slient\vhcnhi_slient.exe"},
+            @{"DisplayName" = "IccPrj"; "Path" = "C:\iccard_his\iccprj.exe"},
+            @{"DisplayName" = "UltraQuery DICOM Query/Retrieve software"; "Path" = "C:\tedpc\smartiris\ultraquery\ultraquery.exe"},
+            @{"DisplayName" = "vncviewer.exe"; "Path" = "C:\Program Files\uvnc bvba\UltraVNC\vncviewer.exe"}
+            
+        )
 
-    
-    
+
+        $firewallRules = Get-NetFirewallRule
+
+        foreach ($app in $Applications) {
+            $rule = $firewallRules | Where-Object -FilterScript { $_.DisplayName -like "*$($app.DisplayName)*" `
+                    -and $_.Direction -eq "Inbound" `
+                                                                    
+            }
+            if (!$rule) {
+                Write-Output "Firewall rule 不存在, :$($app.DisplayName)"
+                Write-Output "新增 Firewall ruel:"
+                New-NetFirewallRule -DisplayName $app.DisplayName -Direction "Inbound" -Action "Allow" -program $app.Path
+            }
+            else {
+            
+                $in_profle = $rule | Where-Object { $_.profile -contains "Domain" }
+                if (!$in_profle) {
+                    Set-NetFirewallRule -InputObject $rule[0] -Profile Domain, Public, Private
+                }
+            
+                $is_block = $rule | Where-Object { $_.action -eq "Block" }
+                foreach ($b in $is_block) {
+                    Set-NetFirewallRule -InputObject $b -Action allow
+                }
+            }
+        }
+
+
+
+        #######################################
         foreach ($app in $Applications) {
             $allowed = $false
         
