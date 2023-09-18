@@ -19,28 +19,39 @@ function remove-HiddenDevice {
 # 部分舊win10系統旳pnputil.exe沒有remove-device功能, 目前手上己更新的22H2中的版本為10.0.19041.3155, 以此為準. 
   # 比這版舊的都更新到這版.
 
-  $pnputil_version = Get-ItemPropertyValue -Path "$env:windir\system32\pnputil.exe" -name VersionInfo
+  #pnputil.exe 先找本機裡的, 如果沒有再復制網路上的到$env:temp
+  $pnputil_path = $null
 
-  if ($pnputil_version.FileVersion -lt [version]"10.0.19041.3324") {
-    #版本低於10.1.19041.3324, 在底下的路徑中找到復制符合的版本, 復制到c:\windows\system32
-    $pnputil_files = @( "$((get-item -path $PSCommandPath).DirectoryName)\pnputil.exe",
-      "$($env:USERPROFILE)\desktop\vhwc_powershell\pnputil.exe",
-      "D:\mis\vhwc_powershell\pnputil.exe",
+  $pnputil_files = @(
+    "C:\Windows\system32\pnputil.exe",
+    "$((get-item -path $PSCommandPath).DirectoryName)\pnputil.exe"
+  )
+  foreach ($p in $pnputil_files) {
+    $p_version = Get-ItemPropertyValue -Path $p -Name VersionInfo
+    if ((Compare-Versions -Version1 $p_version.ProductVersion -Version2 "10.0.19041.3155")) {
+      $pnputil_path = $p
+      break
+    }
+  }
+
+  if (!$pnputil_path) {
+    $pnputil_files = @(
       "\\172.20.5.185\powershell\vhwc_powershell\pnputil.exe",
       "\\172.20.1.122\share\software\00newpc\vhwc_powershell\pnputil.exe"
     )
 
-    foreach ($f in $pnputil_files) {
-      $pnputil_version = = Get-ItemPropertyValue -Path $f -name VersionInfo
-      if ($pnputil_version.FileVersion -ge [Version]"10.0.19041.3324") {
-        Copy-Item -Path $f -Destination -Path "$env:windir\system32\" -Force
+    foreach ($p in $pnputil_files) {
+      $p_version = Get-ItemPropertyValue -Path $p -Name VersionInfo
+      if ((Compare-Versions -Version1 $p_version.ProductVersion -Version2 "10.0.19041.3155")) {
+        Copy-Item -Path $p -Destination $env:TEMP -Force -Verbose
+        $pnputil_path = "$($env:temp)\pnputil.exe"
         break
       }
-      
     }
+
   }
 
-  $pnputil_version = Get-ItemPropertyValue -Path "$env:windir\system32\pnputil.exe" -name VersionInfo
+  $pnputil_version = Get-ItemPropertyValue -Path $pnputil_path -name VersionInfo
   
   Write-Output "$($pnputil_version.Filename) : $($pnputil_version.FileVersion)"
 
@@ -53,11 +64,11 @@ function remove-HiddenDevice {
     if ($check_admin) {
       #登入者有管理者權限
       Write-Output "(Admin)刪除設備: $($d.FriendlyName)"
-      Start-Process -FilePath "pnputil.exe" -ArgumentList "/remove-device $($d.instanceID)" -Wait -NoNewWindow
+      Start-Process -FilePath $pnputil_path -ArgumentList "/remove-device $($d.instanceID)" -Wait -NoNewWindow
     }
     else {
       Write-Output "(User)刪除設備: $($d.FriendlyName)"
-      $result = Start-Process -FilePath "pnputil.exe" -ArgumentList "/remove-device $($d.instanceID)" -Credential $credential -PassThru -NoNewWindow #這行用-wait會出現權限不足, 以下行替代.
+      $result = Start-Process -FilePath $pnputil_path -ArgumentList "/remove-device $($d.instanceID)" -Credential $credential -PassThru -NoNewWindow #這行用-wait會出現權限不足, 以下行替代.
       $result.WaitForExit()
   }
 
