@@ -2,21 +2,14 @@
 SmartWonder是用瀏覽器看PACS的
 1. 開敫smartwonder會要求寫入c:\program files\tedpc
 2. 會下載安裝2個元件, 但憑證己過期, 要改IE選項.
-3. 在非PACS允許的電腦上, 會開眼睛來看PACE, ultraquery 有2個選項要改.
-4. IE和EDGE設定方不同,EDGE也是要用IE mode.
+3. 在非PACS允許的電腦上, 會開眼睛來看PACE, ultraquery 有2個選項要改. smartiris上查詣方式改wonder, unicode設定改不轉換. 但暫不實作, 因為不是每台都有需要
+4. IE和EDGE設定方不同,EDGE也是要用IE mode. 暫不實作, 因為不是每台都有需要
 
 #>
 
 param($runadmin)
 
-#管理者權限vhwcmis的證書.
-$Username = "vhwcmis"
-$Password = "Mis20190610"
-$securePassword = ConvertTo-SecureString $Password -AsPlainText -Force
-$credential = New-Object System.Management.Automation.PSCredential($Username, $securePassword)
-
-
-function check_smartwonder {
+function check-SmartWonder {
 
     # 1. check c:\program files\tedpc
     if (!(Test-Path -path "c:\program files\tedpc")) {
@@ -42,6 +35,10 @@ function check_smartwonder {
     Enabled Value	1
     Disabled Value	0
     #>
+
+    if (!(Test-Path -Path "HKLM:\Software\Policies\Microsoft\Internet Explorer\Download")) {
+        New-Item -Path "HKLM:\Software\Policies\Microsoft\Internet Explorer\Download" -Force -ItemType Directory
+    }
     Set-ItemProperty -Path "HKLM:\Software\Policies\Microsoft\Internet Explorer\Download" -Name "RunInvalidSignatures" -Value 1 -Force
 
     
@@ -61,8 +58,7 @@ if ($run_main -eq $null) {
     
     }
 
-    Check-VncSetting
-    Check-VncService
+    check-SmartWonder
 
     pause
 }

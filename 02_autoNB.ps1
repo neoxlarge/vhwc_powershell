@@ -158,6 +158,11 @@ remove-apps
 import-module ((split-path $PSCommandPath) + "\Check-EnablePSRemoting.ps1")
 #check-enablepsremoting
 
+#啟用可以載SmartWonder元件設定.
+import-module ((split-path $PSCommandPath) + "\check-SmartWonder.ps1")
+Check-SmartWonder
+
+
 ##修改資料的權限
 import-module ((split-path $PSCommandPath) + "\grant-FullControlPermission.ps1")
 Grant-FullControlPermission
