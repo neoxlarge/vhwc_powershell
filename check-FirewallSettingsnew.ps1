@@ -83,7 +83,7 @@ function check-FirewallSettings {
                 
                 # firewall rule 存在.
 
-                $in_profle = $rule | Where-Object { $_.profile -contains "Domain" }
+                $in_profle = $rule | Where-Object { $_.profile.tostring() -like "*Domain*" }
                 if (!$in_profle) {
                     Write-Warning "Firewall rule: $($rule[0].DisplayName), set profile Domain, Public, Private."
                     Set-NetFirewallRule -InputObject $rule[0] -Profile Domain, Public, Private
@@ -95,7 +95,7 @@ function check-FirewallSettings {
                     Set-NetFirewallRule -InputObject $b -Action allow
                 }
 
-                if (!$in_profle -and !$is_block) {
+                if ($in_profle -and !$is_block) {
                     Write-Output "Firewall rule: $($rule.DisplayName) , OK"
                 }
 
