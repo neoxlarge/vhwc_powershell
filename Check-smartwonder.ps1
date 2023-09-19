@@ -10,7 +10,7 @@ SmartWonder是用瀏覽器看PACS的
 param($runadmin)
 
 function check-SmartWonder {
-
+    if ($check_admin) {
     # 1. check c:\program files\tedpc
     if (!(Test-Path -path "c:\program files\tedpc")) {
         New-Item -Path "c:\program files\tedpc" -ItemType Directory -Force
@@ -42,7 +42,9 @@ function check-SmartWonder {
     Set-ItemProperty -Path "HKLM:\Software\Policies\Microsoft\Internet Explorer\Download" -Name "RunInvalidSignatures" -Value 1 -Force
 
     
-
+    } else {
+        "沒有系統管理員權限,無法設定SmartWonder,請以系統管理員身分重新嘗試."
+    }
 
 }
 
