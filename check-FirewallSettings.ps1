@@ -24,7 +24,7 @@ function import-module_func ($name) {
 }
 
 
-function check-FirewallSettings {
+function check-FirewallruleSettings {
     [CmdletBinding()]
     param()
 
@@ -42,7 +42,8 @@ function check-FirewallSettings {
                 Write-output "Profile: $($profile.Name) : $($profile.Enabled)" 
             }
             else {
-                write-warning "Profile:$($profile.Name) : $($profile.Enabled)" 
+                write-warning "Profile:$($profile.Name) : $($profile.Enabled), enable the profile."
+                Set-NetFirewallProfile -InputObject $profile -Enabled True
             }
         
         }
@@ -78,8 +79,10 @@ function check-FirewallSettings {
                 Write-warning "Firewall rule 不存在, :$($app.DisplayName)"
                 
                 $info = $null
-                New-NetFirewallRule -DisplayName $app.DisplayName -Direction "Inbound" -Action "Allow" -program $app.Path -OutVariable info | Out-Null
+                #profile 要設, 不然預設是any
+                New-NetFirewallRule -DisplayName $app.DisplayName -Direction "Inbound" -Action "Allow" -program $app.Path -Profile @("Domain", "Public", "Private")  -OutVariable info | Out-Null
                 Write-Warning "新增 Firewall rule: $($info.DisplayName) $($info.Direction) $($info.action)"
+                Start-Sleep -Seconds 1
                 
             }
             else {
@@ -87,15 +90,18 @@ function check-FirewallSettings {
                 # firewall rule 存在.
 
                 $in_profle = $rule | Where-Object { $_.profile.tostring() -like "*Domain*" }
+                Write-Host $rule.profile
                 if (!$in_profle) {
                     Write-Warning "Firewall rule: $($rule[0].DisplayName), set profile Domain, Public, Private."
-                    Set-NetFirewallRule -InputObject $rule[0] -Profile Domain, Public, Private
+                    Set-NetFirewallRule -InputObject $rule[0] -Profile @("Domain", "Public", "Private")
+                    Start-Sleep -Seconds 1
                 }
             
                 $is_block = $rule | Where-Object { $_.action -eq "Block" }
                 foreach ($b in $is_block) {
                     Write-Warning "Firewall rule: $($b.DisplayName), set action allow."
                     Set-NetFirewallRule -InputObject $b -Action allow
+                    Start-Sleep -Seconds 1
                 }
 
                 if ($in_profle -and !$is_block) {
@@ -131,15 +137,9 @@ function check-FirewallSettings {
         Write-Warning "沒有系統管理員權限,無法檢查允許軟體,請以系統管理員身分重新嘗試."
     }
 
-
-   
-
-
-
-
 }
 
-function Check-FirewallPortSetting {
+function Check-FirewallPortSettings {
 
     [CmdletBinding()]
     param()
@@ -162,13 +162,30 @@ function Check-FirewallPortSetting {
                 #rule中有port, 檢查是否有啟用且allow
                 Write-Output "檢查Port: $($result.LocalPort)"
                 $result_rule = $firewallrules | Where-Object -FilterScript { $_.InstanceID -eq $result.InstanceID }
-                Write-Output "firewall rule 名稱:$($result_rule.DisplayName), 啟用:$($result_rule.Enabled), 方向:$($result_rule.Direction), $($result_rule.Action) "
+
+                if (!$result_rule.Enabled) {
+                    #沒有啟用, 就啟用它.
+                    Set-NetFirewallRule -InputObject $result_rule -Enabled $true
+                    Write-Warning "firewall rule 有錯誤 名稱:$($result_rule.DisplayName), 更改啟用:$($result_rule.Enabled) "
+                }
+
+                if ($result_rule.Action -eq "block") {
+                    #把block改allow
+                    Set-NetFirewallRule -InputObject $result_rule -Action Block
+                    Write-Warning "firewall rule 有錯誤 名稱:$($result_rule.DisplayName), 更改方向:$($result_rule.Direction) $($result_rule.Action) "
+                }
+
+                if ($result_rule -and $result_rule.Action -eq "allow") {
+                Write-Output "firewall rule 正確 名稱:$($result_rule.DisplayName), 啟用:$($result_rule.Enabled), 方向:$($result_rule.Direction), $($result_rule.Action) "
+                }
+            } else {
+                #沒有開PORT, 就給他開port
+                Write-Warning "新增 firewall rule: Enable port $port inbound allow "
+                New-NetFirewallRule -DisplayName "Enable port $port inbound allow" -Direction Inbound -Protocol TCP -LocalPort $port -Action Allow -Enabled True -Profile @("Domain", "Public", "Private")
                 
             }
 
         }
-
-
 
     }
 
@@ -190,7 +207,8 @@ if ($run_main -eq $null) {
     
     }
 
-    check-FirewallSettings
+    check-FirewallRuleSettings
+    Check-FirewallPortSettings
     
     pause
 }
