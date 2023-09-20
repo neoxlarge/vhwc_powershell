@@ -100,7 +100,7 @@ function check-FirewallruleSettings {
                 $is_block = $rule | Where-Object { $_.action -eq "Block" }
                 foreach ($b in $is_block) {
                     Write-Warning "Firewall rule: $($b.DisplayName), set action allow."
-                    Set-NetFirewallRule -InputObject $b -Action allow
+                    Set-NetFirewallRule -InputObject $b -Action Allow
                     Start-Sleep -Seconds 1
                 }
 
@@ -113,7 +113,7 @@ function check-FirewallruleSettings {
 
 
 
-        write-output "檢查是否回應Ping:"
+        write-output "檢查是否回應Ping(ICMP):"
 
         $icmpRule = Get-NetFirewallRule | Where-Object { $_.Name -like "*CoreNet-Diag-ICMP?-EchoRequest-In*" }
         #系統預設的應該有這些imcp rule, 全都打開.
@@ -171,7 +171,7 @@ function Check-FirewallPortSettings {
 
                 if ($result_rule.Action -eq "block") {
                     #把block改allow
-                    Set-NetFirewallRule -InputObject $result_rule -Action Block
+                    Set-NetFirewallRule -InputObject $result_rule -Action Allow
                     Write-Warning "firewall rule 有錯誤 名稱:$($result_rule.DisplayName), 更改方向:$($result_rule.Direction) $($result_rule.Action) "
                 }
 

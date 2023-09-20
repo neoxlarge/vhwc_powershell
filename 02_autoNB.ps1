@@ -202,7 +202,8 @@ check-Firewallport
 
 #檢查firewall 有無開啟VNC程式通過.
 Import-Module ((Split-Path $PSCommandPath) + "\check-firewallsettings.ps1")
-check-FirewallSettings
+check-FirewallRuleSettings
+Check-FirewallPortSettings
 
 #執行3個環境設定檔 
 Import-Module ((Split-Path $PSCommandPath) + "\check-VGHTCenv.ps1")
