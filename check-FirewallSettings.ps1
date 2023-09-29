@@ -88,13 +88,18 @@ function check-FirewallruleSettings {
             else {
                 
                 # firewall rule 存在.
-
+                #先檢查有沒有包含Domain
                 $in_profle = $rule | Where-Object { $_.profile.tostring() -like "*Domain*" }
-                Write-Host $rule.profile
+                #Write-Host $rule.profile
+
+                #如果沒有包含domain區域
                 if (!$in_profle) {
-                    Write-Warning "Firewall rule: $($rule[0].DisplayName), set profile Domain, Public, Private."
-                    Set-NetFirewallRule -InputObject $rule[0] -Profile @("Domain", "Public", "Private")
-                    Start-Sleep -Seconds 1
+                    
+                    foreach ($r in $rule) {
+                        Write-Warning "Firewall rule: $($r.DisplayName), set profile Domain, Public, Private."
+                        Set-NetFirewallRule -InputObject $r -Profile @("Domain", "Public", "Private")
+                        Start-Sleep -Seconds 1
+                    }
                 }
             
                 $is_block = $rule | Where-Object { $_.action -eq "Block" }
@@ -130,8 +135,6 @@ function check-FirewallruleSettings {
     
         }
     
-
-
     }
     else {
         Write-Warning "沒有系統管理員權限,無法檢查允許軟體,請以系統管理員身分重新嘗試."
@@ -176,9 +179,10 @@ function Check-FirewallPortSettings {
                 }
 
                 if ($result_rule -and $result_rule.Action -eq "allow") {
-                Write-Output "firewall rule 正確 名稱:$($result_rule.DisplayName), 啟用:$($result_rule.Enabled), 方向:$($result_rule.Direction), $($result_rule.Action) "
+                    Write-Output "firewall rule 正確 名稱:$($result_rule.DisplayName), 啟用:$($result_rule.Enabled), 方向:$($result_rule.Direction), $($result_rule.Action) "
                 }
-            } else {
+            }
+            else {
                 #沒有開PORT, 就給他開port
                 Write-Warning "新增 firewall rule: Enable port $port inbound allow "
                 New-NetFirewallRule -DisplayName "Enable port $port inbound allow" -Direction Inbound -Protocol TCP -LocalPort $port -Action Allow -Enabled True -Profile @("Domain", "Public", "Private")
