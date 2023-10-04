@@ -14,8 +14,11 @@ function install-cdcalert {
     $software_msi_x64 = "cdcalert.msi"  #64bit 32bit 都同一個
     $software_msi_x32 = "cdcalert.msi"
 
-    $software_installed = "C:\Program Files (x86)\Changingtec\cdcClinic\cdcalert.exe"
-
+    switch ($env:PROCESSOR_ARCHITECTURE) {
+        "AMD64" {$software_installed = "C:\Program Files (x86)\Changingtec\cdcClinic\cdcalert.exe"}
+        "x86" {$software_installed = "C:\Program Files\Changingtec\cdcClinic\cdcalert.exe"}
+    }
+    
     #用來連線172.20.1.112的認證
     $Username = "vhcy\vhwcmis"
     $Password = "Mis20190610"
@@ -61,12 +64,14 @@ function install-cdcalert {
     Write-Output ("Software has installed: " + $software_name)
     Write-Output ("Version: " + $software_property.versioninfo.productversion)
 
-    #更名移動捷徑
+    #刪除原本捷徑, 建立新的捷徑, 原生建立的捷徑在復制到公用桌面後, 其他帳號登入會有問題.
     
-    if (Test-Path -Path "$($env:USERPROFILE)\desktop\cdcalert.exe.lnk") {
-        move-Item -Path "$($env:USERPROFILE)\desktop\cdcalert.exe.lnk" -Destination "$($env:PUBLIC)\desktop\$software_name.lnk" -Force
-        
-    }
+    Remove-Item -Path "$($env:USERPROFILE)\desktop\cdcalert.exe.lnk" -Force -ErrorAction SilentlyContinue
+
+    $shell = New-Object -ComObject WScript.Shell
+    $shortcut = $shell.CreateShortcut("$($env:PUBLIC)\desktop\$software_name.lnk")
+    $shortcut.TargetPath = $software_installed
+    $shortcut.Save()
 
 }
 
