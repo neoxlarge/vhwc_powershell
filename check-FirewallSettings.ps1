@@ -156,27 +156,29 @@ function Check-FirewallPortSettings {
 
         foreach ($port in $port_list) {
 
-            $result = $firewallports | Where-Object -FilterScript { $_.LocalPort -contains $port }
+            $results = $firewallports | Where-Object -FilterScript { $_.LocalPort -contains $port }
 
-            if ($result) {
-                #rule中有port, 檢查是否有啟用且allow
-                Write-Output "檢查Port: $($result.LocalPort)"
-                $result_rule = $firewallrules | Where-Object -FilterScript { $_.InstanceID -eq $result.InstanceID }
+            if ($results) {
+                    foreach ($result in $results) {
+                    #rule中有port, 檢查是否有啟用且allow
+                    Write-Output "檢查Port: $($result.LocalPort)"
+                    $result_rule = $firewallrules | Where-Object -FilterScript { $_.InstanceID -eq $result.InstanceID }
 
-                if (!$result_rule.Enabled) {
-                    #沒有啟用, 就啟用它.
-                    Set-NetFirewallRule -InputObject $result_rule -Enabled $true
-                    Write-Warning "firewall rule 有錯誤 名稱:$($result_rule.DisplayName), 更改啟用:$($result_rule.Enabled) "
-                }
+                    if (!$result_rule.Enabled) {
+                        #沒有啟用, 就啟用它.
+                        Set-NetFirewallRule -InputObject $result_rule -Enabled $true
+                        Write-Warning "firewall rule 有錯誤 名稱:$($result_rule.DisplayName), 更改啟用:$($result_rule.Enabled) "
+                    }
 
-                if ($result_rule.Action -eq "block") {
-                    #把block改allow
-                    Set-NetFirewallRule -InputObject $result_rule -Action Allow
-                    Write-Warning "firewall rule 有錯誤 名稱:$($result_rule.DisplayName), 更改方向:$($result_rule.Direction) $($result_rule.Action) "
-                }
+                    if ($result_rule.Action -eq "block") {
+                        #把block改allow
+                        Set-NetFirewallRule -InputObject $result_rule -Action Allow
+                        Write-Warning "firewall rule 有錯誤 名稱:$($result_rule.DisplayName), 更改方向:$($result_rule.Direction) $($result_rule.Action) "
+                    }
 
-                if ($result_rule -and $result_rule.Action -eq "allow") {
-                Write-Output "firewall rule 正確 名稱:$($result_rule.DisplayName), 啟用:$($result_rule.Enabled), 方向:$($result_rule.Direction), $($result_rule.Action) "
+                    if ($result_rule -and $result_rule.Action -eq "allow") {
+                    Write-Output "firewall rule 正確 名稱:$($result_rule.DisplayName), 啟用:$($result_rule.Enabled), 方向:$($result_rule.Direction), $($result_rule.Action) "
+                    }
                 }
             } else {
                 #沒有開PORT, 就給他開port
