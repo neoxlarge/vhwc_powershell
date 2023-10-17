@@ -71,12 +71,11 @@ function check-FirewallruleSettings {
         foreach ($app in $Applications) {
             # 先以 displayname  和 方向 過濾
             $rule = $firewallRules | Where-Object -FilterScript { $_.DisplayName -like "*$($app.DisplayName)*" `
-                    -and $_.Direction -eq "Inbound" `
-                                                                    
-            }
+                    -and $_.Direction -eq "Inbound" }
+
             if (!$rule) {
-                
-                Write-warning "Firewall rule 不存在, :$($app.DisplayName)"
+                # firewall rule 不存在, 建立firewall rule.
+                Write-warning "Firewall rule 不存在: $($app.DisplayName)"
                 
                 $info = $null
                 #profile 要設, 不然預設是any
@@ -127,7 +126,7 @@ function check-FirewallruleSettings {
     
             if ($i.enabled -eq $false) {
                 Write-Output "進行啟用firewall rule: $($i.Displayname)"
-                $i | Set-NetFirewallRule -Enabled $true
+                Set-NetFirewallRule -InputObject $i -Enabled $true
             }
             else {
                 Write-Output "已啟用: $($i.DisplayName)"
