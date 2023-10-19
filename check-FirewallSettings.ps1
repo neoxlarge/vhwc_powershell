@@ -161,7 +161,7 @@ function Check-FirewallPortSettings {
             $results = $firewallports | Where-Object -FilterScript { $_.LocalPort -contains $port }
 
             if ($results) {
-                    foreach ($result in $results) {
+                foreach ($result in $results) {
                     #rule中有port, 檢查是否有啟用且allow
                     Write-Output "檢查Port: $($result.LocalPort)"
                     $result_rule = $firewallrules | Where-Object -FilterScript { $_.InstanceID -eq $result.InstanceID }
@@ -178,8 +178,9 @@ function Check-FirewallPortSettings {
                         Write-Warning "firewall rule 有錯誤 名稱:$($result_rule.DisplayName), 更改方向:$($result_rule.Direction) $($result_rule.Action) "
                     }
 
-                if ($result_rule -and $result_rule.Action -eq "allow") {
-                    Write-Output "firewall rule 正確 名稱:$($result_rule.DisplayName), 啟用:$($result_rule.Enabled), 方向:$($result_rule.Direction), $($result_rule.Action) "
+                    if ($result_rule -and $result_rule.Action -eq "allow") {
+                        Write-Output "firewall rule 正確 名稱:$($result_rule.DisplayName), 啟用:$($result_rule.Enabled), 方向:$($result_rule.Direction), $($result_rule.Action) "
+                    }
                 }
             }
             else {
@@ -191,10 +192,10 @@ function Check-FirewallPortSettings {
 
         }
 
+    
+
+
     }
-
-
-
 
 }
 

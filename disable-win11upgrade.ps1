@@ -3,7 +3,10 @@
 param($runadmin)
 
 function disable-win11upgrade {
-    set-itemproperty -Path "HKLM:\SOFTWARE\Microsoft\WindowsUpdate\UX\Settings" -name SvOfferDeclined -value 1646085160366 -type QWord
+    set-itemproperty -Path "HKLM:\SOFTWARE\Microsoft\WindowsUpdate\UX\Settings" -name SvOfferDeclined -value 1697695220682 -type QWord
+
+
+#    set-itemproperty -Path "HKLM:\SOFTWARE\Microsoft\WindowsUpdate\UX\Settings" -name SvOfferDeclined -value 1646085160366 -type QWord
 }
 
 
@@ -21,7 +24,7 @@ if ($run_main -eq $null) {
     
     }
 
-    Check-patch
+    disable-win11upgrade
     
 
     pause
