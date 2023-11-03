@@ -92,7 +92,8 @@ function Check-VGHTCenv {
         "C:\oracle\ora92\bin",
         "C:\Program Files\Oracle\jre\1.3.1\bin",
         "C:\Program Files\Oracle\jre\1.1.8\bin",
-        "C:\Program Files\Oracle\oui\bin"
+        "C:\Program Files\Oracle\oui\bin",
+        "C:\Program Files\tedpc"
     )
         
     $currentPaths = $env:Path -split ';'

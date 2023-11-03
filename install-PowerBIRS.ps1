@@ -1,22 +1,22 @@
-# ¦w¸ËPowerBI Desktop
+ï»¿# å®‰è£PowerBI RS (Report Server)
 
 param($runadmin)
 
 Import-Module ((Split-Path $PSCommandPath) + "\get-installedprogramlist.psm1")
 
 
-function install-PowerBI{
-    # ¦w¸ËWinnexus
+function install-PowerBIRS{
+    # å®‰è£Winnexus
     $software_name = "Microsoft PowerBI Desktop (x64)"
     $software_path = "\\172.20.5.187\mis\26-PowerBI"
-    $software_exec = "PBIDesktopSetup_x64.exe"
+    $software_exec = "PBIDesktopSetupRS_x64.exe"
 
     $Username = "vhcy\vhwcmis"
     $Password = "Mis20190610"
     $securePassword = ConvertTo-SecureString $Password -AsPlainText -Force
     $credential = New-Object System.Management.Automation.PSCredential($Username, $securePassword)
 
-    ## §ä¥X³nÅé¬O§_¤v¦w¸Ë
+    ## æ‰¾å‡ºè»Ÿé«”æ˜¯å¦å·±å®‰è£
 
     $all_installed_program = get-installedprogramlist
 
@@ -28,9 +28,9 @@ function install-PowerBI{
 
         $software_path_name = $software_path.Split("\")[-1]
         
-        #´_¨îÀÉ®×¨ìtemp
-        #copy-item µLªk±µ»{ÃÒ, ¶·­n±qpsdrive±µ, ©Ò¥H­n±¾driver.
-        $net_driver = "vhwcdrive" #¥u¬Oµ¹­Ódriver¦W¦r¦Ó¤v.
+        #å¾©åˆ¶æª”æ¡ˆåˆ°temp
+        #copy-item ç„¡æ³•æ¥èªè­‰, é ˆè¦å¾psdriveæ¥, æ‰€ä»¥è¦æ›driver.
+        $net_driver = "vhwcdrive" #åªæ˜¯çµ¦å€‹driveråå­—è€Œå·±.
         New-PSDrive -Name $net_driver -Root $software_path -PSProvider FileSystem -Credential $credential
         Copy-Item -Path "$($net_driver):\*" -Destination "$($env:TEMP)\$software_path_name" -Force -Verbose
         Remove-PSDrive -Name $net_driver
@@ -41,7 +41,7 @@ function install-PowerBI{
         Start-Sleep -Seconds 5 
    
      
-        #¦w¸Ë§¹, ¦A­«·s¨ú±o¦w¸Ë¸ê°T
+        #å®‰è£å®Œ, å†é‡æ–°å–å¾—å®‰è£è³‡è¨Š
         $all_installed_program = get-installedprogramlist
         $software_is_installed = $all_installed_program | Where-Object -FilterScript { $_.DisplayName -like "$software_name *" }
     } 
@@ -55,23 +55,25 @@ function install-PowerBI{
 
 
 
-#ÀÉ®×¿W¥ß°õ¦æ®É·|°õ¦æ¨ç¦¡, ¦pªG¬O³Q¶×¤J®É¤£·|°õ¦æ¨ç¦¡.
+#æª”æ¡ˆç¨ç«‹åŸ·è¡Œæ™‚æœƒåŸ·è¡Œå‡½å¼, å¦‚æœæ˜¯è¢«åŒ¯å…¥æ™‚ä¸æœƒåŸ·è¡Œå‡½å¼.
 if ($run_main -eq $null) {
 
-    #ÀË¬d¬O§_ºŞ²z­û
+    #æª¢æŸ¥æ˜¯å¦ç®¡ç†å“¡
     $check_admin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")
 
     if (!$check_admin -and !$runadmin) {
-        #¦pªG«DºŞ²z­û, ´N¸ÕµÛrun as admin, ¨Ã¶Ç¤Jrunadmin °Ñ¼Æ1. ¦]¬°¦bºô°ì¤@¯ë¨Ï¥ÎªÌ¥Ã»·®³¤£¬OºŞ²z­ûÅv­­, ·|³y¦¨µL­­­«¶]. ¦¹°Ñ¼Æ¥Î¨Ó»²§U§PÂ_¥u¶]¤@¦¸. 
+        #å¦‚æœéç®¡ç†å“¡, å°±è©¦è‘—run as admin, ä¸¦å‚³å…¥runadmin åƒæ•¸1. å› ç‚ºåœ¨ç¶²åŸŸä¸€èˆ¬ä½¿ç”¨è€…æ°¸é æ‹¿ä¸æ˜¯ç®¡ç†å“¡æ¬Šé™, æœƒé€ æˆç„¡é™é‡è·‘. æ­¤åƒæ•¸ç”¨ä¾†è¼”åŠ©åˆ¤æ–·åªè·‘ä¸€æ¬¡. 
         Start-Process powershell.exe -ArgumentList "-FILE `"$PSCommandPath`" -Executionpolicy bypass -NoProfile  -runadmin 1" -Verb Runas; exit
     
     }
 
     if ($check_admin) { 
-        install-PowerBI
+        install-PowerBIRS
     }
     else {
-        Write-Warning "µLªk¨ú±oºŞ²z­ûÅv­­¨Ó¦w¸Ë³nÅé, ½Ğ¥HºŞ²z­û±b¸¹­«¸Õ."
+        Write-Warning "ç„¡æ³•å–å¾—ç®¡ç†å“¡æ¬Šé™ä¾†å®‰è£è»Ÿé«”, è«‹ä»¥ç®¡ç†å“¡å¸³è™Ÿé‡è©¦."
     }
     pause
 }
+
+
