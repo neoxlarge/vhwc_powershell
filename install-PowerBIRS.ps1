@@ -7,7 +7,7 @@ Import-Module ((Split-Path $PSCommandPath) + "\get-installedprogramlist.psm1")
 
 function install-PowerBIRS{
     # 安裝Winnexus
-    $software_name = "Microsoft PowerBI Desktop (x64)"
+    $software_name = "Microsoft PowerBI Desktop (x64) (September 2023)"
     $software_path = "\\172.20.5.187\mis\26-PowerBI"
     $software_exec = "PBIDesktopSetupRS_x64.exe"
 
