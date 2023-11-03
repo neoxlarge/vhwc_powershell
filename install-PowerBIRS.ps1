@@ -36,8 +36,14 @@ function install-PowerBIRS{
         Remove-PSDrive -Name $net_driver
 
         #installing...
+        if (!$check_admin) {
+        $running = Start-Process -FilePath "$($env:TEMP)\$software_path_name\$software_exec" -ArgumentList "-passive -norestart ACCEPT_EULA=1" -Credential $credential -PassThru
+        $running.WaitForExit()
+        } else {
+            Start-Process -FilePath "$($env:TEMP)\$software_path_name\$software_exec" -ArgumentList "-passive -norestart ACCEPT_EULA=1" -Wait
+        }
 
-        Start-Process -FilePath "$($env:TEMP)\$software_path_name\$software_exec" -ArgumentList "-passive -norestart ACCEPT_EULA=1" -Wait
+
         Start-Sleep -Seconds 5 
    
      
