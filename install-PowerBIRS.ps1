@@ -32,7 +32,7 @@ function install-PowerBIRS{
         #copy-item 無法接認證, 須要從psdrive接, 所以要掛driver.
         $net_driver = "vhwcdrive" #只是給個driver名字而己.
         New-PSDrive -Name $net_driver -Root $software_path -PSProvider FileSystem -Credential $credential
-        Copy-Item -Path "$($net_driver):\*" -Destination "$($env:TEMP)\$software_path_name" -Force -Verbose
+        Copy-Item -Path "$($net_driver):\$($software_exec)" -Destination "$($env:TEMP)\$software_path_name" -Force -Verbose
         Remove-PSDrive -Name $net_driver
 
         #installing...
@@ -49,7 +49,7 @@ function install-PowerBIRS{
      
         #安裝完, 再重新取得安裝資訊
         $all_installed_program = get-installedprogramlist
-        $software_is_installed = $all_installed_program | Where-Object -FilterScript { $_.DisplayName -like "$software_name *" }
+        $software_is_installed = $all_installed_program | Where-Object -FilterScript { $_.DisplayName -like "$software_name*" }
     } 
 
     Write-Output ("Software has installed: " + $software_is_installed.DisplayName)
@@ -77,9 +77,10 @@ if ($run_main -eq $null) {
         install-PowerBIRS
     }
     else {
-        Write-Warning "無法取得管理員權限來安裝軟體, 請以管理員帳號重試."
+        Write-Warning "非管理員權限嘗試安裝軟體中"
+        install-PowerBIRS
     }
-    pause
+    #pause
 }
 
 

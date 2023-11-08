@@ -128,8 +128,8 @@ Import-Module ((Split-Path $PSCommandPath) + "\install-cdcalert.ps1")
 install-cdcalert
 
 #安裝powerBI
-Import-Module ((Split-Path $PSCommandPath) + "\install-PowerBI.ps1")
-install-PowerBI
+Import-Module ((Split-Path $PSCommandPath) + "\install-PowerBIRS.ps1")
+install-PowerBIRS
 
 # 安裝Winnexus
 Import-Module ((Split-Path $PSCommandPath) + "\install-Winnexus.ps1")

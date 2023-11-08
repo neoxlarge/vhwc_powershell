@@ -56,22 +56,21 @@ function install-cdcalert {
 
         $software_property = Get-ItemProperty -Path $software_installed 
 
-    }
-    else {
-        $software_property = Get-ItemProperty -Path $software_installed   
-    }
+        Write-Output ("Software has installed: " + $software_name)
+        Write-Output ("Version: " + $software_property.versioninfo.productversion)
 
-    Write-Output ("Software has installed: " + $software_name)
-    Write-Output ("Version: " + $software_property.versioninfo.productversion)
+        #刪除原本捷徑, 建立新的捷徑, 原生建立的捷徑在復制到公用桌面後, 其他帳號登入會有問題.
+        
+        Remove-Item -Path "$($env:USERPROFILE)\desktop\cdcalert.exe.lnk" -Force -ErrorAction SilentlyContinue
 
-    #刪除原本捷徑, 建立新的捷徑, 原生建立的捷徑在復制到公用桌面後, 其他帳號登入會有問題.
+        $shell = New-Object -ComObject WScript.Shell
+        $shortcut = $shell.CreateShortcut("$($env:PUBLIC)\desktop\$software_name.lnk")
+        $shortcut.TargetPath = $software_installed
+        $shortcut.WorkingDirectory = $software_installed.Replace("cdcalert.exe","") #設定工作資料匣
+        $shortcut.Save()
+
+    }
     
-    Remove-Item -Path "$($env:USERPROFILE)\desktop\cdcalert.exe.lnk" -Force -ErrorAction SilentlyContinue
-
-    $shell = New-Object -ComObject WScript.Shell
-    $shortcut = $shell.CreateShortcut("$($env:PUBLIC)\desktop\$software_name.lnk")
-    $shortcut.TargetPath = $software_installed
-    $shortcut.Save()
 
 }
 
@@ -93,7 +92,7 @@ if ($run_main -eq $null) {
         install-cdcalert
     }
     else {
-        Write-Warning "?L?k???o??z???v????w??n??, ??H??z???b??????."
+        Write-Warning "無法取得管理員權限來安裝軟體, 請以管理員帳號重試."
     }
     pause
 }
