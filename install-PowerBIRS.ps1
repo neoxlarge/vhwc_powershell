@@ -32,15 +32,15 @@ function install-PowerBIRS{
         #copy-item 無法接認證, 須要從psdrive接, 所以要掛driver.
         $net_driver = "vhwcdrive" #只是給個driver名字而己.
         New-PSDrive -Name $net_driver -Root $software_path -PSProvider FileSystem -Credential $credential
-        Copy-Item -Path "$($net_driver):\$($software_exec)" -Destination "$($env:TEMP)\$software_path_name" -Force -Verbose
+        Copy-Item -Path "$($net_driver):\$($software_exec)" -Destination "$($env:TEMP)\" -Force -Verbose
         Remove-PSDrive -Name $net_driver
 
         #installing...
         if (!$check_admin) {
-        $running = Start-Process -FilePath "$($env:TEMP)\$software_path_name\$software_exec" -ArgumentList "-passive -norestart ACCEPT_EULA=1" -Credential $credential -PassThru
+        $running = Start-Process -FilePath "$($env:TEMP)\$software_exec" -ArgumentList "-passive -norestart ACCEPT_EULA=1" -Credential $credential -PassThru
         $running.WaitForExit()
         } else {
-            Start-Process -FilePath "$($env:TEMP)\$software_path_name\$software_exec" -ArgumentList "-passive -norestart ACCEPT_EULA=1" -Wait
+            Start-Process -FilePath "$($env:TEMP)\$software_exec" -ArgumentList "-passive -norestart ACCEPT_EULA=1" -Wait
         }
 
 
