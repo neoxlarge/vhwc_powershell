@@ -11,10 +11,11 @@ if (!$check_admin -and !$run_admin) {
 
 
 #啟用記錄
-#存log 檔的資料?
+#存log 檔的資料夾
 if ((Test-Path -Path "d:\")) {
     $log_folder = "d:\mis"
-} else {$log_folder = "c:\mis"}
+}
+else { $log_folder = "c:\mis" }
 Start-Transcript -Path "$log_folder\$(Get-Date -Format 'yyyy-MM-dd-hh-mm').log" -Append
 
 #記錄powershell是用什麼權限執行的
@@ -189,9 +190,10 @@ Import-Module ((Split-Path $PSCommandPath) + "\check-VncSetting.ps1")
 Check-VncSetting
 Check-VncService
 
+#20231115 removed
 #檢查firewall 有無開啟5900 5800 埠.
-Import-Module ((Split-Path $PSCommandPath) + "\check-firewallport.ps1")
-check-Firewallport
+#Import-Module ((Split-Path $PSCommandPath) + "\check-firewallport.ps1")
+#check-Firewallport
 
 #檢查firewall 有無開啟VNC程式通過.
 Import-Module ((Split-Path $PSCommandPath) + "\check-firewallsettings.ps1")
@@ -230,8 +232,8 @@ disable-win11upgrade
 
 
 #修補
-Import-Module ((Split-Path $PSCommandPath) + "\check-patch.ps1")
-check-patch
+#Import-Module ((Split-Path $PSCommandPath) + "\check-patch.ps1")
+#check-patch
 
 #清理windows 暫存
 Import-Module ((Split-Path $PSCommandPath) + "\Clear-WindowsJunk.ps1")

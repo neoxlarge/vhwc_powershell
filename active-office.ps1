@@ -79,7 +79,7 @@ else {
     Get-Content -Path "$($ENV:TEMP)\officeospp.txt"
     Start-Sleep -s 3
 
-    for ($i = 0; $i -lt 2; $i++) {
+    for ($i = 0; $i -lt 3; $i++) {
         #先排除網路問題
         ipconfig /flushdns
         #ipconfig /renew
