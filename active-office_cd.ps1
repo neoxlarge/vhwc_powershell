@@ -45,12 +45,12 @@ $key_list = @{
 
 
 #檢查是否己經啟用
-$run_ospp = Start-Process -FilePath cscript.exe -ArgumentList """$officeospp_path"" /dstatus" -NoNewWindow -Credential $credential -PassThru -RedirectStandardOutput "$($ENV:TEMP)\officehasactived.txt"
-$run_ospp.waitforexit() 
+#$run_ospp = Start-Process -FilePath cscript.exe -ArgumentList """$officeospp_path"" /dstatus" -NoNewWindow -Credential $credential -PassThru -RedirectStandardOutput "$($ENV:TEMP)\officehasactived.txt"
+#$run_ospp.waitforexit() 
 
-$get_log = get-content -Path "$($ENV:TEMP)\officehasactived.txt"
+#$get_log = get-content -Path "$($ENV:TEMP)\officehasactived.txt"
 
-$check_hasactived = $get_log | Select-String -Pattern "---LICENSED---"
+$check_hasactived = $false
 
 if ($check_hasactived) {
     Write-Output $get_log
@@ -72,6 +72,8 @@ else {
     # 顯示使用者選擇的金鑰
     Write-Host "使用者選擇的Key是: $office_key"
 
+    Start-Sleep -Seconds 1200
+
     #pause
     $result = Start-Process -FilePath cscript.exe -ArgumentList """$officeospp_path"" /inpkey:""$office_key""" -NoNewWindow -Credential $credential -PassThru -RedirectStandardOutput "$($ENV:TEMP)\officeospp.txt"
 
@@ -79,7 +81,7 @@ else {
     Get-Content -Path "$($ENV:TEMP)\officeospp.txt"
     Start-Sleep -s 3
 
-    for ($i = 0; $i -lt 3; $i++) {
+    for ($i = 0; $i -lt 10; $i++) {
         #先排除網路問題
         ipconfig /flushdns
         #ipconfig /renew

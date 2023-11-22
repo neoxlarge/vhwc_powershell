@@ -1,9 +1,7 @@
 # 安裝Winnexus
 
 param($runadmin)
-
 Import-Module ((Split-Path $PSCommandPath) + "\get-installedprogramlist.psm1")
-
 
 function install-WinNexus {
     # 安裝Winnexus

@@ -1,0 +1,35 @@
+<?xml version='1.0' encoding='utf16'?>
+<SOFTWARE NAME="office2010_vhcy" VERSION="2010" HREF="winnexus://api/1/software/wpd?name=fffe4ffb79bcd6442f920692f4b4a0f8826bf945.wpd" IMPORTTIME="20200924161155" PHASE="1" LastUpdated="20200924161155" ENABLE="1" PRELOAD="0" Shortcutlnk="0" INSTALLTIME="1600889142" AppIsForAll="0">
+
+	<RUNTIME ENVIRONMENTFILE="office2010_vhcy\EnvRegTable.reg">
+
+		<CODEBASE ID="0002" APPID="1" SUBTYPE="1" SCRIPT="7" Depend="0" NAME="office2010_vhcy" FILENAME="office2010_vhcy\Msg.exe" ICON="winnexus://api/1/software/ico?name=87c7fda8473f726c82845a5226b1ad79ec2bf98b.ico" FILETYPE="" OS="windowsxp|32,windows7|32,windows7|64" WPD="office2010_vhcy.wpd" WID="0002" GID="0000" GNAME=""/>
+		
+
+	</RUNTIME>
+
+	<INFORMATION>
+
+		<COMPANY VALUE="Unknown"/>
+
+	</INFORMATION>
+
+	<ATTRIBUTE>
+
+		<SOFTGROUP VALUE=""/>
+
+		<EXPIRATION VALUE="9998/12/29"/>
+
+		<OS VERSION="windowsxp|32,windows7|32,windows7|64"/>
+
+<FILETYPE EXTENSION="" DESCRIPTION=""/>
+
+	</ATTRIBUTE>
+
+	<DEPENDENCY>
+
+		<SCRIPT/>
+
+	</DEPENDENCY>
+
+<Licensed Used="" AuthServer="" OfflineRun=""/><WINNEXUS info1="245a24dfe14dfe2415b38695c7ee1969" info2="245a24dfe14dfe2415b38695c7ee1969" info3="245a24dfe14dfe2415b38695c7ee1969"/></SOFTWARE>
