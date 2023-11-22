@@ -16,7 +16,7 @@ function Get-IPv4Address {
     return $ip
 }
 
-unction uninstall-office2003 {
+function uninstall-office2003 {
 
     # uninstall 2007 office system ??®e??????
 
@@ -32,7 +32,7 @@ unction uninstall-office2003 {
     $software_is_installed = $all_installed_program | Where-Object -FilterScript { $_.DisplayName -like $software_name }
 
     if ($software_is_installed -ne $null) {
-        $uninstallstring = $software_is_installed.uninstallString.Split(" ")[1]
+        $uninstallstring = $software_is_installed.uninstallString.Split(" ")[1].replace("I","X")
 
         $running_proc = Start-Process -FilePath "msiexec.exe" -ArgumentList "$uninstallstring /passive" -Credential $credential -PassThru
         $running_proc.WaitForExit()     
@@ -46,7 +46,7 @@ unction uninstall-office2003 {
     $software_is_installed = $all_installed_program | Where-Object -FilterScript { $_.DisplayName -like $software_name }
 
     if ($software_is_installed -ne $null) {
-        $uninstallstring = $software_is_installed.uninstallString.Split(" ")[1]
+        $uninstallstring = $software_is_installed.uninstallString.Split(" ")[1].replace("I","X")
 
         $running_proc = Start-Process -FilePath "msiexec.exe" -ArgumentList "$uninstallstring /passive" -Credential $credential -PassThru
         $running_proc.WaitForExit()     
@@ -155,7 +155,7 @@ function install-office2010 {
             $path_property = Get-ItemProperty -Path "C:\ProgramData\WinNexus\WPD\office2010_vhcy\Script" -ErrorAction SilentlyContinue
            
         } until (
-            $path_property.Exists -and $path_property.GetDirectories().count -eq $null
+            $path_property.Exists -and $path_property.GetDirectories().count -eq 0
 
         )
         
