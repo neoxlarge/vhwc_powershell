@@ -16,6 +16,44 @@ function Get-IPv4Address {
     return $ip
 }
 
+unction uninstall-office2003 {
+
+    # uninstall 2007 office system ??容??????
+
+    $Username = "vhcy\vhwcmis"
+    $Password = "Mis20190610"
+    $securePassword = ConvertTo-SecureString $Password -AsPlainText -Force
+    $credential = New-Object System.Management.Automation.PSCredential($Username, $securePassword)
+
+    # uninstall 2007 office system ??容??????
+    $software_name = "2007 Office System*"
+
+    $all_installed_program = get-installedprogramlist
+    $software_is_installed = $all_installed_program | Where-Object -FilterScript { $_.DisplayName -like $software_name }
+
+    if ($software_is_installed -ne $null) {
+        $uninstallstring = $software_is_installed.uninstallString.Split(" ")[1]
+
+        $running_proc = Start-Process -FilePath "msiexec.exe" -ArgumentList "$uninstallstring /passive" -Credential $credential -PassThru
+        $running_proc.WaitForExit()     
+    }
+
+
+    # uninstall office 2003
+    $software_name = "Microsoft Office Professional Edition 2003*"
+
+    $all_installed_program = get-installedprogramlist
+    $software_is_installed = $all_installed_program | Where-Object -FilterScript { $_.DisplayName -like $software_name }
+
+    if ($software_is_installed -ne $null) {
+        $uninstallstring = $software_is_installed.uninstallString.Split(" ")[1]
+
+        $running_proc = Start-Process -FilePath "msiexec.exe" -ArgumentList "$uninstallstring /passive" -Credential $credential -PassThru
+        $running_proc.WaitForExit()     
+    }
+
+
+}
 
 function install-WinNexus {
     # 安裝Winnexus
@@ -234,9 +272,15 @@ if ($run_main -eq $null) {
         Start-Process powershell.exe -ArgumentList "-FILE `"$PSCommandPath`" -Executionpolicy bypass -NoProfile  -runadmin 1" -Verb Runas; exit
     }
 
+
     $key = choice-officekey
+    
+    uninstall-office2003
+    
     install-office2010
+
     active-office -key $key
+    
     start-sleep -Seconds 10
     
 }
