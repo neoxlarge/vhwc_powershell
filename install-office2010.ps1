@@ -1,3 +1,10 @@
+#安裝office2010
+#1. 會先檢查有無安裝office 2003, 有的話移掉.
+#2. 會檢查有無安裝winnexus, 沒有的話會安裝.
+#3. 用winnexus 來安裝office 2010
+#4. 啟用office 2010
+
+
 param($runadmin)
 
 Import-Module "\\172.20.5.185\powershell\vhwc_powershell\get-installedprogramlist.psm1"
@@ -18,21 +25,22 @@ function Get-IPv4Address {
 
 function uninstall-office2003 {
 
-    # uninstall 2007 office system ??容??????
+    # uninstall 2007 office system 相容性套件
 
     $Username = "vhcy\vhwcmis"
     $Password = "Mis20190610"
     $securePassword = ConvertTo-SecureString $Password -AsPlainText -Force
     $credential = New-Object System.Management.Automation.PSCredential($Username, $securePassword)
 
-    # uninstall 2007 office system ??容??????
+    # uninstall 2007 office system 相容性套件
+
     $software_name = "2007 Office System*"
 
     $all_installed_program = get-installedprogramlist
     $software_is_installed = $all_installed_program | Where-Object -FilterScript { $_.DisplayName -like $software_name }
 
     if ($software_is_installed -ne $null) {
-        $uninstallstring = $software_is_installed.uninstallString.Split(" ")[1].replace("I","X")
+        $uninstallstring = $software_is_installed.uninstallString.Split(" ")[1].replace("I", "X")
 
         $running_proc = Start-Process -FilePath "msiexec.exe" -ArgumentList "$uninstallstring /passive" -Credential $credential -PassThru
         $running_proc.WaitForExit()     
@@ -46,7 +54,21 @@ function uninstall-office2003 {
     $software_is_installed = $all_installed_program | Where-Object -FilterScript { $_.DisplayName -like $software_name }
 
     if ($software_is_installed -ne $null) {
-        $uninstallstring = $software_is_installed.uninstallString.Split(" ")[1].replace("I","X")
+        $uninstallstring = $software_is_installed.uninstallString.Split(" ")[1].replace("I", "X")
+
+        $running_proc = Start-Process -FilePath "msiexec.exe" -ArgumentList "$uninstallstring /passive" -Credential $credential -PassThru
+        $running_proc.WaitForExit()     
+    }
+
+
+    # uninstall office 2003
+    $software_name = "Microsoft Office Standard Edition 2003*"
+
+    $all_installed_program = get-installedprogramlist
+    $software_is_installed = $all_installed_program | Where-Object -FilterScript { $_.DisplayName -like $software_name }
+
+    if ($software_is_installed -ne $null) {
+        $uninstallstring = $software_is_installed.uninstallString.Split(" ")[1].replace("I", "X")
 
         $running_proc = Start-Process -FilePath "msiexec.exe" -ArgumentList "$uninstallstring /passive" -Credential $credential -PassThru
         $running_proc.WaitForExit()     
@@ -147,7 +169,7 @@ function install-office2010 {
             # 2.解壓到office2010_vhcy
             # 3.安裝中.
             # 4.裝完刪暫存, 底下office2010_vhcy\Script\install 會刪掉.
-            # 結論, 資料夾存在且是空的, 即表安裝完成, 閒置中.
+            # 結論, Script資料夾存在且沒有任何子資料夾, 即表安裝完成, 閒置中. 因為install會被刪除
 
             Write-Host "Office 2010 in installing, please wait..."
             Start-Sleep -Seconds 10
@@ -261,14 +283,14 @@ function active-office ($key) {
     }
 }
 
-#檔??????????????????????, 如????被??入??????執行函??
+#檔案獨立執行時會執行函式, 如果是被匯入時不會執行函式.
 if ($run_main -eq $null) {
 
-    #檢查??否管????
+    #檢查是否管理員
     $check_admin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")
 
     if (!$check_admin -and !$runadmin) {
-        #如????管??員, 就試??run as admin, 並傳??runadmin ??數1. ??為??網??????使??者永??拿不是管???????? ??造??????????. 此????用來????判??只跑???? 
+        #如果非管理員, 就試著run as admin, 並傳入runadmin 參數1. 因為在網域一般使用者永遠拿不是管理員權限, 會造成無限重跑. 此參數用來輔助判斷只跑一次.  
         Start-Process powershell.exe -ArgumentList "-FILE `"$PSCommandPath`" -Executionpolicy bypass -NoProfile  -runadmin 1" -Verb Runas; exit
     }
 
