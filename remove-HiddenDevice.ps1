@@ -1,12 +1,16 @@
 #從裝置管理員中移除?藏的設備
 #
-#只會移除ScmarCard ,SmartCardReader和SmartCardFilter這3個和讀卡機相關的?藏的設備.
+#只會移除ScmarCard ,SmartCardReader和SmartCardFilter, USB, Keyboard等USB和讀卡機相關的?藏的設備.
 #powershell V2無法執行, get-pnpdevice是V5的語法.
 #
 #win32_pnpentity中不會列出?藏的設備, 無法用win32_pnpentity來作.
+#
+#主要以pnputil.exe來執行,所以win7不能用, Win10某些pnptuil版本過舊沒有/remove-device參數, 也不能執行.
 
 param($runadmin)
 
+#改主控台的QuickEdit關掉可以防使用者不小心按到powershell console, 迼成暫停.
+Set-ItemProperty  -Path HKCU:\Console -Name QuickEdit -Value 0
 
 function Compare-Versions {
   <#比對2個版本, $version1 大於等於 $version2 回傳$Ture #>
@@ -113,6 +117,9 @@ function remove-HiddenDevice {
 #檔案獨立執行時會執行函式, 如果是被匯入時不會執行函式.
 if ($run_main -eq $null) {
 
+
+    Set-ItemProperty  -Path HKCU:\Console -Name QuickEdit -Value 0
+
     #檢查是否管理員
     $check_admin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")
 
@@ -123,5 +130,9 @@ if ($run_main -eq $null) {
     }
 
     remove-HiddenDevice
+
+    Start-Sleep -Seconds 10
+
+    Set-ItemProperty  -Path HKCU:\Console -Name QuickEdit -Value 1
     pause
 }
