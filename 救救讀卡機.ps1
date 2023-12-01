@@ -9,7 +9,7 @@
 
 
 #改主控台的QuickEdit關掉可以防使用者不小心按到powershell console, 迼成暫停.
-Set-ItemProperty  -Path "HKCU:\Console" -Name QuickEdit -Value 0
+#Set-ItemProperty  -Path "HKCU:\Console" -Name QuickEdit -Value 0
 
 #檢查是否管理員
 $check_admin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")
@@ -49,6 +49,7 @@ function Compare-Versions {
 
 
 function remove-HiddenDevice {
+
 
   $Username = ".\USER"
   $Password = "Us2791072"
@@ -104,28 +105,39 @@ function remove-HiddenDevice {
 
   $pnputil_version = Get-ItemPropertyValue -Path $pnputil_path -name VersionInfo
   
+  Write-Host "HELP THE CARD READER:" 
+
   Write-Output "$($pnputil_version.Filename) : $($pnputil_version.FileVersion)"
+ 
+ 
+  do {
+ 
+    $dev = Get-PnpDevice | Where-Object -FilterScript { $_.Present -eq $false -and $_.Class -in ('SmartCard', 'SmartCardReader', 'SmartCardFilter') }
+ 
+    Write-Output "Time: $(Get-Date) Find devices amount: $($dev.count)"
 
-  $dev = Get-PnpDevice | Where-Object -FilterScript { $_.Present -eq $false -and $_.Class -in ('SmartCard', 'SmartCardReader', 'SmartCardFilter', 'USB', 'HIDClass', 'Keyboard') }
+    # todo:  win7要用devcon.exe, win10也有但要另安裝windows10 WDK
+    # Win7的要再測看看.
 
-  Write-Output "Find devices amount: $($dev.count)"
+    foreach ($d in $dev) {
+      if ($check_admin) {
+        #登入者有管理者權限
+        Write-Output "(Admin)Dedete device: $($d.FriendlyName)"
+        Start-Process -FilePath $pnputil_path -ArgumentList "/remove-device $($d.instanceID)" -Wait -NoNewWindow
+      }
+      else {
+        Write-Output "(User)Dedete device: $($d.FriendlyName)"
+        $result = Start-Process -FilePath $pnputil_path -ArgumentList "/remove-device $($d.instanceID)" -Credential $credential -PassThru -NoNewWindow #這行用-wait會出現權限不足, 以下行替代.
+        $result.WaitForExit()
+      }
 
-  # todo:  win7要用devcon.exe, win10也有但要另安裝windows10 WDK
-  # Win7的要再測看看.
-
-  foreach ($d in $dev) {
-    if ($check_admin) {
-      #登入者有管理者權限
-      Write-Output "(Admin)Dedete device: $($d.FriendlyName)"
-      Start-Process -FilePath $pnputil_path -ArgumentList "/remove-device $($d.instanceID)" -Wait -NoNewWindow
     }
-    else {
-      Write-Output "(User)Dedete device: $($d.FriendlyName)"
-      $result = Start-Process -FilePath $pnputil_path -ArgumentList "/remove-device $($d.instanceID)" -Credential $credential -PassThru -NoNewWindow #這行用-wait會出現權限不足, 以下行替代.
-      $result.WaitForExit()
-    }
+  
+  
+    Start-Sleep -Seconds 3600
 
-  }
+  } until ( $false )
+
 
 }
 
@@ -133,4 +145,3 @@ function remove-HiddenDevice {
 
 remove-HiddenDevice
 
-Start-Sleep -Seconds 10
