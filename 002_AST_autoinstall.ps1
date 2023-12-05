@@ -128,6 +128,10 @@ Import-Module ((Split-Path $PSCommandPath) + "\install-virtualnhc.ps1")
 Import-Module ((Split-Path $PSCommandPath) + "\install-cdcalert.ps1")
 #install-cdcalert
 
+#安裝上下班刷卡元件
+Import-Module ((Split-Path $PSCommandPath) + "\install-NHICardReaderOCX.ps1")
+install-NHICardReaderOCX
+
 #安裝powerBI
 Import-Module ((Split-Path $PSCommandPath) + "\install-PowerBIRS.ps1")
 install-PowerBIRS
@@ -239,6 +243,30 @@ disable-win11upgrade
 Import-Module ((Split-Path $PSCommandPath) + "\Clear-WindowsJunk.ps1")
 Clear-WindowsJunk
 
+#刪除輔具外點不用的連結.
+
+$link_list = @(
+    'C:\Users\Public\desktop\SmartIris.lnk',
+    'C:\Users\Public\desktop\UltraQuery.lnk',
+    'C:\Users\Public\desktop\MonitorCfg.lnk',
+    'C:\Users\Public\desktop\全院共用平台.lnk',
+    'C:\Users\Public\desktop\各病房動態表(3.240).lnk',
+    'C:\Users\Public\desktop\庫賈氏病勾稽查詢系統.lnk',
+    'C:\Users\Public\desktop\健保IC卡認證程式_新版.lnk',
+    'C:\Users\Public\desktop\健保局雲端藥歷查詢.lnk',
+    'C:\Users\Public\desktop\訪客預約探病.lnk',
+    'C:\Users\Public\desktop\臺中榮總藥品手冊查詢系統.url',
+    'C:\Users\Public\desktop\醫事人員卡解鎖.lnk',
+    'C:\Users\Public\desktop\HISLogin.lnk',
+    'C:\Users\Public\desktop\HISUpdateLauncher.lnk',
+    'C:\Users\Public\desktop\醫療資訊系統.lnk'   
+)
+
+foreach ($link in $link_list) {
+    if (Test-Path $link) {
+        Remove-Item -Path $link -Force -Verbose
+    }
+}
 
 
 #結束, 結束記錄

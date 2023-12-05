@@ -128,6 +128,10 @@ install-virtualnhc
 Import-Module ((Split-Path $PSCommandPath) + "\install-cdcalert.ps1")
 install-cdcalert
 
+#安裝上下班刷卡元件
+Import-Module ((Split-Path $PSCommandPath) + "\install-NHICardReaderOCX.ps1")
+install-NHICardReaderOCX
+
 #安裝powerBI
 Import-Module ((Split-Path $PSCommandPath) + "\install-PowerBIRS.ps1")
 install-PowerBIRS
