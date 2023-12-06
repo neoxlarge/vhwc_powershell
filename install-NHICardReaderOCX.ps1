@@ -16,10 +16,12 @@ function install-NHICardReaderOCX {
     $reg_classid_path = "HKCR:\WOW6432Node\CLSID\{1BFA1079-2761-4FF6-8499-5D886F7D972E}"
     $software_path = "\\172.20.5.187\mis\36-NHICardReaderOCX\NHICardReaderOCX.zip"
     
-    
+       
     if (!(Test-Path -path $reg_classid_path )) {
         #copy software to temp folder   
         Expand-Archive -Path $software_path -DestinationPath "$($env:temp)\ocx" -Force
+    
+        Write-Host "安裝上下班刷卡元件NHICardReaderOCX."
         if ($check_admin) {
             $run_processor = Start-Process -FilePath "regsvr32.exe" -ArgumentList "/s $($env:temp)\ocx\NHICardReaderOCX.ocx" -NoNewWindow -PassThru
             $run_processor.WaitForExit()
@@ -32,7 +34,7 @@ function install-NHICardReaderOCX {
         
     }
     else {
-        Write-Output "NHICardReaderOCS 己經安裝了."
+        Write-Output "上下班刷卡元件NHICardReaderOCS 己經安裝了."
     }
 
     

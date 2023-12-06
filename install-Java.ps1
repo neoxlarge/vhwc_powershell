@@ -76,6 +76,25 @@ function set-Java_env {
     else {
         Write-Error "找不到 deployment properties 文件。"
     }
+
+
+    # 20231206, 登入住院護理紀錄系統, 需要勾選一個信任憑證, 將憑證匯出再匯入就可以不用手動按了.
+    # 憑證檔為nursing.csr
+    # ?入工具 keytool.exe
+    # https://docs.oracle.com/javase/tutorial/security/toolfilex/rstep1.html
+    write-host "匯入Java憑證."
+
+    $ca_path = "$PSScriptRoot\nursing.csr"
+    $keystore = "$env:USERPROFILE\AppData\LocalLow\Sun\Java\Deployment\security\trusted.certs"
+    try {
+
+        Start-Process -FilePath "keytool.exe" -ArgumentList "-import -trustcacerts -keystore $keystore -noprompt -file $ca_path -storepass """"" -NoNewWindow -Wait
+    }
+    catch {
+        Write-Output  "Java控制台憑證匯入可能有錯誤."
+    }
+
+
 }
 
 function install-Java {
