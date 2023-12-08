@@ -80,7 +80,8 @@ function check-pdf {
     $reg_path_disableUpdateButton= @("HKLM:\SOFTWARE\Policies\Adobe\Adobe Acrobat\DC\FeatureLockDown",
         "HKLM:\SOFTWARE\Policies\Adobe\Acrobat Reader\DC\FeatureLockDown")
 
-    $reg_path_disableAutoupdate = "HKLM:\SOFTWARE\WOW6432Node\Adobe\Adobe ARM\Legacy\Reader\{AC76BA86-7AD7-1028-7B44-AC0F074E4100}"
+    $reg_path_disableAutoupdate = (Get-ChildItem -Path "HKLM:\SOFTWARE\WOW6432Node\Adobe\Adobe ARM\Legacy\" -Recurse)[1].Name.Replace("HKEY_LOCAL_MACHINE","HKLM:")
+
 
     foreach ($r in $reg_path_disableUpdateButton) {
         if (Test-Path -Path $r) {
