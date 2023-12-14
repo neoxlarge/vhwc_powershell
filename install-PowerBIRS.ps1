@@ -5,7 +5,25 @@ param($runadmin)
 Import-Module ((Split-Path $PSCommandPath) + "\get-installedprogramlist.psm1")
 
 
-function install-PowerBIRS{
+#取得OS的版本
+function Get-OSVersion {
+    $os = (Get-WmiObject -Class Win32_OperatingSystem).Caption
+
+    if ($os -like "*Windows 7*") {
+        return "Windows 7"
+    }
+    elseif ($os -like "*Windows 10*") {
+        return "Windows 10"
+    }
+    elseif ($os -like "*Windows 11*") {
+        return "Windows 11"
+    }
+    else {
+        return "Unknown OS"
+    }
+}
+
+function install-PowerBIRS {
     # 安裝Winnexus
     $software_name = "Microsoft PowerBI Desktop (x64) (September 2023)"
     $software_path = "\\172.20.5.187\mis\26-PowerBI"
@@ -37,9 +55,10 @@ function install-PowerBIRS{
 
         #installing...
         if (!$check_admin) {
-        $running = Start-Process -FilePath "$($env:TEMP)\$software_exec" -ArgumentList "-passive -norestart ACCEPT_EULA=1" -Credential $credential -PassThru
-        $running.WaitForExit()
-        } else {
+            $running = Start-Process -FilePath "$($env:TEMP)\$software_exec" -ArgumentList "-passive -norestart ACCEPT_EULA=1" -Credential $credential -PassThru
+            $running.WaitForExit()
+        }
+        else {
             Start-Process -FilePath "$($env:TEMP)\$software_exec" -ArgumentList "-passive -norestart ACCEPT_EULA=1" -Wait
         }
 
@@ -73,12 +92,14 @@ if ($run_main -eq $null) {
     
     }
 
-    if ($check_admin) { 
-        install-PowerBIRS
-    }
-    else {
-        Write-Warning "非管理員權限嘗試安裝軟體中"
-        install-PowerBIRS
+    if ($(Get-OSVersion) -ne "Windows 7" -and $(Get-OSVersion) -ne "Unknown OS") {
+        if ($check_admin) { 
+            install-PowerBIRS
+        }
+        else {
+            Write-Warning "非管理員權限嘗試安裝軟體中"
+            install-PowerBIRS
+        }
     }
     #pause
 }

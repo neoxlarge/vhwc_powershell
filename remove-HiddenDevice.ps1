@@ -106,7 +106,7 @@ function remove-HiddenDevice {
   
   Write-Output "$($pnputil_version.Filename) : $($pnputil_version.FileVersion)"
 
-  $dev = Get-PnpDevice | Where-Object -FilterScript { $_.Present -eq $false -and $_.Class -in ('SmartCard', 'SmartCardReader', 'SmartCardFilter', 'USB', 'HIDClass', 'Keyboard') }
+  $dev = Get-PnpDevice | Where-Object -FilterScript { $_.Present -eq $false -and $_.Class -in ('SmartCard', 'SmartCardReader', 'SmartCardFilter', 'USB', 'HIDClass', 'Keyboard','mouse','monitor','volume') }
 
   Write-Output "Find devices amount: $($dev.count)"
 
