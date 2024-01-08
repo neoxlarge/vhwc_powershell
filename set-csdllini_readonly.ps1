@@ -77,11 +77,22 @@ function  save-iniFile {
     Out-File -InputObject $ini_content -FilePath $path
 }
 
-function check_comx1 ($ini_path){
+function check_comx1 ($ini_path) {
     
-    #先檢查ini路徑, 如果ini不存在也不用跑
+    $log_file = "\\172.20.1.14\update\0001-中榮系統環境設定\set_csdllini.log"
+
+    #電腦名稱限制條件
+    $rule = "wmis-*"
+    if ($env:COMPUTERNAME -like $rule) {
+        $is_computername_rule = $true
+    }
+    else {
+        $is_computername_rule = $false
+    }
+
+    #檢查電腦名稱是否符合rule 及檢查ini路徑, 如果ini不存在也不用跑
        
-    if (Test-Path $ini_path) {
+    if (Test-Path $ini_path -and $is_computername_rule) {
 
         #取得ini內容
         $ini_content = Parse-IniFile -Path $ini_path 
@@ -105,11 +116,21 @@ function check_comx1 ($ini_path){
 
             #存檔
             save-iniFile -ini $ini_content -path $ini_path
+
+            #寫一下log
+            $log_string = "set csdll.ini COMX1: $env:COMPUTERNAME,$(Get-Date)" 
+            $log_string | Add-Content -PassThru $log_file
+
         }
 
         #不是唯讀的都改唯讀
         if ($ini_fileproperty_readonly -eq $false) {
             Set-ItemProperty -Path $ini_path -Name IsReadOnly -Value $true -Force
+
+            #寫一下log
+            $log_string = "set csdll.ini readonly: $env:COMPUTERNAME,$(Get-Date)" 
+            $log_string | Add-Content -PassThru $log_file
+
         }
     }
 }
