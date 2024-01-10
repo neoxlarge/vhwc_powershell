@@ -2,11 +2,37 @@
 
 param($runadmin)
 
+#取得OS的版本
+function Get-OSVersion {
+    $os = (Get-WmiObject -Class Win32_OperatingSystem).Caption
+
+    if ($os -like "*Windows 7*") {
+        return "Windows 7"
+    }
+    elseif ($os -like "*Windows 10*") {
+        return "Windows 10"
+    }
+    elseif ($os -like "*Windows 11*") {
+        return "Windows 11"
+    }
+    else {
+        return "Unknown OS"
+    }
+}
+
 function disable-win11upgrade {
-    set-itemproperty -Path "HKLM:\SOFTWARE\Microsoft\WindowsUpdate\UX\Settings" -name SvOfferDeclined -value 1697695220682 -type QWord
+    
+    #Only Win10 need to change the registry.
 
+    if ((Get-OSVersion) -eq "Windows 10") {
 
-#    set-itemproperty -Path "HKLM:\SOFTWARE\Microsoft\WindowsUpdate\UX\Settings" -name SvOfferDeclined -value 1646085160366 -type QWord
+        set-itemproperty -Path "HKLM:\SOFTWARE\Microsoft\WindowsUpdate\UX\Settings" -name SvOfferDeclined -value 1697695220682 -type QWord
+
+    } 
+    else {
+    Write-Output "Not Win 10, no need to disable update to Win 11."
+    }
+
 }
 
 

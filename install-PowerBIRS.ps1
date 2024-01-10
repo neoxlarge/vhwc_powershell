@@ -97,8 +97,8 @@ if ($run_main -eq $null) {
             install-PowerBIRS
         }
         else {
-            Write-Warning "非管理員權限嘗試安裝軟體中"
-            install-PowerBIRS
+            Write-Warning "非Windows 10 或 11 系統. 無法安裝POWER BI"
+            
         }
     }
     #pause

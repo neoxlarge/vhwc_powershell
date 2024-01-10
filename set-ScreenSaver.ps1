@@ -2,6 +2,11 @@
 param($runadmin)
 
 function Set-ScreenSaver {
+    
+    param (
+        [switch]$off
+    )
+
     write-output "設定螢幕保護程式"
   
     # 設定特定的螢幕保護程式檔案路徑
@@ -10,17 +15,35 @@ function Set-ScreenSaver {
     if ($result) {
     Copy-Item -Path "\\172.20.1.14\update\Vghtc_Update\ScreenSaver\ScreenSaver.scr" -Destination $screenSaverFilePath -Force 
     }
-    # 設定螢幕保護程式
-    Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name ScreenSaveActive -Value 1
+    
+    if (!$off) { 
+        # 設定螢幕保護程式
+        Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name ScreenSaveActive -Value 1
 
-    # 設定螢幕保護程式等待時間（以秒為單位）
-    Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name ScreenSaveTimeOut -Value 900 -type string
+        # 設定螢幕保護程式等待時間（以秒為單位）
+        Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name ScreenSaveTimeOut -Value 900 -type string
 
-    # 設定螢幕保護程式的密碼保護狀態（0表示禁用，1表示啟用）
-    #Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name ScreenSaverIsSecure -Value 1
+        # 設定螢幕保護程式的密碼保護狀態（0表示禁用，1表示啟用）
+        #Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name ScreenSaverIsSecure -Value 1
 
-    # 設定特定的螢幕保護程式檔案路徑
-    Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name SCRNSAVE.EXE -Value $screenSaverFilePath
+        # 設定特定的螢幕保護程式檔案路徑
+        Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name SCRNSAVE.EXE -Value $screenSaverFilePath
+        
+    } else {
+
+        # 設定螢幕保護程式
+        Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name ScreenSaveActive -Value 0
+
+        # 設定螢幕保護程式等待時間（以秒為單位）
+        Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name ScreenSaveTimeOut -Value 0 -type string
+
+        # 設定螢幕保護程式的密碼保護狀態（0表示禁用，1表示啟用）
+        #Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name ScreenSaverIsSecure -Value 1
+
+        # 設定特定的螢幕保護程式檔案路徑
+        Set-ItemProperty -Path "HKCU:\Control Panel\Desktop" -Name SCRNSAVE.EXE -Value ""
+    
+    }
 
 }
 
