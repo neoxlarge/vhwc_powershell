@@ -92,16 +92,19 @@ if ($run_main -eq $null) {
     
     }
 
-    if ($(Get-OSVersion) -ne "Windows 7" -and $(Get-OSVersion) -ne "Unknown OS") {
+    if ($(Get-OSVersion) -in @("Windows 10", "Windows 11")) {
         if ($check_admin) { 
             install-PowerBIRS
         }
-        else {
-            Write-Warning "非Windows 10 或 11 系統. 無法安裝POWER BI"
-            
-        }
+        
+    } else {
+        Write-Warning "非Windows 10 或 11 系統. 無法安裝POWER BI"
+        
     }
+
+
     #pause
 }
 
 
+$(Get-OSVersion) -in @("Windows 10", "Windows 11")
