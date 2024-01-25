@@ -13,6 +13,9 @@ function Get-OSVersion {
     elseif ($os -like "*Windows 10*") {
         return "Windows 10"
     }
+    elseif ($os -like "*Windows 11*") {
+    return "Windows 11"
+    }
     else {
         return "Unknown OS"
     }
@@ -47,7 +50,7 @@ function Enable-ChangJieinput {
 
     $OS = Get-OSVersion
 
-    if ($os -eq "Windows 10") {
+    if ($os -in @("Windows 10","Windows 11")) {
 
         #安裝倉頡輪入法 windows 10
         $user_language = Get-WinUserLanguageList
@@ -59,11 +62,11 @@ function Enable-ChangJieinput {
             if ($i.LanguageTag -eq "zh-Hant-TW") {
         
                 if ($i.InputMethodTips -contains $GuidChangJie) {
-                    write-output "倉頡輸入法(win10)己安裝."
+                    write-output "倉頡輸入法($($OS))己安裝."
                     $i = $null
                     break
                 }else {
-                    Write-Output "倉頡輸入法(win10)未安裝."
+                    Write-Output "倉頡輸入法($($OS))未安裝."
                     break 
                 }
             }
@@ -72,7 +75,7 @@ function Enable-ChangJieinput {
 
         if ($i -ne $null) {
         
-            Write-Output "啟用倉頡輸入法(win10)."
+            Write-Output "啟用倉頡輸入法($($OS))."
             $i.InputMethodTips.add($GuidChangJie)
         
             if ((Test-Path -Path "HKCU:\SOFTWARE\Microsoft\CTF\TIP\{531FDEBF-9B4C-4A43-A2AA-960E8FCDC732}") -ne $null) {
@@ -107,20 +110,20 @@ function Enable-ChangJieinput {
 
         if ((test-path -Path $langueage_path) -eq $false) {
 
-            Write-Output "倉頡輸入法(win7)未安裝."
-            Write-Output "啟用倉頡輸入法(win7)."
+            Write-Output "倉頡輸入法($($OS))未安裝."
+            Write-Output "啟用倉頡輸入法$($OS))."
             New-Item -Path $langueage_path -Force
             New-ItemProperty -Path $langueage_path -Name "Enable" -Value 1 -PropertyType DWORD
     
         } else {
     
-        Write-Output "倉頡輸入法(win7)己安裝."
+        Write-Output "倉頡輸入法($($OS))己安裝."
     
         }
 
     } else {
 
-        Write-Output "非win7或win10,暫不安裝倉頡輸入法"
+        Write-Output "非win7或win10,Win11,暫不安裝倉頡輸入法"
 
     }
 

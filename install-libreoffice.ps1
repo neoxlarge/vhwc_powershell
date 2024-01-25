@@ -8,9 +8,9 @@ Import-Module ((Split-Path $PSCommandPath) + "\get-installedprogramlist.psm1")
 function install-libreoffice {
     
     $software_name = "LibreOffice*"
-    $software_path = "\\172.20.5.187\mis\10-LibreOffice"
-    $software_msi = "LibreOffice_7.0.4_Win_x64.msi"
-    $software_msi_x86 = "LibreOffice_7.0.4_Win_x86.msi"
+    $software_path = "\\172.20.1.122\share\software\00newpc\10-LibreOffice"
+    $software_msi = "LibreOffice_Win_x64.msi"
+    $software_msi_x86 = "LibreOffice_Win_x86.msi"
     ## 找出軟體是否己安裝
 
     $all_installed_program = get-installedprogramlist
