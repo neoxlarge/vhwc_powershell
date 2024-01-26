@@ -41,7 +41,7 @@ function install-PowerBIRS {
    
     $software_is_installed = $all_installed_program | Where-Object -FilterScript { $_.DisplayName -like "$software_name*" }
 
-    if ($software_is_installed -eq $null) {
+    if (($software_is_installed -eq $null) -and ($(Get-OSVersion) -in @("Windows 10","Windows 11")) ) {
         Write-OutPut "Start to install: $software_name"
 
         $software_path_name = $software_path.Split("\")[-1]
@@ -54,7 +54,7 @@ function install-PowerBIRS {
         Remove-PSDrive -Name $net_driver
 
         #installing...
-        if (!$check_admin -and ($(Get-OSVersion) -in @("Windows 10","Windows 11"))) {
+        if (!$check_admin) {
             $running = Start-Process -FilePath "$($env:TEMP)\$software_exec" -ArgumentList "-passive -norestart ACCEPT_EULA=1" -Credential $credential -PassThru
             $running.WaitForExit()
         }
