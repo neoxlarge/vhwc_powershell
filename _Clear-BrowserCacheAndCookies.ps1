@@ -5,8 +5,31 @@ param($runadmin)
 
 function Clear-BrowserCacheAndCookies {
     # 清除Internet Explorer暫存檔和Cookies
-    #Remove-Item -Path "$env:LOCALAPPDATA\Microsoft\Windows\INetCache\*" -Recurse -Force -ErrorAction SilentlyContinue
-    #Remove-Item -Path "$env:LOCALAPPDATA\Microsoft\Windows\INetCookies\*" -Recurse -Force
+    
+    <#
+    Delete Temporary Internet Files:
+    RunDll32.exe InetCpl.cpl,ClearMyTracksByProcess 8
+
+    Delete Cookies:
+    RunDll32.exe InetCpl.cpl,ClearMyTracksByProcess 2
+
+    Delete History:
+    RunDll32.exe InetCpl.cpl,ClearMyTracksByProcess 1
+
+    Delete Form Data:
+    RunDll32.exe InetCpl.cpl,ClearMyTracksByProcess 16
+
+    Delete Passwords:
+    RunDll32.exe InetCpl.cpl,ClearMyTracksByProcess 32
+
+    Delete All:
+    RunDll32.exe InetCpl.cpl,ClearMyTracksByProcess 255
+
+    Delete All + files and settings stored by Add-ons:
+    RunDll32.exe InetCpl.cpl,ClearMyTracksByProcess 4351
+    #>
+
+
     Start-Process -FilePath "RunDll32.exe" -ArgumentList "InetCpl.cpl,ClearMyTracksByProcess 8" -Wait
     Start-Process -FilePath "RunDll32.exe" -ArgumentList "InetCpl.cpl,ClearMyTracksByProcess 2" -Wait
    
