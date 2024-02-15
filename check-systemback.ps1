@@ -7,12 +7,12 @@ function Send-LineNotifyMessage {
     [CmdletBinding()]
     param (
         
-        [string]$Token = "CclWwNgG6qbD5qx8eO3Oi4ii9azHfolj17SCzIE9UyI",                 # Line Notify 存取權杖
+        [string]$Token = "CclWwNgG6qbD5qx8eO3Oi4ii9azHfolj17SCzIE9UyI", # Line Notify 存取權杖
 
         [Parameter(Mandatory = $true)]
-        [string]$Message,               # 要發送的訊息內容
+        [string]$Message, # 要發送的訊息內容
 
-        [string]$StickerPackageId,      # 要一併傳送的貼圖套件 ID
+        [string]$StickerPackageId, # 要一併傳送的貼圖套件 ID
 
         [string]$StickerId              # 要一併傳送的貼圖 ID
     )
@@ -48,100 +48,28 @@ function Send-LineNotifyMessage {
 }
 
 
-
-
-$check_list = @("\\172.20.1.122\backup\001-002-hisdb",
-                "\\172.20.1.122\backup\001-014-dbSTUDY", 
-                "\\172.20.1.122\backup\001-016-homecare",
-                "\\172.20.1.122\backup\001-025-nurse",
-                "\\172.20.1.122\backup\001-025-pts",
-                "\\172.20.1.122\backup\001-067-sk02p",
-                "\\172.20.1.122\backup\200-033-hisdb-vghtc"
-                )
-
-$path = "\\172.20.1.122\backup\001-002-hisdb"
-
-$today = Get-Date -Format "yyyyMMdd"
-
-$dmp_filename = "exp_full_vhgp_$today.dmp"
-                
-$latest_file = Get-ChildItem -Path $path | Where-Object -FilterScript {$_.Name -match $dmp_filename}
-
-if ($latest_file) {
-
-    if ($latest_file.Length -gt 40GB) {
-        $line_msg = "$latest_file 存在, 檔案大小: $($latest_file.length/(1024*1024*1024))GB."
-    } else {
-        $line_msg = "$dmp_filename 檔案小於40GB "
-    }
-    
-} else {
-    $line_msg = "$dmp_filename 不存在!!!"
-}
-
-
-Send-LineNotifyMessage -Message $line_msg
-
-#取得星期縮寫
-$today_ofweek = (get-date).DayOfWeek.ToString().Substring(0,3)
-
-# \\172.20.1.122\backup\001-014-dbSTUDY\dbSTUDY_Mon.zip
-# 1.檔案存在
-# 2.檔名結構正確
-# 3.檔案日期正確
-# 3.檔案大小正常
-
-$path = "\\172.20.1.122\backup\001-014-dbSTUDY"
-$zip_filename = "dbSTUDY_$today_ofweek.zip"
-
-$check_filepath = Test-Path -Path "$path\$zip_filename"
-
-
-if ($check_filepath) {
-    #檔案存在,檢查檔案日期
-    $latest_file = get-item -Path "$path\$zip_filename"
-    $check_dateoffile = $latest_file.LastWriteTime.ToString("yyyyMMdd") -eq $today
-
-    if ($check_dateoffile) {
-        #日期正確,檢查檔案大小
-        $check_filesize =  $latest_file.Length -gt 1500kb -and $latest_file.Length -lt 2000kb
-
-        if ($check_filesize) {
-            #檔案大小正確
-        } else {
-            #檔案大小不正確
-        }
-
-    } else {
-        #日期不正確
-    }
-
-} else {
-    #檔案不存在 或者 網路有問題
-}
-
-
 function check_backup_file {
     param(
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory = $true)]
         [string]$mode,
 
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory = $true)]
         [string]$path,
 
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory = $true)]
         [string]$pre_filename,
 
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory = $true)]
         [string]$sub_filename,
 
-        [Parameter(Mandatory=$true)]
-        [string]$size
+        [Parameter(Mandatory = $true)]
+        [string]$size,
 
+        [int16]$size_range = 10 # 預設10%
     )
 
     $today = Get-Date -Format "yyyyMMdd"
-    $today_ofweek = (Get-Date).DayOfWeek.ToString().Substring(0,3)
+    $today_ofweek = (Get-Date).DayOfWeek.ToString().Substring(0, 3)
     $today_ofweek_chinese = @{
         "Sun" = "星期日"
         "Mon" = "星期一"
@@ -154,33 +82,172 @@ function check_backup_file {
 
 
     $result = @{
-        "full_path" = ""
-        "network_path" = "Fail"
-        "filename" = "Fail"
-        "size" = "Fail"
+        "file_path"        = "none"
+        "file_existed"     = "none"
+        "file_date"        = "none"
+        "file_datechecked" = "none"
+        "file_size"        = "none"
+        "file_sizechecked" = "none"
     }
     
     switch ($mode) {
         "yyyyMMdd" { 
             $full_path = "$path\$pre_filename$today.$sub_filename"
-            $result["full_path"] = $full_path
-         }
+            $result["file_path"] = $full_path
+        }
         
         "ddd" {
             $full_path = "$path\$pre_filename($today_ofweek).$sub_filename"
-            $result["full_path"] = $full_path
+            $result["file_path"] = $full_path
         } 
 
         "XXX" {
             $full_path = "$path\$pre_filename$($today_ofweek_chinese[$today_ofweek]).$sub_filename"
-            $result["full_path"] = $full_path
+            $result["file_path"] = $full_path
         }
-        Default {}
+        Default {
+            throw "mode參數不正確性!!"
+
+        }
+    }
+    
+    # 檢查檔案是否存在
+    if (test-path -Path $result["file_path"]) {
+        
+        $result["file_existed"] = "Pass"
+        
+        $targetfile = get-item -Path $result["file_path"]
+
+        $result["file_date"] = $targetfile.LastWriteTime.ToString("yyyyMMdd")
+        
+        # 檢查日期是否正確    
+        $check_date = $result["file_date"] -eq $today
+
+        if ($check_date) {
+            $result["file_datechecked"] = "Pass"
+        }
+        else {
+            $result["file_datechecked"] = "Fail"
+        }
+
+        # 檢查檔案大小
+
+        $result["file_size"] = $targetfile.Length
+        switch ($size) {
+            0 { 
+                #檔案大小不固定
+                if ($targetfile["file_size"] -gt 0) {
+                    $result["file_sizechecked"] = "Pass"
+                }
+                else {
+                    $result["file_sizechecked"] = "Fail"
+                }
+            }
+            Default {
+                #檔案大小較固定
+                $check_size = $targetfile.Length -gt $size * ((100 - $size_range) / 100) -and $targetfile.Length -le ($size * (100 + $size_range ) / 100) 
+                if ($check_size) {
+                    $result["file_sizechecked"] = "Pass"
+                }
+                else {
+                    $result["file_sizechecked"] = "Fail"
+                }
+            }
+        }
+
+    }
+    else {
+        $result["file_existed"] = "Fail"
     }
 
-    
-    Write-Host $full_path
     return $result
 }
 
-check_backup_file -path "\\172.20.1.122\backup\001-014-dbSTUDY" -mode xxx -pre_filename hello -sub_filename zip -size 100
+
+$check_list = @{
+
+    #"root_path" = "\\172.20.1.122\backup\"
+
+    "hisdb"         = @{
+        "root_path" = "\\172.20.1.122\backup"
+        "folder"       = "001-002-hisdb"
+        "pre_filename" = "hahaha"
+        "sub_filename" = "zip"
+        "size"         = "40GB"
+    }
+
+    "dbSTUDY"       = @{
+        "root_path" = "\\172.20.1.122\backup"
+        "folder"       = "001-014-dbSTUDY"
+        "pre_filename" = "hahaha"
+        "sub_filename" = "zip"
+        "size"         = "40GB"
+    }
+
+    "homecare"      = @{
+        "root_path" = "\\172.20.1.122\backup"
+        "folder"       = "001-016-homecare"
+        "pre_filename" = "hahaha"
+        "sub_filename" = "zip"
+        "size"         = "40GB"
+    }
+
+    "nurse"         = @{
+        "root_path" = "\\172.20.1.122\backup"
+        "folder"       = "001-025-nurse"
+        "pre_filename" = "hahaha"
+        "sub_filename" = "zip"
+        "size"         = "40GB"
+    }
+
+
+    "pts"           = @{
+        "root_path" = "\\172.20.1.122\backup"
+        "folder"       = "001-025-pts"
+        "pre_filename" = "hahaha"
+        "sub_filename" = "zip"
+        "size"         = "40GB"
+    }
+
+    "sk02p"         = @{
+        "root_path" = "\\172.20.1.122\backup"
+        "folder"       = "001-067-sk02p"
+        "pre_filename" = "hahaha"
+        "sub_filename" = "zip"
+        "size"         = "40GB"
+    }
+
+    "hisdb-vghtc_1" = @{
+        "root_path" = "\\172.20.1.122\backup"
+        "folder"       = "200-033-hisdb-vghtc"
+        "pre_filename" = "hahaha"
+        "sub_filename" = "zip"
+        "size"         = "40GB"
+    }
+
+    "hisdb-vghtc_2" = @{
+        "root_path" = "\\172.20.1.122\backup"
+        "folder"       = "200-033-hisdb-vghtc"
+        "pre_filename" = "hahaha"
+        "sub_filename" = "zip"
+        "size"         = "40GB"
+    }
+
+    "hisdb-vghtc_3" = @{
+        "root_path" = "\\172.20.1.122\backup"
+        "folder"       = "200-033-hisdb-vghtc"
+        "pre_filename" = "hahaha"
+        "sub_filename" = "zip"
+        "size"         = "40GB"
+    }
+
+}
+
+
+
+foreach ($items in $check_list.Keys) {
+Write-Host $check_list[$items]["Folder"]
+}
+
+#check_backup_file -path "\\172.20.1.122\backup\001-014-dbSTUDY" -mode xxx -pre_filename hello -sub_filename zip -size 100
+
