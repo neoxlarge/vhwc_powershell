@@ -119,3 +119,68 @@ if ($check_filepath) {
 } else {
     #檔案不存在 或者 網路有問題
 }
+
+
+function check_backup_file {
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]$mode,
+
+        [Parameter(Mandatory=$true)]
+        [string]$path,
+
+        [Parameter(Mandatory=$true)]
+        [string]$pre_filename,
+
+        [Parameter(Mandatory=$true)]
+        [string]$sub_filename,
+
+        [Parameter(Mandatory=$true)]
+        [string]$size
+
+    )
+
+    $today = Get-Date -Format "yyyyMMdd"
+    $today_ofweek = (Get-Date).DayOfWeek.ToString().Substring(0,3)
+    $today_ofweek_chinese = @{
+        "Sun" = "星期日"
+        "Mon" = "星期一"
+        "Tue" = "星期二"
+        "Wed" = "星期三"
+        "Thu" = "星期四"
+        "Fri" = "星期五"
+        "Sat" = "星期六"
+    }
+
+
+    $result = @{
+        "full_path" = ""
+        "network_path" = "Fail"
+        "filename" = "Fail"
+        "size" = "Fail"
+    }
+    
+    switch ($mode) {
+        "yyyyMMdd" { 
+            $full_path = "$path\$pre_filename$today.$sub_filename"
+            $result["full_path"] = $full_path
+         }
+        
+        "ddd" {
+            $full_path = "$path\$pre_filename($today_ofweek).$sub_filename"
+            $result["full_path"] = $full_path
+        } 
+
+        "XXX" {
+            $full_path = "$path\$pre_filename$($today_ofweek_chinese[$today_ofweek]).$sub_filename"
+            $result["full_path"] = $full_path
+        }
+        Default {}
+    }
+
+    
+    Write-Host $full_path
+    return $result
+}
+
+check_backup_file -path "\\172.20.1.122\backup\001-014-dbSTUDY" -mode xxx -pre_filename hello -sub_filename zip -size 100
