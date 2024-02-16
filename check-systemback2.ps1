@@ -274,7 +274,7 @@ $send_msg = ""
 
 foreach ($r in $check_report.keys) {
 
-    $check_allpass = $check_report[$r]['file-existed'] -eq "Pass" -and $check_report[$r]['file_datachecked'] -eq "Pass" -and $check_report[$r]['file_sizechecked'] -eq "Pass"
+    $check_allpass = $check_report[$r]['file_existed'] -eq "Pass" -and $check_report[$r]['file_datachecked'] -eq "Pass" -and $check_report[$r]['file_sizechecked'] -eq "Pass"
 
     if ($check_allpass) {
         $msg = "🟢 Pass: " + $r.Split('_')[0] + "`n" +
