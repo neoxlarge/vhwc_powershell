@@ -1,0 +1,1 @@
+$path = \\172.20.1.122\log\server-log\200-033-hisdb-vghtc\2023\2023-11
