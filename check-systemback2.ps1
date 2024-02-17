@@ -270,7 +270,7 @@ foreach ($item in $check_list.Keys) {
     $no += 1
 }
 
-$send_msg = ""
+$send_msg = "System backup check `n== $(get-date -format yyyyMMdd) ==`n"
 
 foreach ($r in $check_report.keys) {
 
@@ -278,14 +278,14 @@ foreach ($r in $check_report.keys) {
 
     if ($check_allpass) {
         $msg = "🟢 Pass: " + $r.Split('_')[0] + "`n" +
-                "path: " + $check_report[$r]['file_path'] + "`n" +
+                #"path: " + $check_report[$r]['file_path'] + "`n" +
                 #"date: " + $check_report[$r]['file_date'] + "`n" +
                 #"size: " + $check_report[$r]['file_size'] / 1024 / 1024 + "kb `n" +
                 "------------ `n"
 
     } else {
         $msg = "💩 Fail: " + $r.Split('_')[0] + "`n" +
-                "path: " + $check_report[$r]['file_path'] + "`n" +
+                "path: " + $check_report[$r]['file_path'].Split('\')[-1] + "`n" +
                 "date: " + $check_report[$r]['file_date'] + "`n" +
                 "size: " + $check_report[$r]['file_size'] + "`n" +
                 "------------ `n"
