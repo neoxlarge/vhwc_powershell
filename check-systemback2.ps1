@@ -270,7 +270,7 @@ foreach ($item in $check_list.Keys) {
     $no += 1
 }
 
-$send_msg = " == $(get-date -format yyyyMMdd) ==`n"
+$send_msg = "System backup check `n== $(get-date -format yyyyMMdd) ==`n"
 
 foreach ($r in $check_report.keys) {
 
