@@ -270,7 +270,7 @@ foreach ($item in $check_list.Keys) {
     $no += 1
 }
 
-$send_msg = " == $(get-date -format yyyyMMdd) ==`n<br>"
+$send_msg = " == $(get-date -format yyyyMMdd) ==`n"
 
 foreach ($r in $check_report.keys) {
 
@@ -285,7 +285,7 @@ foreach ($r in $check_report.keys) {
 
     } else {
         $msg = "💩 Fail: " + $r.Split('_')[0] + "`n" +
-                "path: " + $check_report[$r]['file_path'] + "`n" +
+                "path: " + $check_report[$r]['file_path'].Split('\')[-1] + "`n" +
                 "date: " + $check_report[$r]['file_date'] + "`n" +
                 "size: " + $check_report[$r]['file_size'] + "`n" +
                 "------------ `n"
