@@ -280,7 +280,7 @@ foreach ($r in $check_report.keys) {
         $msg = "🟢 Pass: " + $r.Split('_')[0] + "`n" +
                 #"path: " + $check_report[$r]['file_path'] + "`n" +
                 #"date: " + $check_report[$r]['file_date'] + "`n" +
-                #"size: " + $check_report[$r]['file_size'] / 1024 / 1024 + "kb `n" +
+                #"size: " + $check_report[$r]['file_size'] + "`n" +
                 "------------ `n"
 
     } else {
