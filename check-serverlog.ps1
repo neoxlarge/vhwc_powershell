@@ -1,27 +1,27 @@
 ﻿$today = get-date
 
 $serverlog_checklist = [ordered]@{
-    "200-033-hisdb-error"           = @{
-        "root_path" = "\\172.20.1.122\log\server-log\200-033-hisdb\"
-        "date_path" = "$($today.tostring('yyyy'))\$($today.ToString('yyyy-MM'))\"
+    "001-002-hisdb-error"           = @{
+        "root_path" = "\\172.20.1.122\log\server-log\001-002-hisdb\"
+        "date_path" = "$($today.ToString('yyyy-MM'))\"
         "file_name" = "$($today.ToString('yyyy-MM'))-error.log"
     }
 
-    "200-033-hisdb-ALL-error"       = @{
-        "root_path" = "\\172.20.1.122\log\server-log\200-033-hisdb\"
-        "date_path" = "$($today.tostring('yyyy'))\$($today.ToString('yyyy-MM'))\"
+    "001-002-hisdb-ALL-error"       = @{
+        "root_path" = "\\172.20.1.122\log\server-log\001-002-hisdb\"
+        "date_path" = "$($today.ToString('yyyy-MM'))\"
         "file_name" = "$($today.ToString('yyyy-MM'))-ALL-error.log"
     }
 
     "200-033-hisdb-vghtc-error"     = @{
         "root_path" = "\\172.20.1.122\log\server-log\200-033-hisdb-vghtc\"
-        "date_path" = "$($today.tostring('yyyy'))\$($today.ToString('yyyy-MM'))\"
+        "date_path" = "$($today.ToString('yyyy-MM'))\"
         "file_name" = "$($today.ToString('yyyy-MM'))-error.log"
     }
 
     "200-033-hisdb-vghtc-ALL-error" = @{
         "root_path" = "\\172.20.1.122\log\server-log\200-033-hisdb-vghtc\"
-        "date_path" = "$($today.tostring('yyyy'))\$($today.ToString('yyyy-MM'))\"
+        "date_path" = "$($today.ToString('yyyy-MM'))\"
         "file_name" = "$($today.ToString('yyyy-MM'))-ALL-error.log"
     }
 }
@@ -133,6 +133,8 @@ function parser-serverlog {
             "result"   = "Fail"
             "errormsg" = "找不到log檔."
         }
+
+        return $result
     }
 
 }
@@ -146,6 +148,7 @@ foreach ($Key in $serverlog_checklist.keys) {
     Write-Host $log_path
 
     $result = parser-serverlog -path $log_path
+
     if ($result['result'] -eq "Pass") {
         $msg = "🟢 Pass: " + $Key + "`n" + 
         "------------ `n"
