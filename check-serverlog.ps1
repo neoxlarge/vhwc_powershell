@@ -124,7 +124,6 @@ function parser-serverlog {
                 }
                 return $result
             }
-
         
         }
     }
@@ -161,6 +160,74 @@ foreach ($Key in $serverlog_checklist.keys) {
 
     $send_msg += $msg
     
+}
+
+Send-LineNotifyMessage -Message $send_msg
+
+#ntp log
+
+$ntp_logpath = "C:\temp\allntp.txt"
+
+$ntp  = Get-Content -Path $ntp_logpath
+
+$ntp_content = [ordered]@{}
+$ntp_index = 0
+$index = 0
+
+#先把開始找出來
+foreach ($line in $ntp) {
+
+    if ($line -like "*-----172.20.*") {
+        
+        $ip = $line.Replace(' ',"").Replace('-',"").Replace('"','')
+        $ntp_content.Add($index, @{'start' = $ntp_index
+                                    'ip' = $ip})
+        $index += 1
+    }
+
+    $ntp_index += 1
+}
+
+#再依start的行數 找出end行數. 下一個start的上一行為end.
+foreach ($start in $ntp_content.keys) {
+
+    if ($start -ge $ntp_content.Count -1) {
+        $end = $ntp.count
+    } else {
+        $end = $ntp_content[$start + 1]['start'] -1
+    }
+
+    $ntp_content[$start].add('end',$end)
+    $ntp_content[$start].add('ntp','')
+}
+
+#在start 和 end 間找" 校時結束"字串為pass, 沒有的話為fail.
+foreach ($key in $ntp_content.keys) {
+    
+    for ($i = $ntp_content[$key]['start']; $i -le $ntp_content[$key]['end'] ; $i++){
+        
+        if ($ntp[$i] -like "*校時結束*"){
+            $ntp_content[$key]['ntp'] = $i
+            $ntp_content[$key]['result'] = 'pass'
+            break
+        } else {
+            #$ntp_content[$key]['ntp'] = $i
+            $ntp_content[$key]['result'] = 'fail'
+        }
+    }
+}    
+
+$send_msg = "NTP chect report`n ==" + $today.ToString('yyyyMMdd') + "==`n"
+
+foreach ($re in $ntp_content.keys) {
+    if ($ntp_content[$re]['result'] -eq "pass") {
+        $msg = "🟢 Pass: " + $ntp_content[$re]['ip'] + "`n"
+
+    } else {
+        $msg = "💩 Fail: " + $ntp_content[$re]['ip'] + "`n"
+    }
+
+    $send_msg = $send_msg + $msg
 }
 
 Send-LineNotifyMessage -Message $send_msg
