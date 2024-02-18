@@ -138,19 +138,22 @@ function parser-serverlog {
 
 }
 
-parser-log -path C:\temp\2024-02-error.log
+#parser-log -path C:\temp\2024-02-error.log
 
 $send_msg = "Server log check report`n==" + $today.ToString('yyyyMMdd') + "==`n"
 foreach ($Key in $serverlog_checklist.keys) {
     
-    $result = parser-serverlog -path $serverlog_checklist$[$Key]["root_path"] + $serverlog_checklist[$Key]["date_path"] + $serverlog_checklist[$Key]["file_name"]
+    $log_path = $serverlog_checklist[$Key]["root_path"] + $serverlog_checklist[$Key]["date_path"] + $serverlog_checklist[$Key]["file_name"]
+    Write-Host $log_path
 
+    $result = parser-serverlog -path $log_path
     if ($result['result'] -eq "Pass") {
-        $msg = "🟢 Pass: " + $Key "`n" + 
-        "------------"
+        $msg = "🟢 Pass: " + $Key + "`n" + 
+        "------------ `n"
     } else {
-        $msg = "💩 Fail: " + $Key "`n" +
-        "------------"
+        $msg = "💩 Fail: " + $Key + "`n" +
+        "err log: " + $result['errormsg'] + "`n"
+        "------------ `n"
 
     }
 
