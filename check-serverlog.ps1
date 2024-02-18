@@ -79,7 +79,6 @@ function parser-serverlog {
         [string]$path
     )
 
-    $path = "C:\temp\2024-02-error.log"
     $check_existed = test-path -path $path
 
     if ($check_existed) {
