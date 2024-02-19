@@ -1,11 +1,20 @@
-﻿
+﻿# 系統備份檢查
+# 請先連上72.20.1.122
+# 檢查項目
+# 1. 檢查檔案路徑是不正確, 檔名結尾有3種, 依當日轉換.
+# 2. 檢查檔案的最後存取日期是否為當天.
+# 3. 檢查檔案大小, 部分檔案似乎有固定大小, 取20240215的大小, 檢查範圍10%以內. 
+#
+# 200-033-hisdb-vghtc dmp產生時間為早上11點多, 早於這時會檢查到前一天的檔當而出現Fail判斷. 排程下午1點半執行.
+# 排程 powershell.exe -file d:\mis\vhwc_powershell\check-serverbackup.ps1
+
 
 
 function Send-LineNotifyMessage {
     [CmdletBinding()]
     param (
         
-        [string]$Token = "CclWwNgG6qbD5qx8eO3Oi4ii9azHfolj17SCzIE9UyI", # Line Notify 存取權杖
+        [string]$Token = "HdkeCg1k4nehNa8tEIrJKYrNOeNZMrs89LQTKbf1tbz", # Line Notify 存取權杖
 
         [Parameter(Mandatory = $true)]
         [string]$Message, # 要發送的訊息內容
@@ -92,6 +101,7 @@ function check_backup_file {
     }
     
     switch ($mode) {
+        # 對應檔名結尾的3種模式.
         "yyyyMMdd" { 
             $today_eof = ((Get-Date).AddDays($day_shift)).ToString("yyyyMMdd") #PACS系統的備份檔名是前一天的日期, 所以加上 $day_shift 修改到前一天.$today_eof(end of filename)會成為檔名的結尾.
             $full_path = "$path\$pre_filename$today_eof.$sub_filename"
@@ -115,11 +125,9 @@ function check_backup_file {
     
     # 檢查檔案是否存在
     if (test-path -Path $result["file_path"]) {
-        
+        #檔案存在
         $result["file_existed"] = "Pass"
-        
         $targetfile = get-item -Path $result["file_path"]
-
         
         $result["file_date"] = $targetfile.LastWriteTime.ToString("yyyyMMdd")
         # 檢查日期是否正確    
@@ -159,6 +167,7 @@ function check_backup_file {
 
     }
     else {
+        #檔案不存在
         $result["file_existed"] = "Fail"
     }
 
@@ -220,7 +229,7 @@ $check_list = [ordered]@{
         "pre_filename" = "SKImagesH-"
         "sub_filename" = "zip"
         "size"         = 0
-        "day_shift"    = -1
+        "day_shift"    = -1  #因為PACS系統是前一天的, 移動-1天
     }
 
     "hisdb-vghtc_1" = @{
@@ -255,7 +264,7 @@ $check_list = [ordered]@{
 
 $check_report = [ordered]@{}
 
-$no = 0
+$no = 0  # 200-033-hisdb-vghtc 會有3個一樣的, 加個$no識別.
 
 foreach ($item in $check_list.Keys) {
     $result = check_backup_file -mode $check_list[$item]["mode"] `
@@ -270,7 +279,7 @@ foreach ($item in $check_list.Keys) {
     $no += 1
 }
 
-$send_msg = "System backup check `n== $(get-date -format yyyyMMdd) ==`n"
+$send_msg = "Server backup check `n== $(get-date -format yyyyMMdd) ==`n"
 
 foreach ($r in $check_report.keys) {
 
@@ -284,7 +293,7 @@ foreach ($r in $check_report.keys) {
                 "------------ `n"
 
     } else {
-        $msg = "💩 Fail: " + $r.Split('_')[0] + "`n" +
+        $msg = "🚨 Fail: " + $r.Split('_')[0] + "`n" +
                 "path: " + $check_report[$r]['file_path'].Split('\')[-1] + "`n" +
                 "date: " + $check_report[$r]['file_date'] + "`n" +
                 "size: " + $check_report[$r]['file_size'] + "`n" +

@@ -1,4 +1,15 @@
-﻿$today = get-date
+﻿# 檢查主機系綷LOG備份
+# 檢查4個log檔:
+# 1.檢查檔案路徑是否正確, 檔名以當日日期產生.
+# 2.檢查log內容, 待合固定的格式就pass. 有其他訊息就當fail, 並將訊息傳line.
+#
+# 檢查NTP-log
+# 1.檢查\\172.20.1.122\log\ntp-log\allntp-ntpsync-yyyyMMdd.txt
+# 2.檢查IP下有 "校時結束" 字串, 表pass.
+
+
+
+$today = get-date
 
 $serverlog_checklist = [ordered]@{
     "001-002-hisdb-error"           = @{
@@ -32,7 +43,7 @@ function Send-LineNotifyMessage {
     [CmdletBinding()]
     param (
         
-        [string]$Token = "CclWwNgG6qbD5qx8eO3Oi4ii9azHfolj17SCzIE9UyI", # Line Notify 存取權杖
+        [string]$Token = "HdkeCg1k4nehNa8tEIrJKYrNOeNZMrs89LQTKbf1tbz", # Line Notify 存取權杖
 
         [Parameter(Mandatory = $true)]
         [string]$Message, # 要發送的訊息內容
@@ -138,21 +149,19 @@ function parser-serverlog {
 
 }
 
-#parser-log -path C:\temp\2024-02-error.log
 
 $send_msg = "Server log check report`n==" + $today.ToString('yyyyMMdd') + "==`n"
 foreach ($Key in $serverlog_checklist.keys) {
     
     $log_path = $serverlog_checklist[$Key]["root_path"] + $serverlog_checklist[$Key]["date_path"] + $serverlog_checklist[$Key]["file_name"]
-    Write-Host $log_path
-
+    
     $result = parser-serverlog -path $log_path
 
     if ($result['result'] -eq "Pass") {
         $msg = "🟢 Pass: " + $Key + "`n" + 
         "------------ `n"
     } else {
-        $msg = "💩 Fail: " + $Key + "`n" +
+        $msg = "🚨 Fail: " + $Key + "`n" +
         "err log: " + $result['errormsg'] + "`n"
         "------------ `n"
 
@@ -164,9 +173,9 @@ foreach ($Key in $serverlog_checklist.keys) {
 
 Send-LineNotifyMessage -Message $send_msg
 
-#ntp log
+#ntp-log 檢查
 
-$ntp_logpath = "C:\temp\allntp.txt"
+$ntp_logpath = "\\172.20.1.122\log\ntp-log\allntp-ntpsync-$($today.AddDays(-1).ToString('yyyyMMdd')).txt" #log產生為前一天晚上, 調整-1天.
 
 $ntp  = Get-Content -Path $ntp_logpath
 
@@ -177,7 +186,7 @@ $index = 0
 #先把開始找出來
 foreach ($line in $ntp) {
 
-    if ($line -like "*-----172.20.*") {
+    if ($line -like "*-----172.*") {
         
         $ip = $line.Replace(' ',"").Replace('-',"").Replace('"','')
         $ntp_content.Add($index, @{'start' = $ntp_index
@@ -224,7 +233,7 @@ foreach ($re in $ntp_content.keys) {
         $msg = "🟢 Pass: " + $ntp_content[$re]['ip'] + "`n"
 
     } else {
-        $msg = "💩 Fail: " + $ntp_content[$re]['ip'] + "`n"
+        $msg = "🚨 Fail: " + $ntp_content[$re]['ip'] + "`n"
     }
 
     $send_msg = $send_msg + $msg
