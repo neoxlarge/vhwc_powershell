@@ -187,7 +187,8 @@ $index = 0
 foreach ($n in $ntp) {
     if ($n -like "*-----172*") {
         #每找到一筆ip,都是建立一筆新記錄. "ip"有2種格式, 一種是172.20.1.1 , 一種是172-20-1-1
-        $ntp_result.Add( "$index", @{'ip' = $n.Replace('"', '').Replace(' ', '').Replace('-----', '').Replace('-', '.')
+        $ntp_result.Add( "$index", @{
+                'ip' = $n.Replace('"', '').Replace(' ', '').Replace('-----', '').Replace('-', '.')
                 'start'                   = $n.ReadCount
                 'ntp'                     = ''
                 'end'                     = ''
