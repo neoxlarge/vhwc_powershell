@@ -8,7 +8,8 @@
 # 2.檢查IP下有 "校時結束" 字串, 表pass.
 
 
-
+#檢查主機系綷LOG備份
+################################################################################################################################################
 $today = get-date
 
 $serverlog_checklist = [ordered]@{
@@ -160,7 +161,8 @@ foreach ($Key in $serverlog_checklist.keys) {
     if ($result['result'] -eq "Pass") {
         $msg = "🟢 Pass: " + $Key + "`n" + 
         "------------ `n"
-    } else {
+    }
+    else {
         $msg = "🚨 Fail: " + $Key + "`n" +
         "err log: " + $result['errormsg'] + "`n"
         "------------ `n"
@@ -174,69 +176,66 @@ foreach ($Key in $serverlog_checklist.keys) {
 Send-LineNotifyMessage -Message $send_msg
 
 #ntp-log 檢查
+##########################################################################################################################################
 
 $ntp_logpath = "\\172.20.1.122\log\ntp-log\allntp-ntpsync-$($today.AddDays(-1).ToString('yyyyMMdd')).txt" #log產生為前一天晚上, 調整-1天.
 
-$ntp  = Get-Content -Path $ntp_logpath
+$ntp = Get-Content -Path $ntp_logpath
 
-$ntp_content = [ordered]@{}
-$ntp_index = 0
+$ntp_result = [ordered]@{}
 $index = 0
-
-#先把開始找出來
-foreach ($line in $ntp) {
-
-    if ($line -like "*-----172.*") {
-        
-        $ip = $line.Replace(' ',"").Replace('-',"").Replace('"','')
-        $ntp_content.Add($index, @{'start' = $ntp_index
-                                    'ip' = $ip})
-        $index += 1
-    }
-
-    $ntp_index += 1
-}
-
-#再依start的行數 找出end行數. 下一個start的上一行為end.
-foreach ($start in $ntp_content.keys) {
-
-    if ($start -ge $ntp_content.Count -1) {
-        $end = $ntp.count
-    } else {
-        $end = $ntp_content[$start + 1]['start'] -1
-    }
-
-    $ntp_content[$start].add('end',$end)
-    $ntp_content[$start].add('ntp','')
-}
-
-#在start 和 end 間找" 校時結束"字串為pass, 沒有的話為fail.
-foreach ($key in $ntp_content.keys) {
-    
-    for ($i = $ntp_content[$key]['start']; $i -le $ntp_content[$key]['end'] ; $i++){
-        
-        if ($ntp[$i] -like "*校時結束*"){
-            $ntp_content[$key]['ntp'] = $i
-            $ntp_content[$key]['result'] = 'pass'
-            break
-        } else {
-            #$ntp_content[$key]['ntp'] = $i
-            $ntp_content[$key]['result'] = 'fail'
+foreach ($n in $ntp) {
+    if ($n -like "*-----172*") {
+        #每找到一筆ip,都是建立一筆新記錄. "ip"有2種格式, 一種是172.20.1.1 , 一種是172-20-1-1
+        $ntp_result.Add( "$index", @{'ip' = $n.Replace('"', '').Replace(' ', '').Replace('-----', '').Replace('-', '.')
+                'start'                   = $n.ReadCount
+                'ntp'                     = ''
+                'end'                     = ''
+                'result'                  = 'Fail'
+            })
+        if ($index -gt 0) {    #每一筆ip, 都是上一筆記錄的結束, 除了第一筆和最後一筆. 這裡排除第一筆.                 
+            $ntp_result[$($index - 1)]['end'] = $n.ReadCount - 2  #往上移2行為上一筆的end行
         }
+
+        $index += 1
+
+    } elseif ($n.ReadCount -eq $ntp.count) { #這是最後一行了, 就是最後一筆的end
+        $ntp_result[$index - 1]['end'] = $n.ReadCount
+        
+    } elseif ($n -like "*校時結束*") {  #找到校時結束字串為pass
+        $ntp_result[$index - 1]['ntp'] = $n.ReadCount
+        $ntp_result[$index - 1]['result'] = 'Pass'
     }
-}    
-
-$send_msg = "NTP chect report`n ==" + $today.ToString('yyyyMMdd') + "==`n"
-
-foreach ($re in $ntp_content.keys) {
-    if ($ntp_content[$re]['result'] -eq "pass") {
-        $msg = "🟢 Pass: " + $ntp_content[$re]['ip'] + "`n"
-
-    } else {
-        $msg = "🚨 Fail: " + $ntp_content[$re]['ip'] + "`n"
-    }
-
-    $send_msg = $send_msg + $msg
+    
 }
 
-Send-LineNotifyMessage -Message $send_msg
+#Line notify 傳送字數有限制, 分成幾筆傳一次, 以$group決定幾筆.
+$msg_title = "NTP chect report ($($ntp_result.keys.count)個)`n ==" + $today.ToString('yyyyMMdd') + "==`n"
+$msgs = ""
+$group = 10
+$counter = 1
+foreach ($re in $ntp_result.keys) {
+    
+    if ($ntp_result[$re]['result'] -eq "pass") {
+        $msg = "🟢($re) Pass: " + $ntp_result[$re]['ip'] + "`n"
+    }
+    else {
+        $msg = "🚨($re) Fail: " + $ntp_result[$re]['ip'] + "`n"
+    }
+       
+    $msgs += $msg
+    
+    if ($counter -eq $group -or ($re -eq $ntp_result.keys.count - 1)) {
+        
+        Send-LineNotifyMessage -Message $($msg_title + $msgs)
+        Start-Sleep -s 1
+        $counter = 0
+        $msgs = ""
+    }
+    
+    $counter += 1
+
+}
+
+
+
