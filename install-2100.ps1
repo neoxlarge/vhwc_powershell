@@ -1,19 +1,27 @@
 # 安裝公文系統2100
 # 安裝教學文件 http://172.22.250.179/ii/install/sysdeploy.htm
+# 20240224 update insall 2100
 
 
 param($runadmin)
 
-Import-Module ((Split-Path $PSCommandPath) + "\get-installedprogramlist.psm1")
+$mymodule_path = Split-Path $PSCommandPath + "\"
+Import-Module $mymodule_path + "get-installedprogramlist.psm1"
+Import-Module $mymodule_path + "get-admin_cred.psm1"
+
 
 function install_msi {
     #$mode 是msiexec的參數, 預設i是安裝, fa是強制重新裝
     #msi是安裝的檔名
     param($mode = "i", $msi)
     Write-Output $msi
-    Start-Process -FilePath "msiexec.exe" -ArgumentList "/$mode $msi /passive /norestart" -wait
-
-    Start-Sleep -Seconds 3
+    if ($check_admin) {
+        $proc = Start-Process -FilePath "msiexec.exe" -ArgumentList "/$mode $msi /passive /norestart" -PassThru
+    } else {
+        $credential = get-admin_cred
+        $proc = Start-Process -FilePath "msiexec.exe" -ArgumentList "/$mode $msi /passive /norestart" -Credential $credential -PassThru
+    }
+    $proc.WaitForExit()
 }
 
 
@@ -53,8 +61,13 @@ function install-2100 {
         }
 
         #安裝tablePC_SDK.exe
-        Start-Process -FilePath ($env:temp + "\" + $software_path.Name + "\package\tablePC_SDK.exe") -ArgumentList "/v/passive" -Wait
-
+        if ($check_admin) {
+            $proc = Start-Process -FilePath ($env:temp + "\" + $software_path.Name + "\package\tablePC_SDK.exe") -ArgumentList "/v/passive" -PassThru
+        } else {
+            $credential = get-admin_cred
+            $proc =  Start-Process -FilePath ($env:temp + "\" + $software_path.Name + "\package\tablePC_SDK.exe") -ArgumentList "/v/passive" -Credential $credential -PassThru
+        }
+        $proc.WaitForExit()
     }
     #20230712
     #取消重裝
@@ -107,8 +120,9 @@ function set-2100_env {
     #2.
     <#
     hicos3.1版之後，會無法簽核公文的解決方法：
-    請把下列這個檔案HiCOSCSPv32放在到６４位元電腦C:\Windows\SysWOW64，３２位元電腦C:\Windows\System32，另外３.1卡片管理工具裡的「設定」有４個都打勾，再執行一下環境檔，即可解決
+    請把下列這個檔案HiCOSCSPv32放在到６４位元電腦C:\Windows\SysWOW64，３２位元電腦C:\Windows\System32，另外３.1卡片管理工具裡的「設定」有４個都打勾，再執行一下環境檔，即可解決.
     Hicoscspv32.dll 版本: 
+    #20240224, 理論上在安裝期間(管理員), 就會把hicosscpv32放好, 使用者權限不會執行到覆蓋動作. 但好像把管理者權限加入到覆蓋動作中比較好. 未完成.  
     #>
 
     switch ($env:PROCESSOR_ARCHITECTURE) {
@@ -130,9 +144,9 @@ function set-2100_env {
     }
 
     #3.
-    Write-Output "執行 01公文環境檔.exe 及IE 設定"
-    Start-Process -FilePath reg.exe -ArgumentList ("import " + $env:temp + "\01.2100公文系統安裝包_Standard\reg\IE9setting.reg") -Wait
-    Start-Process -FilePath reg.exe -ArgumentList ("import " + $env:temp + "\01.2100公文系統安裝包_Standard\reg\IE9setting1.reg") -Wait
+    Write-Output "執行 01公文環境檔.exe "
+    # Start-Process -FilePath reg.exe -ArgumentList ("import " + $env:temp + "\01.2100公文系統安裝包_Standard\reg\IE9setting.reg") -Wait
+    # Start-Process -FilePath reg.exe -ArgumentList ("import " + $env:temp + "\01.2100公文系統安裝包_Standard\reg\IE9setting1.reg") -Wait
     Start-Process -FilePath $($env:temp + "\01.2100公文系統安裝包_Standard\01公文環境檔.exe") -Wait
   
 
