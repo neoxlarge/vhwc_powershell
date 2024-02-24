@@ -12,11 +12,9 @@ function uninstall-software {
 
     $mymodule_path = Split-Path $PSCommandPath + "\"
     Import-Module $mymodule_path + "get-installedprogramlist.psm1"
+    Import-Module $mymodule_path + "get-admin_cred.psm1"
 
-    $jsonstring = Get-Content ($mymodule_path+"admin.jso") -Raw
-    $account_info = ConvertFrom-Json -InputObject $jsonstring
-    $securePassword = ConvertTo-SecureString $account_info.pwd -AsPlainText -Force
-    $credential = New-Object System.Management.Automation.PSCredential($account_info.account, $securePassword)
+    $credential = get-admin_cred
 
     $all_installed_program = get-installedprogramlist
     $software_is_installed = $all_installed_program | Where-Object -FilterScript { $_.DisplayName -like $name }

@@ -1,8 +1,13 @@
 # 安裝工具程式7z
+# 20242024 己改成會自動移除舊的版本.
 
 param($runadmin)
 
-Import-Module ((Split-Path $PSCommandPath) + "\get-installedprogramlist.psm1")
+$mymodule_path = Split-Path $PSCommandPath + "\"
+Import-Module $mymodule_path + "get-installedprogramlist.psm1"
+Import-Module $mymodule_path + "get-msiversion.psm1"
+Import-Module $mymodule_path + "compare-version.psm1"
+Import-Module $mymodule_path + "get-admin_cred.psm1"
 
 function install-7z {
     
@@ -15,6 +20,22 @@ function install-7z {
 
     $all_installed_program = get-installedprogramlist
     $software_is_installed = $all_installed_program | Where-Object -FilterScript { $_.DisplayName -like $software_name }
+
+    if ($software_is_installed) {
+        #己有安裝
+        # 比較版本新舊
+        $msi_version = get-msiversion -MSIPATH ($software_path + "\" + $software_exec)
+        $check_version = compare-version -Version1 $msi_version -Version2 $software_is_installed.DisplayVersion
+
+        if ($check_version) {
+            #msi版本比較新,移除舊的後, 把$software_is_installed清掉
+            Write-Output "找到舊的版本: $($software_is_installed.DisplayName) : $($software_is_installed.DisplayVersion)"
+            uninstall-software -name $software_is_installed.DisplayName
+            $software_is_installed = $null
+        }
+
+    } 
+    
 
     if ($null -eq $software_is_installed) {
     
@@ -31,11 +52,21 @@ function install-7z {
             default { Write-Warning "Unsupport CPU or OS:"  $env:PROCESSOR_ARCHITECTURE; $software_exec = $null }
         }
 
-        if ($null -ne $software_exec) {
-            Start-Process -FilePath "msiexec.exe" -ArgumentList "/i $($env:temp + "\" + $software_path.Name + "\" + $software_exec) /passive " -Wait
-            Start-Sleep -Seconds 5 
-        }
-        else {
+        if ($software_exec -ne $null) {
+            $msiExecArgs = "/i $($env:temp + "\" + $software_path.Name + "\" + $software_exec) /passive"
+            
+            if ($check_admin) {
+                # 有管理員權限
+                $proc = Start-Process -FilePath "msiexec.exe" -ArgumentList $msiExecArgs -PassThru
+            }
+            else {
+                # 無管理員權限
+                $credential = get-admin_cred
+                $proc = Start-Process -FilePath "msiexec.exe" -ArgumentList $msiExecArgs -Credential $credential -PassThru
+            }
+            
+            $proc.WaitForExit()
+        } else {
             Write-Warning "$software_name 無法正常安裝."
         }
       
@@ -67,11 +98,7 @@ if ($run_main -eq $null) {
     
     }
 
-    if ($check_admin) { 
-        install-7z    
-    }
-    else {
-        Write-Warning "無法取得管理員權限來安裝軟體, 請以管理員帳號重試."
-    }
+    install-7z    
+
     pause
 }
