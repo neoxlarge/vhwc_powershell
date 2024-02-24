@@ -25,8 +25,6 @@ function Get-IPv4Address {
 
 function uninstall-office2003 {
 
-    # uninstall 2007 office system 相容性套件
-
     $Username = "vhcy\vhwcmis"
     $Password = "Mis20190610"
     $securePassword = ConvertTo-SecureString $Password -AsPlainText -Force

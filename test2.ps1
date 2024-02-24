@@ -11,3 +11,6 @@ $xx = [ADSI]"WinNT://vhcy.gov.tw/Domain Users,group"
 
 # ²K¥[¥Î?¨ì¸s?
 $group.Add($userToAdd.Path)
+
+$acc = Get-Content .\admin.json -Raw
+$js = ConvertFrom-Json -InputObject $acc
