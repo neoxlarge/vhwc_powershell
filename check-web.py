@@ -63,15 +63,18 @@ def check_oe(url,account,pwd):
 
     report_element = driver.find_element(By.CLASS_NAME,"tableIn")
     
-    report_element
-    #report_html = report_element.get_attribute('outerHTML')
+    report_html = report_element.get_attribute('outerHTML')
+    
+    report_df = pd.read_html(report_html)[0]
 
-    #report_df = pd.read_html(report_html)
+    report_fail_list = report_df[report_df['°õ¦æª¬ºA'].str.contains("¥¢±Ñ")]
 
-    #print(report_df)
+    print(report_fail_list)
     driver.close()
 
-    return save_path
+    #return save_path
+    return report_df
 
-check_oe(url="http://172.20.200.71/cpoe/m2/batch",account=73058,pwd="Q1220416")
-check_oe(url="http://172.20.200.71/eroe/m2/batch",account=73058,pwd="Q1220416")
+report = check_oe(url="http://172.20.200.71/cpoe/m2/batch",account=73058,pwd="Q1220416")
+#check_oe(url="http://172.20.200.71/eroe/m2/batch",account=73058,pwd="Q1220416")
+
