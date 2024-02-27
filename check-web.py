@@ -7,10 +7,17 @@ from selenium.webdriver.common.keys import Keys
 import time
 import datetime as dt
 import pandas as pd
+import requests
 
+test_line_token = "CclWwNgG6qbD5qx8eO3Oi4ii9azHfolj17SCzIE9UyI"
+vhwc_line_token = "HdkeCg1k4nehNa8tEIrJKYrNOeNZMrs89LQTKbf1tbz"
 
-
-
+def send_to_line_notify_bot(msg, line_notify_token, photo_opened=None):
+    url = "https://notify-api.line.me/api/notify"
+    headers = {"Authorization": f"Bearer {line_notify_token}"}
+    data = {"message":msg}
+    image_file = {'imageFile': photo_opened}
+    r = requests.post(url=url,data=data,headers=headers,files=image_file)
 
 def check_oe(url,account,pwd):
     #
@@ -69,12 +76,37 @@ def check_oe(url,account,pwd):
 
     report_fail_list = report_df[report_df['執行狀態'].str.contains("失敗")]
 
-    print(report_fail_list)
     driver.close()
 
+
+    #整理reprot
+    title_msg = f"{hospital[ip_2]} {url_content[3]} {now.strftime('%Y%m%d %H:%M:%S')}\n"
+    if report_fail_list.empty:
+        msg = "? Pass"
+    else:
+        msg = f"? Fail: 總共{report_fail_list.shape[0]}個\n"
+
+        #for r in report_fail_list:
+            #print(report_fail_list['批次工作ID'])
+            
+
+
+    #print(report_fail_list.count())
+
+
+
+    send_msg = title_msg + msg
+
+
+
     #return save_path
-    return report_df
+    return {'msg' : send_msg,
+            'filepath' : save_path,
+            'df' : report_fail_list
+            }
+
 
 report = check_oe(url="http://172.20.200.71/cpoe/m2/batch",account=73058,pwd="Q1220416")
 #check_oe(url="http://172.20.200.71/eroe/m2/batch",account=73058,pwd="Q1220416")
 
+send_to_line_notify_bot(msg=report['msg'], line_notify_token=test_line_token,photo_opened=open(report['filepath'], "rb"))
