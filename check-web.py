@@ -155,18 +155,35 @@ def check_showjob (url):
 
     #截圖完成, 找錯誤log
     report_table = pd.read_html(driver.page_source)[0]
-    report_table = report_table.drop(report_table.columns[:2],axis=0)
-    #report_fail_table = report_table[report_table['結束時間'].str.contains("失敗")]
+
+    new_head = report_table.iloc[2]
+    report_table = report_table.drop(report_table.columns[:3],axis=0)
+    report_table.columns = new_head
+
+    report_fail_table = report_table[report_table['執行時間'].str.contains("失敗")]
+
+
     
-    #print(report_fail_table)
 
+    #整理reprot
+    title_msg = f"{hospital[ip_2]} showjob {now.strftime('%Y%m%d %H:%M:%S')}\n"
+    if report_fail_table.empty:
+        msg = "🟢 Pass"
+    else:
+        msg = f"🚨 Fail: 總共{report_fail_table.shape[0]}個\n"
 
+        for r in range(report_fail_table.shape[0]):
+            msg += f"程式代碼: {report_fail_table.iloc[r,0]}\n執行狀況: {report_fail_table.iloc[r,6]}\n---------\n"
+            
+
+    send_msg = title_msg + msg
 
 
     return {'filepath' : save_path,
-            'report' : report_table}
+            'report' : report_fail_table,
+            'msg' : send_msg}
 
 
 
 report = check_showjob(url = "http://172.20.200.41/NOPD/showjoblog.aspx")
-send_to_line_notify_bot(msg=report['filepath'],line_notify_token=test_line_token,photo_opened=open(report['filepath'],"rb"))
+send_to_line_notify_bot(msg=report['msg'],line_notify_token=test_line_token,photo_opened=open(report['filepath'],"rb"))
