@@ -1,7 +1,7 @@
 from selenium import webdriver
-## BY: ¤]´N¬O¨Ì·Ó±ø¥ó´M§ä¤¸¯À¤¤XPATH¡BCLASS NAME¡BID¡BCSS¿ï¾Ü¾¹µ¥³£·|¥Î¨ìªºLibrary
+## BY: ä¹Ÿå°±æ˜¯ä¾ç…§æ¢ä»¶å°‹æ‰¾å…ƒç´ ä¸­XPATHã€CLASS NAMEã€IDã€CSSé¸æ“‡å™¨ç­‰éƒ½æœƒç”¨åˆ°çš„Library
 from selenium.webdriver.common.by import By
-## keys: Áä½L¬ÛÃöªºLibrary
+## keys: éµç›¤ç›¸é—œçš„Library
 from selenium.webdriver.common.keys import Keys
 #from selenium.webdriver.chrome.options import  Options
 import time
@@ -24,12 +24,12 @@ def check_oe(url,account,pwd):
 
     # https://g.co/gemini/share/ada92acb29a0
     options = webdriver.ChromeOptions()
-    #¨¾¤îchrome¦Û°Ê?³¬
+    #é˜²æ­¢chromeè‡ªå‹•?é–‰
     options.add_experimental_option(name="detach", value=True)
-    #chrome ªºµL¬É­±¼Ò¦¡, ¦¹¼Ò¦¡¤~¥i¥HºIªø¹Ï
+    #chrome çš„ç„¡ç•Œé¢æ¨¡å¼, æ­¤æ¨¡å¼æ‰å¯ä»¥æˆªé•·åœ–
     options.add_argument("headless")
 
-    #²£¥ÍºI¹ÏÀÉ¦W
+    #ç”¢ç”Ÿæˆªåœ–æª”å
     hospital = {
         '19' : "vhcy",
         '20' : "vhwc"
@@ -42,7 +42,7 @@ def check_oe(url,account,pwd):
     #name rule ex: vhwc_eroe_20240226123705.png
 
     driver = webdriver.Chrome(options=options)
-    #witdth 1800, ºI¹Ï«áªø«×¤ñ¸û­è¦n, ªø«×any, ¸ü¤Jºô­¶«á·|ÅÜ.
+    #witdth 1800, æˆªåœ–å¾Œé•·åº¦æ¯”è¼ƒå‰›å¥½, é•·åº¦any, è¼‰å…¥ç¶²é å¾Œæœƒè®Š.
     driver.set_window_size(width=1800,height=700)
     driver.get(url=url)
 
@@ -66,7 +66,7 @@ def check_oe(url,account,pwd):
     save_path = f"d:\mis\{png_filename}"
     driver.get_screenshot_as_file(save_path)
 
-    #ºI¹Ï§¹¦¨, §ä¿ù»~log
+    #æˆªåœ–å®Œæˆ, æ‰¾éŒ¯èª¤log
 
     report_element = driver.find_element(By.CLASS_NAME,"tableIn")
     
@@ -74,30 +74,23 @@ def check_oe(url,account,pwd):
     
     report_df = pd.read_html(report_html)[0]
 
-    report_fail_list = report_df[report_df['°õ¦æª¬ºA'].str.contains("¥¢±Ñ")]
+    report_fail_list = report_df[report_df['åŸ·è¡Œç‹€æ…‹'].str.contains("å¤±æ•—")]
 
     driver.close()
 
 
-    #¾ã²zreprot
+    #æ•´ç†reprot
     title_msg = f"{hospital[ip_2]} {url_content[3]} {now.strftime('%Y%m%d %H:%M:%S')}\n"
     if report_fail_list.empty:
-        msg = "? Pass"
+        msg = "ğŸŸ¢ Pass"
     else:
-        msg = f"? Fail: Á`¦@{report_fail_list.shape[0]}­Ó\n"
+        msg = f"ğŸš¨ Fail: ç¸½å…±{report_fail_list.shape[0]}å€‹\n"
 
-        #for r in report_fail_list:
-            #print(report_fail_list['§å¦¸¤u§@ID'])
+        for r in range(report_fail_list.shape[0]):
+            msg += f"ID: {report_fail_list.iloc[r,0]}\nèªªæ˜: {report_fail_list.iloc[r,5]}\n---------\n"
             
 
-
-    #print(report_fail_list.count())
-
-
-
     send_msg = title_msg + msg
-
-
 
     #return save_path
     return {'msg' : send_msg,
@@ -107,6 +100,10 @@ def check_oe(url,account,pwd):
 
 
 report = check_oe(url="http://172.20.200.71/cpoe/m2/batch",account=73058,pwd="Q1220416")
-#check_oe(url="http://172.20.200.71/eroe/m2/batch",account=73058,pwd="Q1220416")
+
+
+send_to_line_notify_bot(msg=report['msg'], line_notify_token=test_line_token,photo_opened=open(report['filepath'], "rb"))
+
+report = check_oe(url="http://172.20.200.71/eroe/m2/batch",account=73058,pwd="Q1220416")
 
 send_to_line_notify_bot(msg=report['msg'], line_notify_token=test_line_token,photo_opened=open(report['filepath'], "rb"))
