@@ -99,11 +99,74 @@ def check_oe(url,account,pwd):
             }
 
 
-report = check_oe(url="http://172.20.200.71/cpoe/m2/batch",account=73058,pwd="Q1220416")
+#report = check_oe(url="http://172.20.200.71/cpoe/m2/batch",account=73058,pwd="Q1220416")
 
 
-send_to_line_notify_bot(msg=report['msg'], line_notify_token=test_line_token,photo_opened=open(report['filepath'], "rb"))
+#send_to_line_notify_bot(msg=report['msg'], line_notify_token=test_line_token,photo_opened=open(report['filepath'], "rb"))
 
-report = check_oe(url="http://172.20.200.71/eroe/m2/batch",account=73058,pwd="Q1220416")
+#report = check_oe(url="http://172.20.200.71/eroe/m2/batch",account=73058,pwd="Q1220416")
 
-send_to_line_notify_bot(msg=report['msg'], line_notify_token=test_line_token,photo_opened=open(report['filepath'], "rb"))
+#send_to_line_notify_bot(msg=report['msg'], line_notify_token=test_line_token,photo_opened=open(report['filepath'], "rb"))
+
+
+
+
+############check showjob
+
+def check_showjob (url):
+    
+    # https://g.co/gemini/share/ada92acb29a0
+    options = webdriver.ChromeOptions()
+    #防止chrome自動?閉
+    options.add_experimental_option(name="detach", value=True)
+    #chrome 的無界面模式, 此模式才可以截長圖
+    #options.add_argument("headless")
+
+    #產生截圖檔名
+    hospital = {
+        '19' : "vhcy",
+        '20' : "vhwc"
+    }
+    url_content = url.split("/")
+    
+    ip_2 = url_content[2].split(".")[1]
+    now = dt.datetime.now()
+    png_filename = f"{hospital[ip_2]}_showjob_{now.strftime('%Y%m%d%H%M%S')}.png"
+    #name rule ex: vhwc_showjob_20240226123705.png
+
+    driver = webdriver.Chrome(options=options)
+    #witdth 1800, 截圖後長度比較剛好, 長度any, 載入網頁後會變.
+    driver.set_window_size(width=1000,height=700)
+    driver.get(url=url)
+
+    button_run = driver.find_element(By.ID, "btnExec")
+    button_run.click()
+
+    time.sleep(5)
+
+    width = driver.execute_script("return document.documentElement.scrollWidth")
+    height = driver.execute_script("return document.documentElement.scrollHeight")
+     
+    driver.set_window_size(width, height) 
+    time.sleep(1) 
+    
+    save_path = f"d:\mis\{png_filename}"
+    driver.get_screenshot_as_file(save_path)
+
+    #截圖完成, 找錯誤log
+    report_table = pd.read_html(driver.page_source)[0]
+    report_table = report_table.drop(report_table.columns[:2],axis=0)
+    #report_fail_table = report_table[report_table['結束時間'].str.contains("失敗")]
+    
+    #print(report_fail_table)
+
+
+
+
+    return {'filepath' : save_path,
+            'report' : report_table}
+
+
+
+report = check_showjob(url = "http://172.20.200.41/NOPD/showjoblog.aspx")
+send_to_line_notify_bot(msg=report['filepath'],line_notify_token=test_line_token,photo_opened=open(report['filepath'],"rb"))
