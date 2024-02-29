@@ -14,7 +14,7 @@ from PIL import Image
 
 test_line_token = "CclWwNgG6qbD5qx8eO3Oi4ii9azHfolj17SCzIE9UyI"
 vhwc_line_token = "HdkeCg1k4nehNa8tEIrJKYrNOeNZMrs89LQTKbf1tbz"
-
+vhwc_line_token = test_line_token
 
 
 
@@ -129,16 +129,14 @@ def check_oe(url,account,pwd):
 
 
     #整理失敗的資料, 轉成要發送的訊息
-    title_msg = f"{hospital[ip_2]} {url_content[3]} {now.strftime('%Y%m%d %H:%M:%S')}\n"
+    title_msg = f"{hospital[ip_2]} {url_content[3]}\n ==={now.strftime('%Y%m%d %H:%M:%S')}===\n"
     if report_fail_list.empty:
         msg = "🟢 Pass"
     else:
         msg = f"🚨 Fail: 總共{report_fail_list.shape[0]}個\n"
 
         for r in range(report_fail_list.shape[0]):
-            msg += f"ID: {report_fail_list.iloc[r,0]}\n\
-                    說明: {report_fail_list.iloc[r,5]}\n\
-                    ---------\n"
+            msg += f"ID: {report_fail_list.iloc[r,0]}\n說明: {report_fail_list.iloc[r,5]}\n---------\n"
             
     send_msg = title_msg + msg
 
@@ -154,10 +152,10 @@ def check_showjob (url):
     
     # https://g.co/gemini/share/ada92acb29a0
     options = webdriver.ChromeOptions()
-    #防止chrome自動?閉
+    #防止chrome自動關閉
     options.add_experimental_option(name="detach", value=True)
     #chrome 的無界面模式, 此模式才可以截長圖
-    #options.add_argument("headless")
+    options.add_argument("headless")
 
     #產生截圖檔名
     # 把172.20.1.12中的20或19取出,對應到vhwc或vhcy.
@@ -210,16 +208,14 @@ def check_showjob (url):
     
 
     #整理reprot
-    title_msg = f"{hospital[ip_2]} showjob {now.strftime('%Y%m%d %H:%M:%S')}\n"
+    title_msg = f"{hospital[ip_2]} showjob\n ==={now.strftime('%Y%m%d %H:%M:%S')}===\n"
     if report_fail_table.empty:
         msg = "🟢 Pass"
     else:
         msg = f"🚨 Fail: 總共{report_fail_table.shape[0]}個\n"
 
         for r in range(report_fail_table.shape[0]):
-            msg += f"程式代碼: {report_fail_table.iloc[r,0]}\n\
-                    執行狀況: {report_fail_table.iloc[r,6]}\n\
-                    ---------\n"
+            msg += f"程式代碼: {report_fail_table.iloc[r,0]}\n執行狀況: {report_fail_table.iloc[r,6]}\n---------\n"
             
 
     send_msg = title_msg + msg
@@ -229,26 +225,100 @@ def check_showjob (url):
             'msg' : send_msg}
 
 
+
+
+def check_pluginreport():
+    #檢查外掛報表
+    # https://g.co/gemini/share/ada92acb29a0
+    options = webdriver.ChromeOptions()
+    #防止chrome自動?閉
+    options.add_experimental_option(name="detach", value=True)
+    #chrome 的無界面模式, 此模式才可以截長圖
+    options.add_argument("headless")
+
+
+
+    #先開chrome登入外掛系統.
+    driver = webdriver.Chrome(options=options)
+    #witdth 600, 外掛表格比較窄, 長度any, 載入網頁後會變.
+    driver.set_window_size(width=400,height=600)
+    
+    url="http://172.19.1.21/medpt/medptlogin.php"
+    driver.get(url=url)
+
+    loginname = driver.find_element(By.NAME,"cn")
+    loginpwd = driver.find_element(By.NAME,"pw")
+    loginok = driver.find_element(By.CSS_SELECTOR,'input[value="確定"]')
+
+    loginname.send_keys('73058')
+    loginpwd.send_keys('Q1220416')
+    loginpwd.send_keys(Keys.RETURN)
+    
+    
+    branch = ['wc','cy']
+
+    now = dt.datetime.now()
+    taiwan_yyymmdd = f"{now.year - 1911}/{now:%m}/{now:%d}"
+    #print(taiwan_yyymmdd)
+
+
+    for b in branch:
+        path_title = f"d:\\mis\{b}_plugin_{taiwan_yyymmdd.replace('/','')}"
+
+        url = url="http://172.19.1.21/medpt/cyp2001.php"
+        data = {'g_yyymmdd_s': taiwan_yyymmdd,'from': b,}
+
+        save_html_path = f"{path_title}.html"
+        save_img_path = f"{path_title}.png"
+
+        response = requests.post(url=url,data=data)
+
+        with open(save_html_path, 'wb') as f:
+            f.write(response.content)
+
+        driver.get(save_html_path)
+
+        width = driver.execute_script("return document.documentElement.scrollWidth")
+        height = driver.execute_script("return document.documentElement.scrollHeight")
+        driver.set_window_size(width, height) 
+        
+        time.sleep(1)
+        driver.save_screenshot(save_img_path)
+
+        send_msg = f"vh{b} 處方LOG統計 \n ==={now.strftime('%Y%m%d %H:%M:%S')}==="
+        send_to_line_notify_bot(msg=send_msg,line_notify_token=vhwc_line_token,photo_opened=open(save_img_path,"rb"))
+
+
+    driver.close()
+    
+
+
+
+
 ### 檢查cpoe
 report = check_oe(url="http://172.20.200.71/cpoe/m2/batch",account=73058,pwd="Q1220416")
 
-send_to_line_notify_bot(msg=report['msg'], line_notify_token=test_line_token,photo_opened=None)
+send_to_line_notify_bot(msg=report['msg'], line_notify_token=vhwc_line_token,photo_opened=None)
 for i in report["filepath"]:
-    msg = f"{report['filepath'].index(i)} / {report["filepath"].shape}"
-    send_to_line_notify_bot(msg=msg,line_notify_token=test_line_token,photo_opened=open(i,"rb"))
+    msg = f"vhwc cpoe {report['filepath'].index(i) + 1} / {len(report['filepath'])}"
+    send_to_line_notify_bot(msg=msg,line_notify_token=vhwc_line_token,photo_opened=open(i,"rb"))
     
 ### 檢查eror
 report = check_oe(url="http://172.20.200.71/eroe/m2/batch",account=73058,pwd="Q1220416")
 
-send_to_line_notify_bot(msg=report['msg'], line_notify_token=test_line_token,photo_opened=None)
+send_to_line_notify_bot(msg=report['msg'], line_notify_token=vhwc_line_token,photo_opened=None)
 for i in report["filepath"]:
-    msg = f"{report['filepath'].index(i)} / {report["filepath"].shape}"
-    send_to_line_notify_bot(msg=msg,line_notify_token=test_line_token,photo_opened=open(i,"rb"))
+    msg = f"vhwc eroe {report['filepath'].index(i) + 1} / {len(report['filepath'])}"
+    send_to_line_notify_bot(msg=msg,line_notify_token=vhwc_line_token,photo_opened=open(i,"rb"))
     
 
 report = check_showjob(url = "http://172.20.200.41/NOPD/showjoblog.aspx")
 
-send_to_line_notify_bot(msg=report['msg'], line_notify_token=test_line_token,photo_opened=None)
+send_to_line_notify_bot(msg=report['msg'], line_notify_token=vhwc_line_token,photo_opened=None)
 for i in report["filepath"]:
-    msg = f"{report['filepath'].index(i)} / {report["filepath"].shape}"
-    send_to_line_notify_bot(msg=msg,line_notify_token=test_line_token,photo_opened=open(i,"rb"))
+    msg = f"vhwc showjob {report['filepath'].index(i) + 1} / {len(report['filepath'])}"
+    send_to_line_notify_bot(msg=msg,line_notify_token=vhwc_line_token,photo_opened=open(i,"rb")) 
+
+
+### 檢查處方LOG統計
+check_pluginreport()    
