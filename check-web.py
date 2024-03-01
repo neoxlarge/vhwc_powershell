@@ -4,6 +4,8 @@ from selenium.webdriver.common.by import By
 ## keys: 鍵盤相關的Library
 from selenium.webdriver.common.keys import Keys
 #from selenium.webdriver.chrome.options import  Options
+from selenium.common.exceptions import WebDriverException, TimeoutException
+
 import time
 import datetime as dt
 import pandas as pd
@@ -63,70 +65,89 @@ def send_to_line_notify_bot(msg, line_notify_token, photo_opened=None):
 
 def check_oe(url,account,pwd):
     #
+    url_content = url.split("/")
+    #url sampel = http://172.20.200.71/cpoe/m2/batch
+
+    branch_ipcode = {
+        '19' : "vhcy",
+        '20' : "vhwc" 
+    }
+
+    report = {
+        "date" : dt.datetime.now().strftime('%Y%m%d'),
+        "time" : dt.datetime.now().strftime('%H:%M:%S'),
+        "url" : url,
+        "url_connected" : False,
+        "branch" : branch_ipcode[url_content[2].split(".")[1]],
+        "oe" : url_content[3],
+        "png_foldername" : "d:\\mis\\",
+        "png_filename" : None,
+        "message" : None
+    }
+    
+    # 產生截圖檔名, name rule ex: vhwc_eroe_20240226123705.png
+    report['png_filename'] = f"{report['branch']}_{report['oe']}_{report['date']}{report['time'].replace(':','').png}"
 
     # https://g.co/gemini/share/ada92acb29a0
     options = webdriver.ChromeOptions()
-    #防止chrome自動?閉
+    #防止chrome自動關閉
     options.add_experimental_option(name="detach", value=True)
     #chrome 的無界面模式, 此模式才可以截長圖
     options.add_argument("headless")
 
-    # 產生截圖檔名
-    # 把172.20.1.12中的20或19取出,對應到vhwc或vhcy.
-    hospital = {
-        '19' : "vhcy",
-        '20' : "vhwc"
-    }
-    url_content = url.split("/")
-    ip_2 = url_content[2].split(".")[1]
-    
-    # 檔名結尾為日期時間附加.
-    now = dt.datetime.now()
-    png_filename = f"{hospital[ip_2]}_{url_content[3]}_{now.strftime('%Y%m%d%H%M%S')}.png"
-    #name rule ex: vhwc_eroe_20240226123705.png
-
     driver = webdriver.Chrome(options=options)
     #witdth 1800, 截圖後長度比較剛好, 長度any, 載入網頁後會變.
     driver.set_window_size(width=1800,height=700)
-    driver.get(url=url)
+    #檢查url是否可正常連線
+    try:
+        driver.get(url=url)
+        
+        
+    except (WebDriverException, TimeoutException) as e:
+        driver.close()
+        err_msg = f"URL: {url} 連線失敗"        
+        
+        input_account = driver.find_element(By.NAME,"login")
+        input_pwd = driver.find_element(By.NAME,"pass")
 
-    input_account = driver.find_element(By.NAME,"login")
-    input_pwd = driver.find_element(By.NAME,"pass")
+        input_account.send_keys(account)
+        input_pwd.send_keys(pwd)
 
-    input_account.send_keys(account)
-    input_pwd.send_keys(pwd)
+        input_submit = driver.find_element(By.NAME,"m2Login_submit")
+        input_submit.click()
+        time.sleep(3)
 
-    input_submit = driver.find_element(By.NAME,"m2Login_submit")
-    input_submit.click()
-    time.sleep(3)
+        # 回傳網頁載入後的長寬
+        width = driver.execute_script("return document.documentElement.scrollWidth")
+        height = driver.execute_script("return document.documentElement.scrollHeight")
+        
+        driver.set_window_size(width, height) 
+        time.sleep(1) 
+        
+        save_path = f"d:\mis\{png_filename}"
+        driver.get_screenshot_as_file(save_path)
 
-    # 回傳網頁載入後的長寬
-    width = driver.execute_script("return document.documentElement.scrollWidth")
-    height = driver.execute_script("return document.documentElement.scrollHeight")
-     
-    driver.set_window_size(width, height) 
-    time.sleep(1) 
+        #line notify 傳送圖片可能有限制, 過長會壓縮. 如果超過2500, 就截切圖片. 
+        if height > 2040:
+            captured_images = crop_image(image_path=save_path,crop_length=2040)
+        else :
+            captured_images = [save_path,]    
+        
+
+        # 截圖完成, 找錯誤log
+
+        # 找出綱頁中的table, 轉為dataframe, 再將有"失敗"字串的資料取出.
+        report_element = driver.find_element(By.CLASS_NAME,"tableIn")
+        report_html = report_element.get_attribute('outerHTML')
+        report_df = pd.read_html(report_html)[0]
+        report_fail_list = report_df[report_df['執行狀態'].str.contains("失敗")]
+
+        driver.close()
+
     
-    save_path = f"d:\mis\{png_filename}"
-    driver.get_screenshot_as_file(save_path)
+
     
-    #line notify 傳送圖片可能有限制, 過長會壓縮. 如果超過2500, 就截切圖片. 
-    if height > 2040:
-        captured_images = crop_image(image_path=save_path,crop_length=2040)
-    else :
-        captured_images = [save_path,]    
     
-
-    # 截圖完成, 找錯誤log
-
-    # 找出綱頁中的table, 轉為dataframe, 再將有"失敗"字串的資料取出.
-    report_element = driver.find_element(By.CLASS_NAME,"tableIn")
-    report_html = report_element.get_attribute('outerHTML')
-    report_df = pd.read_html(report_html)[0]
-    report_fail_list = report_df[report_df['執行狀態'].str.contains("失敗")]
-
-    driver.close()
-
 
     #整理失敗的資料, 轉成要發送的訊息
     title_msg = f"{hospital[ip_2]} {url_content[3]}\n ==={now.strftime('%Y%m%d %H:%M:%S')}===\n"
@@ -227,7 +248,7 @@ def check_showjob (url):
 
 
 
-def check_pluginreport():
+def check_pluginreport(account,pwd):
     #檢查外掛報表
     # https://g.co/gemini/share/ada92acb29a0
     options = webdriver.ChromeOptions()
@@ -235,8 +256,6 @@ def check_pluginreport():
     options.add_experimental_option(name="detach", value=True)
     #chrome 的無界面模式, 此模式才可以截長圖
     options.add_argument("headless")
-
-
 
     #先開chrome登入外掛系統.
     driver = webdriver.Chrome(options=options)
@@ -250,8 +269,8 @@ def check_pluginreport():
     loginpwd = driver.find_element(By.NAME,"pw")
     loginok = driver.find_element(By.CSS_SELECTOR,'input[value="確定"]')
 
-    loginname.send_keys('73058')
-    loginpwd.send_keys('Q1220416')
+    loginname.send_keys(account)
+    loginpwd.send_keys(pwd)
     loginpwd.send_keys(Keys.RETURN)
     
     
@@ -263,7 +282,8 @@ def check_pluginreport():
 
 
     for b in branch:
-        path_title = f"d:\\mis\{b}_plugin_{taiwan_yyymmdd.replace('/','')}"
+        now = dt.datetime.now()
+        path_title = f"d:\\mis\\vh{b}_plugin_{taiwan_yyymmdd.replace('/','')}"
 
         url = url="http://172.19.1.21/medpt/cyp2001.php"
         data = {'g_yyymmdd_s': taiwan_yyymmdd,'from': b,}
@@ -294,9 +314,14 @@ def check_pluginreport():
 
 
 
-
+check_list = [{'url':"http://172.20.200.71/cpoe/m2/batch",
+               'account' :  '73058',
+               'pwd' : 'Q1220416'},
+               {'url':"http://172.20.200.71/eroe/m2/batch",
+               'account' :  '73058',
+               'pwd' : 'Q1220416'}]
 ### 檢查cpoe
-report = check_oe(url="http://172.20.200.71/cpoe/m2/batch",account=73058,pwd="Q1220416")
+report = check_oe(url="http://172.19.200.71/cpoe/m2/batch",account=73058,pwd="Q1220416")
 
 send_to_line_notify_bot(msg=report['msg'], line_notify_token=vhwc_line_token,photo_opened=None)
 for i in report["filepath"]:
@@ -321,4 +346,7 @@ for i in report["filepath"]:
 
 
 ### 檢查處方LOG統計
-check_pluginreport()    
+    #只有早上0點30分需要檢查這個
+now = dt.datetime.now()
+if now.hour <=1:    
+    check_pluginreport(account=73058,pwd="Q1220416")    

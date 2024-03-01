@@ -95,7 +95,9 @@ function parser-serverlog {
 
     if ($check_existed) {
 
-        $log_content = Get-Content -Path $path
+        # 20240301,當log內容只有一行時, 會出現錯誤,$log_content[0]會傳回單一字元, 而不是整行, 用@()預先轉成陣列可解.
+        # 
+        $log_content = @(Get-Content -Path $path)
 
         $today = get-date
         $compare_str = "============================Date: $($today.ToString('yyyy-MM-dd')) ============================"
