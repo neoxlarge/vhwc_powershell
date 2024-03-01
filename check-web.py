@@ -82,11 +82,15 @@ def check_oe(url,account,pwd):
         "oe" : url_content[3],
         "png_foldername" : "d:\\mis\\",
         "png_filename" : None,
+        'png_filepath' : None,
+        'crop_images' : None,
+        'fail_list' : None,
         "message" : None
     }
     
     # 產生截圖檔名, name rule ex: vhwc_eroe_20240226123705.png
     report['png_filename'] = f"{report['branch']}_{report['oe']}_{report['date']}{report['time'].replace(':','').png}"
+    report['png_filepath'] = f"{report['png_foldername']}{report['png_filename']}"
 
     # https://g.co/gemini/share/ada92acb29a0
     options = webdriver.ChromeOptions()
@@ -101,12 +105,15 @@ def check_oe(url,account,pwd):
     #檢查url是否可正常連線
     try:
         driver.get(url=url)
+        report['url_connected'] = True
         
         
     except (WebDriverException, TimeoutException) as e:
         driver.close()
-        err_msg = f"URL: {url} 連線失敗"        
+        report['message'] = f"URL: {url} 連線失敗"
+        #report['url_connected'] = False
         
+    if report['url_connected']:    
         input_account = driver.find_element(By.NAME,"login")
         input_pwd = driver.find_element(By.NAME,"pass")
 
@@ -124,46 +131,43 @@ def check_oe(url,account,pwd):
         driver.set_window_size(width, height) 
         time.sleep(1) 
         
-        save_path = f"d:\mis\{png_filename}"
-        driver.get_screenshot_as_file(save_path)
+        driver.get_screenshot_as_file(report['png_filepath'])
 
         #line notify 傳送圖片可能有限制, 過長會壓縮. 如果超過2500, 就截切圖片. 
         if height > 2040:
-            captured_images = crop_image(image_path=save_path,crop_length=2040)
-        else :
-            captured_images = [save_path,]    
+            report['crop_images'] = crop_image(image_path=report['png_filepath'], crop_length=2040) 
         
-
         # 截圖完成, 找錯誤log
 
         # 找出綱頁中的table, 轉為dataframe, 再將有"失敗"字串的資料取出.
         report_element = driver.find_element(By.CLASS_NAME,"tableIn")
         report_html = report_element.get_attribute('outerHTML')
         report_df = pd.read_html(report_html)[0]
-        report_fail_list = report_df[report_df['執行狀態'].str.contains("失敗")]
+        report['fail_list'] = report_df[report_df['執行狀態'].str.contains("失敗")]
 
         driver.close()
 
-    
-
-    
-    
+      
 
     #整理失敗的資料, 轉成要發送的訊息
-    title_msg = f"{hospital[ip_2]} {url_content[3]}\n ==={now.strftime('%Y%m%d %H:%M:%S')}===\n"
-    if report_fail_list.empty:
+    
+    title_msg = f"{report['branch']} {report['oe']}\n ==={report['date']} {report['time']}===\n"
+    #if report_fail_list.empty:
+    if report['fail_list'].empty:
         msg = "🟢 Pass"
     else:
-        msg = f"🚨 Fail: 總共{report_fail_list.shape[0]}個\n"
+        msg = f"🚨 Fail: 總共{report['fail_list'].shape[0]}個\n"
 
-        for r in range(report_fail_list.shape[0]):
-            msg += f"ID: {report_fail_list.iloc[r,0]}\n說明: {report_fail_list.iloc[r,5]}\n---------\n"
+        #for r in range(report_fail_list.shape[0]):
+        for r in range(report['fail_list'].shape[0]):
+            msg += f"ID: {report['fail_list'].iloc[r,0]}\n說明: {report['fail_list'].iloc[r,5]}\n---------\n"
+            
             
     send_msg = title_msg + msg
 
     # 回傳要傳line的訊息和截圖儲存路徑(可能有切圖)
     return {'msg' : send_msg,
-            'filepath' : captured_images,
+            'filepath' : ,
             #'df' : report_fail_list
             }
 
