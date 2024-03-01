@@ -110,7 +110,7 @@ def check_oe(url,account,pwd):
         
     except (WebDriverException, TimeoutException) as e:
         driver.close()
-        report['message'] = f"🚨 Fail: {url} 連線失敗"
+        msg = f"🚨 Fail: {url} 連線失敗"
         #report['url_connected'] = False
         
     if report['url_connected']:    
@@ -163,7 +163,7 @@ def check_oe(url,account,pwd):
                 msg += f"ID: {report['fail_list'].iloc[r,0]}\n說明: {report['fail_list'].iloc[r,5]}\n---------\n"
                 
                 
-        report['message'] = title_msg + msg
+    report['message'] = title_msg + msg
         
     # 回傳要傳line的訊息和截圖儲存路徑(可能有切圖)
     return report
@@ -247,8 +247,6 @@ def check_showjob (url):
             'msg' : send_msg}
 
 
-
-
 def check_pluginreport(account,pwd):
     #檢查外掛報表
     # https://g.co/gemini/share/ada92acb29a0
@@ -320,15 +318,30 @@ check_list = [{'url':"http://172.20.200.71/cpoe/m2/batch",
                'pwd' : 'Q1220416'},
                {'url':"http://172.20.200.71/eroe/m2/batch",
                'account' :  '73058',
-               'pwd' : 'Q1220416'}]
-### 檢查cpoe
-report = check_oe(url="http://172.19.200.71/cpoe/m2/batch",account=73058,pwd="Q1220416")
+               'pwd' : 'Q1220416'},
+               {'url':"http://172.19.200.71/cpoe/m2/batch",
+               'account' :  '73058',
+               'pwd' : 'Q1220416'},
+               {'url':"http://172.19.200.71/eroe/m2/batch",
+               'account' :  '73058',
+               'pwd' : 'Q1220416'}
+               ]
 
-send_to_line_notify_bot(msg=report['message'], line_notify_token=vhwc_line_token,photo_opened=None)
-if report['crop_images']:
-    for i in report["crop_images"]:
-        msg = f"{report['branch']} {report['oe']} {report['filepath'].index(i) + 1} / {len(report['filepath'])}"
-        send_to_line_notify_bot(msg=msg, line_notify_token=vhwc_line_token, photo_opened=open(i, "rb"))
+def check_all_oe(check_list):
+    for check in check_list:
+        report = check_oe(url=check_list['url'], account=check_list['account'],pwd=check_list['pwd'])
+        
+        send_to_line_notify_bot(msg=report['message'], line_notify_token=vhwc_line_token,photo_opened=None)
+        if report['crop_images']:
+            for i in report["crop_images"]:
+                msg = f"{report['branch']} {report['oe']} {report['filepath'].index(i) + 1} / {len(report['filepath'])}"
+                send_to_line_notify_bot(msg=msg, line_notify_token=vhwc_line_token, photo_opened=open(i, "rb"))
+
+#檢查嘉義和灣橋的所有oe
+check_all_oe(check_list)
+                
+                
+
 
 """    
 ### 檢查eror
