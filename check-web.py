@@ -66,7 +66,7 @@ def send_to_line_notify_bot(msg, line_notify_token, photo_opened=None):
 def check_oe(url,account,pwd):
     #
     url_content = url.split("/")
-    #url sampel = http://172.20.200.71/cpoe/m2/batch
+    #url sample = http://172.20.200.71/cpoe/m2/batch
 
     branch_ipcode = {
         '19' : "vhcy",
@@ -172,6 +172,35 @@ def check_oe(url,account,pwd):
 
 def check_showjob (url):
     
+    url_content = url.split("/")
+    #url sample = http://172.20.200.41/NOPD/showjoblog.aspx
+
+    branch_ipcode = {
+        '19' : "vhcy",
+        '20' : "vhwc" 
+    }
+
+    report = {
+        "date" : dt.datetime.now().strftime('%Y%m%d'),
+        "time" : dt.datetime.now().strftime('%H:%M:%S'),
+        "url" : url,
+        "url_connected" : False,
+        "branch" : branch_ipcode[url_content[2].split(".")[1]],
+        "item" : "showjog",
+        "png_foldername" : "d:\\mis\\",
+        "png_filename" : None,
+        'png_filepath' : None,
+        'crop_images' : None,
+        'fail_list' : None,
+        "message" : None
+    }
+    
+    # 產生截圖檔名, name rule ex: vhwc_eroe_20240226123705.png
+    report['png_filename'] = f"{report['branch']}_{report['item']}_{report['date']}{report['time'].replace(':','')}.png"
+    report['png_filepath'] = f"{report['png_foldername']}{report['png_filename']}"
+    
+    
+    
     # https://g.co/gemini/share/ada92acb29a0
     options = webdriver.ChromeOptions()
     #防止chrome自動關閉
@@ -179,54 +208,46 @@ def check_showjob (url):
     #chrome 的無界面模式, 此模式才可以截長圖
     options.add_argument("headless")
 
-    #產生截圖檔名
-    # 把172.20.1.12中的20或19取出,對應到vhwc或vhcy.
-    hospital = {
-        '19' : "vhcy",
-        '20' : "vhwc"
-    }
-    url_content = url.split("/")
-    ip_2 = url_content[2].split(".")[1]
-    
-    # 檔名結尾為日期時間附加.
-    now = dt.datetime.now()
-    png_filename = f"{hospital[ip_2]}_showjob_{now.strftime('%Y%m%d%H%M%S')}.png"
-    #name rule ex: vhwc_showjob_20240226123705.png
-
     driver = webdriver.Chrome(options=options)
     #witdth 1000, showjob截圖後長度長, 長度any, 載入網頁後會變.
     driver.set_window_size(width=1000,height=700)
-    driver.get(url=url)
+    try:
+        driver.get(url=url)
+        report['url_connected'] = True
+    except (WebDriverException,TimeoutException) as e:
+        driver.close()
+        msg = f"🚨 Fail: {url} 連線失敗"    
 
-    button_run = driver.find_element(By.ID, "btnExec")
-    button_run.click()
+    if report['url_connected']:
 
-    #停長一點, 除非有寫等待載入完的code
-    time.sleep(5)
+        button_run = driver.find_element(By.ID, "btnExec")
+        button_run.click()
 
-    width = driver.execute_script("return document.documentElement.scrollWidth")
-    height = driver.execute_script("return document.documentElement.scrollHeight")
-     
-    driver.set_window_size(width, height) 
-    time.sleep(1) 
-    
-    save_path = f"d:\mis\{png_filename}"
-    driver.get_screenshot_as_file(save_path)
+        #停長一點, 除非有寫等待載入完的code
+        time.sleep(5)
 
-    #line notify 傳送圖片可能有限制, 過長會壓縮. 如果超過2500, 就截切圖片. 
-    if height > 2040:
-        captured_images = crop_image(image_path=save_path,crop_length=2040)
-    else :
-        captured_images = [save_path,]    
+        width = driver.execute_script("return document.documentElement.scrollWidth")
+        height = driver.execute_script("return document.documentElement.scrollHeight")
+        
+        driver.set_window_size(width, height) 
+        time.sleep(1) 
+        
+        driver.get_screenshot_as_file(report['png_filepath'])
 
-    #截圖完成, 找錯誤log
-    report_table = pd.read_html(driver.page_source)[0]
-    new_head = report_table.iloc[2]
-    report_table = report_table.drop(report_table.columns[:3],axis=0)
-    report_table.columns = new_head
-    report_fail_table = report_table[report_table['執行時間'].str.contains("失敗")]
+        #line notify 傳送圖片可能有限制, 過長會壓縮. 如果超過2500, 就截切圖片. 
+        if height > 2040:
+            report['crop_images'] = crop_image(image_path=report['png_filepath'],crop_length=2040)
+        else :
+            report['crop_images'] = [report['pan_filepath'],]    
 
-    driver.close()
+        #截圖完成, 找錯誤log
+        report_table = pd.read_html(driver.page_source)[0]
+        new_head = report_table.iloc[2]
+        report_table = report_table.drop(report_table.columns[:3],axis=0)
+        report_table.columns = new_head
+        report['fail_list'] = report_table[report_table['執行時間'].str.contains("失敗")]
+
+        driver.close()
     
 
     #整理reprot
