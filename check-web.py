@@ -186,7 +186,7 @@ def check_showjob (url):
         "url" : url,
         "url_connected" : False,
         "branch" : branch_ipcode[url_content[2].split(".")[1]],
-        "item" : "showjog",
+        "item" : "showjob",
         "png_foldername" : "d:\\mis\\",
         "png_filename" : None,
         'png_filepath' : None,
@@ -195,7 +195,7 @@ def check_showjob (url):
         "message" : None
     }
     
-    # 產生截圖檔名, name rule ex: vhwc_eroe_20240226123705.png
+    # 產生截圖檔名, name rule ex: vhwc_showjob_20240226123705.png
     report['png_filename'] = f"{report['branch']}_{report['item']}_{report['date']}{report['time'].replace(':','')}.png"
     report['png_filepath'] = f"{report['png_foldername']}{report['png_filename']}"
     
@@ -250,17 +250,16 @@ def check_showjob (url):
         driver.close()
     
 
-    #整理reprot
-    title_msg = f"{hospital[ip_2]} showjob\n ==={now.strftime('%Y%m%d %H:%M:%S')}===\n"
-    if report_fail_table.empty:
+    #整理report
+    if report['fail_list'].empty:
         msg = "🟢 Pass"
     else:
-        msg = f"🚨 Fail: 總共{report_fail_table.shape[0]}個\n"
+        msg = f"🚨 Fail: 總共{report['fail_list'].shape[0]}個\n"
 
-        for r in range(report_fail_table.shape[0]):
-            msg += f"程式代碼: {report_fail_table.iloc[r,0]}\n執行狀況: {report_fail_table.iloc[r,6]}\n---------\n"
+        for r in range(report['fail_list']e.shape[0]):
+            msg += f"程式代碼: {report['fail_list'].iloc[r,0]}\n執行狀況: {report['fail_list'].iloc[r,6]}\n---------\n"
             
-
+    title_msg = f"{report['branch']} showjob\n ==={report['date']} {report['time']}===\n"
     send_msg = title_msg + msg
 
 
