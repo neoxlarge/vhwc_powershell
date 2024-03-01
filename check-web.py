@@ -100,7 +100,7 @@ def check_oe(url,account,pwd):
     options.add_argument("headless")
 
     driver = webdriver.Chrome(options=options)
-    #witdth 1800, 截圖後長度比較剛好, 長度any, 載入網頁後會變.
+    #width 1800, 截圖後長度比較剛好, 長度any, 載入網頁後會變.
     driver.set_window_size(width=1800,height=700)
     #檢查url是否可正常連線
     try:
@@ -110,7 +110,7 @@ def check_oe(url,account,pwd):
         
     except (WebDriverException, TimeoutException) as e:
         driver.close()
-        report['message'] = f"URL: {url} 連線失敗"
+        report['message'] = f"🚨 Fail: {url} 連線失敗"
         #report['url_connected'] = False
         
     if report['url_connected']:    
@@ -132,10 +132,13 @@ def check_oe(url,account,pwd):
         time.sleep(1) 
         
         driver.get_screenshot_as_file(report['png_filepath'])
+        
+        driver.close()
 
         #line notify 傳送圖片可能有限制, 過長會壓縮. 如果超過2500, 就截切圖片. 
         if height > 2040:
             report['crop_images'] = crop_image(image_path=report['png_filepath'], crop_length=2040) 
+        
         
         # 截圖完成, 找錯誤log
 
@@ -145,31 +148,25 @@ def check_oe(url,account,pwd):
         report_df = pd.read_html(report_html)[0]
         report['fail_list'] = report_df[report_df['執行狀態'].str.contains("失敗")]
 
-        driver.close()
+        
+        #整理失敗的資料, 轉成要發送的訊息
+        
+        title_msg = f"{report['branch']} {report['oe']}\n ==={report['date']} {report['time']}===\n"
+        
+        if report['fail_list'].empty:
+            msg = "🟢 Pass"
+        else:
+            msg = f"🚨 Fail: 總共{report['fail_list'].shape[0]}個\n"
 
-      
-
-    #整理失敗的資料, 轉成要發送的訊息
-    
-    title_msg = f"{report['branch']} {report['oe']}\n ==={report['date']} {report['time']}===\n"
-    #if report_fail_list.empty:
-    if report['fail_list'].empty:
-        msg = "🟢 Pass"
-    else:
-        msg = f"🚨 Fail: 總共{report['fail_list'].shape[0]}個\n"
-
-        #for r in range(report_fail_list.shape[0]):
-        for r in range(report['fail_list'].shape[0]):
-            msg += f"ID: {report['fail_list'].iloc[r,0]}\n說明: {report['fail_list'].iloc[r,5]}\n---------\n"
-            
-            
-    send_msg = title_msg + msg
-
+            #for r in range(report_fail_list.shape[0]):
+            for r in range(report['fail_list'].shape[0]):
+                msg += f"ID: {report['fail_list'].iloc[r,0]}\n說明: {report['fail_list'].iloc[r,5]}\n---------\n"
+                
+                
+        report['message'] = title_msg + msg
+        
     # 回傳要傳line的訊息和截圖儲存路徑(可能有切圖)
-    return {'msg' : send_msg,
-            'filepath' : ,
-            #'df' : report_fail_list
-            }
+    return report
 
 
 
@@ -327,11 +324,11 @@ check_list = [{'url':"http://172.20.200.71/cpoe/m2/batch",
 ### 檢查cpoe
 report = check_oe(url="http://172.19.200.71/cpoe/m2/batch",account=73058,pwd="Q1220416")
 
-send_to_line_notify_bot(msg=report['msg'], line_notify_token=vhwc_line_token,photo_opened=None)
-for i in report["filepath"]:
-    msg = f"vhwc cpoe {report['filepath'].index(i) + 1} / {len(report['filepath'])}"
+send_to_line_notify_bot(msg=report['message'], line_notify_token=vhwc_line_token,photo_opened=None)
+for i in report["crop_images"]:
+    msg = f"{report['branch']} {report['oe']} {report['filepath'].index(i) + 1} / {len(report['filepath'])}"
     send_to_line_notify_bot(msg=msg,line_notify_token=vhwc_line_token,photo_opened=open(i,"rb"))
-    
+"""    
 ### 檢查eror
 report = check_oe(url="http://172.20.200.71/eroe/m2/batch",account=73058,pwd="Q1220416")
 
@@ -354,3 +351,5 @@ for i in report["filepath"]:
 now = dt.datetime.now()
 if now.hour <=1:    
     check_pluginreport(account=73058,pwd="Q1220416")    
+    
+"""
