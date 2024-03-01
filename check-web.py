@@ -255,15 +255,14 @@ def check_showjob (url):
     else:
         msg = f"🚨 Fail: 總共{report['fail_list'].shape[0]}個\n"
 
-        for r in range(report['fail_list']e.shape[0]):
+        for r in range(report['fail_list'].shape[0]) :
             msg += f"程式代碼: {report['fail_list'].iloc[r,0]}\n執行狀況: {report['fail_list'].iloc[r,6]}\n---------\n"
             
     title_msg = f"{report['branch']} showjob\n ==={report['date']} {report['time']}===\n"
-    send_msg = title_msg + msg
+    report['message'] = title_msg + msg
 
 
-    return {'filepath' : captured_images,
-            'msg' : send_msg}
+    return report
 
 
 def check_pluginreport(account,pwd):
@@ -330,8 +329,28 @@ def check_pluginreport(account,pwd):
     driver.close()
     
 
+def check_all_oe(check_list):
+    for check in check_list:
+        report = check_oe(url=check['url'], account=check['account'],pwd=check['pwd'])
+        
+        send_to_line_notify_bot(msg=report['message'], line_notify_token=vhwc_line_token,photo_opened=None)
+        if report['crop_images']:
+            for i in report["crop_images"]:
+                msg = f"{report['branch']} {report['oe']} {report['crop_images'].index(i) + 1} / {len(report['crop_images'])}"
+                send_to_line_notify_bot(msg=msg, line_notify_token=vhwc_line_token, photo_opened=open(i, "rb"))
+                
+                
+def check_all_showjob(check_list):
+    for check in check_list:
+        report = check_showjob(url=check['url'])
 
+        send_to_line_notify_bot(msg=report['message'], line_notify_token=vhwc_line_token, photo_opened=None)
+        if report['crop_images']:
+            for i in report["crop_images"]:
+                msg = f"{report['branch']} showjob {report['crop_images'].index(i) + 1} / {len(report['crop_images'])}"
+                send_to_line_notify_bot(msg=msg, line_notify_token=vhwc_line_token, photo_opened=open(i, "rb"))
 
+#檢查嘉義和灣橋的所有oe
 check_list = [{'url':"http://172.20.200.71/cpoe/m2/batch",
                'account' :  'CC4F',
                'pwd' : 'acervghtc'},
@@ -346,21 +365,13 @@ check_list = [{'url':"http://172.20.200.71/cpoe/m2/batch",
                'pwd' : 'acervghtc'}
                ]
 
-def check_all_oe(check_list):
-    for check in check_list:
-        report = check_oe(url=check['url'], account=check['account'],pwd=check['pwd'])
-        
-        send_to_line_notify_bot(msg=report['message'], line_notify_token=vhwc_line_token,photo_opened=None)
-        if report['crop_images']:
-            for i in report["crop_images"]:
-                msg = f"{report['branch']} {report['oe']} {report['crop_images'].index(i) + 1} / {len(report['crop_images'])}"
-                send_to_line_notify_bot(msg=msg, line_notify_token=vhwc_line_token, photo_opened=open(i, "rb"))
-
-#檢查嘉義和灣橋的所有oe
 check_all_oe(check_list)
-                
-                
 
+#檢查嘉義和灣橋的所有showjob
+check_list = [{'url' : 'http://172.20.200.71/eroe/m2/batch'},
+              {'url' : 'http://172.19.200.71/eroe/m2/batch'}] 
+               
+check_all_showjob(check_list)
 
 """    
 ### 檢查eror
