@@ -89,7 +89,7 @@ def check_oe(url,account,pwd):
     }
     
     # 產生截圖檔名, name rule ex: vhwc_eroe_20240226123705.png
-    report['png_filename'] = f"{report['branch']}_{report['oe']}_{report['date']}{report['time'].replace(':','').png}"
+    report['png_filename'] = f"{report['branch']}_{report['oe']}_{report['date']}{report['time'].replace(':','')}.png"
     report['png_filepath'] = f"{report['png_foldername']}{report['png_filename']}"
 
     # https://g.co/gemini/share/ada92acb29a0
@@ -325,9 +325,11 @@ check_list = [{'url':"http://172.20.200.71/cpoe/m2/batch",
 report = check_oe(url="http://172.19.200.71/cpoe/m2/batch",account=73058,pwd="Q1220416")
 
 send_to_line_notify_bot(msg=report['message'], line_notify_token=vhwc_line_token,photo_opened=None)
-for i in report["crop_images"]:
-    msg = f"{report['branch']} {report['oe']} {report['filepath'].index(i) + 1} / {len(report['filepath'])}"
-    send_to_line_notify_bot(msg=msg,line_notify_token=vhwc_line_token,photo_opened=open(i,"rb"))
+if report['crop_images']:
+    for i in report["crop_images"]:
+        msg = f"{report['branch']} {report['oe']} {report['filepath'].index(i) + 1} / {len(report['filepath'])}"
+        send_to_line_notify_bot(msg=msg, line_notify_token=vhwc_line_token, photo_opened=open(i, "rb"))
+
 """    
 ### 檢查eror
 report = check_oe(url="http://172.20.200.71/eroe/m2/batch",account=73058,pwd="Q1220416")
