@@ -133,12 +133,12 @@ def check_oe(url,account,pwd):
         
         driver.get_screenshot_as_file(report['png_filepath'])
         
-        driver.close()
-
+        
         #line notify 傳送圖片可能有限制, 過長會壓縮. 如果超過2500, 就截切圖片. 
         if height > 2040:
             report['crop_images'] = crop_image(image_path=report['png_filepath'], crop_length=2040) 
-        
+        else:
+            report['crop_images'] = [report['png_filepath'],]
         
         # 截圖完成, 找錯誤log
 
@@ -148,11 +148,10 @@ def check_oe(url,account,pwd):
         report_df = pd.read_html(report_html)[0]
         report['fail_list'] = report_df[report_df['執行狀態'].str.contains("失敗")]
 
+        driver.close()
         
         #整理失敗的資料, 轉成要發送的訊息
-        
-        title_msg = f"{report['branch']} {report['oe']}\n ==={report['date']} {report['time']}===\n"
-        
+                
         if report['fail_list'].empty:
             msg = "🟢 Pass"
         else:
@@ -162,7 +161,7 @@ def check_oe(url,account,pwd):
             for r in range(report['fail_list'].shape[0]):
                 msg += f"ID: {report['fail_list'].iloc[r,0]}\n說明: {report['fail_list'].iloc[r,5]}\n---------\n"
                 
-                
+    title_msg = f"{report['branch']} {report['oe']}\n ==={report['date']} {report['time']}===\n"            
     report['message'] = title_msg + msg
         
     # 回傳要傳line的訊息和截圖儲存路徑(可能有切圖)
@@ -314,27 +313,27 @@ def check_pluginreport(account,pwd):
 
 
 check_list = [{'url':"http://172.20.200.71/cpoe/m2/batch",
-               'account' :  '73058',
-               'pwd' : 'Q1220416'},
+               'account' :  'CC4F',
+               'pwd' : 'acervghtc'},
                {'url':"http://172.20.200.71/eroe/m2/batch",
-               'account' :  '73058',
-               'pwd' : 'Q1220416'},
+               'account' :  'CC4F',
+               'pwd' : 'acervghtc'},
                {'url':"http://172.19.200.71/cpoe/m2/batch",
-               'account' :  '73058',
-               'pwd' : 'Q1220416'},
+               'account' :  'CC4F',
+               'pwd' : 'acervghtc'},
                {'url':"http://172.19.200.71/eroe/m2/batch",
-               'account' :  '73058',
-               'pwd' : 'Q1220416'}
+               'account' :  'CC4F',
+               'pwd' : 'acervghtc'}
                ]
 
 def check_all_oe(check_list):
     for check in check_list:
-        report = check_oe(url=check_list['url'], account=check_list['account'],pwd=check_list['pwd'])
+        report = check_oe(url=check['url'], account=check['account'],pwd=check['pwd'])
         
         send_to_line_notify_bot(msg=report['message'], line_notify_token=vhwc_line_token,photo_opened=None)
         if report['crop_images']:
             for i in report["crop_images"]:
-                msg = f"{report['branch']} {report['oe']} {report['filepath'].index(i) + 1} / {len(report['filepath'])}"
+                msg = f"{report['branch']} {report['oe']} {report['crop_images'].index(i) + 1} / {len(report['crop_images'])}"
                 send_to_line_notify_bot(msg=msg, line_notify_token=vhwc_line_token, photo_opened=open(i, "rb"))
 
 #檢查嘉義和灣橋的所有oe
