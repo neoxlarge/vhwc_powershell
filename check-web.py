@@ -213,6 +213,7 @@ def check_showjob (url):
     try:
         driver.get(url=url)
         report['url_connected'] = True
+        
     except (WebDriverException,TimeoutException) as e:
         driver.close()
         msg = f"🚨 Fail: {url} 連線失敗"    
@@ -237,7 +238,7 @@ def check_showjob (url):
         if height > 2040:
             report['crop_images'] = crop_image(image_path=report['png_filepath'],crop_length=2040)
         else :
-            report['crop_images'] = [report['pan_filepath'],]    
+            report['crop_images'] = [report['png_filepath'],]    
 
         #截圖完成, 找錯誤log
         report_table = pd.read_html(driver.page_source)[0]
@@ -249,18 +250,17 @@ def check_showjob (url):
         driver.close()
     
 
-    #整理report
-    if report['fail_list'].empty:
-        msg = "🟢 Pass"
-    else:
-        msg = f"🚨 Fail: 總共{report['fail_list'].shape[0]}個\n"
+        #整理report
+        if report['fail_list'].empty:
+            msg = "🟢 Pass"
+        else:
+            msg = f"🚨 Fail: 總共{report['fail_list'].shape[0]}個\n"
 
-        for r in range(report['fail_list'].shape[0]) :
-            msg += f"程式代碼: {report['fail_list'].iloc[r,0]}\n執行狀況: {report['fail_list'].iloc[r,6]}\n---------\n"
+            for r in range(report['fail_list'].shape[0]) :
+                msg += f"程式代碼: {report['fail_list'].iloc[r,0]}\n執行狀況: {report['fail_list'].iloc[r,6]}\n---------\n"
             
     title_msg = f"{report['branch']} showjob\n ==={report['date']} {report['time']}===\n"
     report['message'] = title_msg + msg
-
 
     return report
 
@@ -368,27 +368,12 @@ check_list = [{'url':"http://172.20.200.71/cpoe/m2/batch",
 check_all_oe(check_list)
 
 #檢查嘉義和灣橋的所有showjob
-check_list = [{'url' : 'http://172.20.200.71/eroe/m2/batch'},
-              {'url' : 'http://172.19.200.71/eroe/m2/batch'}] 
+check_list = [{'url' : 'http://172.20.200.41/NOPD/showjoblog.aspx'},
+              {'url' : 'http://172.19.200.41/NOPD/showjoblog.aspx'}] 
                
 check_all_showjob(check_list)
 
-"""    
-### 檢查eror
-report = check_oe(url="http://172.20.200.71/eroe/m2/batch",account=73058,pwd="Q1220416")
 
-send_to_line_notify_bot(msg=report['msg'], line_notify_token=vhwc_line_token,photo_opened=None)
-for i in report["filepath"]:
-    msg = f"vhwc eroe {report['filepath'].index(i) + 1} / {len(report['filepath'])}"
-    send_to_line_notify_bot(msg=msg,line_notify_token=vhwc_line_token,photo_opened=open(i,"rb"))
-    
-
-report = check_showjob(url = "http://172.20.200.41/NOPD/showjoblog.aspx")
-
-send_to_line_notify_bot(msg=report['msg'], line_notify_token=vhwc_line_token,photo_opened=None)
-for i in report["filepath"]:
-    msg = f"vhwc showjob {report['filepath'].index(i) + 1} / {len(report['filepath'])}"
-    send_to_line_notify_bot(msg=msg,line_notify_token=vhwc_line_token,photo_opened=open(i,"rb")) 
 
 
 ### 檢查處方LOG統計
@@ -397,4 +382,3 @@ now = dt.datetime.now()
 if now.hour <=1:    
     check_pluginreport(account=73058,pwd="Q1220416")    
     
-"""
