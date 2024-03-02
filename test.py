@@ -1,31 +1,34 @@
-﻿import datetime as dt
-import requests
+﻿def add_watermark(image_path, text, output_path):
+  """
+  在 PNG 檔中加入文字浮水印
 
-report = {
-    "date" : dt.datetime.now().strftime('%Y%m%d'),
-    "time" : dt.datetime.now().strftime('%H:%M:%S'),
-    'taiway_yyyMMdd' : f"{dt.datetime.now().year - 1911}/{dt.datetime.now():%m}/{dt.datetime.now():%d}",
-    "url" : "http://172.19.1.21/medpt/medptlogin.php",
-    "url_connected" : False,
-    "branch" : [{'vhwc':'wc'},{'vhcy':'cy'}],
-    "item" : "Prescription_log",
-    "png_foldername" : "d:\\mis\\",
-    "png_filename" : None,
-    'png_filepath' : None,
-    'crop_images' : None,
-    'fail_list' : None,
-    "message" : None
-}
+  Args:
+    image_path: 要加入浮水印的 PNG 檔路徑
+    text: 浮水印文字
+    output_path: 加入浮水印後的 PNG 檔輸出路徑
+
+  Returns:
+    None
+  """
+
+  # 載入 PNG 檔
+  image = Image.open(image_path)
+
+  # 建立文字浮水印
+  watermark = Image.new("RGBA", image.size, (0, 0, 0, 0))
+  draw = ImageDraw.Draw(watermark)
+  text_size = draw.textsize(text, font=ImageFont.truetype("arial.ttf", 40))
+
+  # 將文字浮水印放在圖片最下方
+  position = (image.size[0] - text_size[0], image.size[1] - text_size[1])
+  draw.text(position, text, font=ImageFont.truetype("arial.ttf", 40), fill=(255, 255, 255, 128))
+
+  # 將文字浮水印加入 PNG 檔
+  image.paste(watermark, position, watermark)
+
+  # 儲存加入浮水印後的 PNG 檔
+  image.save(output_path)
 
 
-for branch in report['branch']:
-    for fullname, name in branch.items():
-        print(fullname)
-        print(name)
-        
-        
-url = "http://172.19.1.21/medpt/cyp2001.php"
-data = {'g_yyymmdd_s': 'taiwan_yyymmdd','from': 'b',}
-
-response = requests.post(url=url,data=data)        
-print(response.status_code)
+# 範例
+add_watermark("c:\\temp\\vhwc_showjob_20240228_2.png", "Copyright © 2024", "c:\\temp\\vhwc_2.png")

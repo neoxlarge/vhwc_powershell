@@ -18,6 +18,34 @@ vhwc_line_token = "HdkeCg1k4nehNa8tEIrJKYrNOeNZMrs89LQTKbf1tbz"
 vhwc_line_token = test_line_token
 
 
+def add_watermark(image_path, text):
+  """
+  在 PNG 檔中加入文字浮水印
+
+  Args:
+    image_path: 要加入浮水印的 PNG 檔路徑
+    text: 浮水印文字
+    output_path: 加入浮水印後的 PNG 檔輸出路徑
+
+  Returns:
+    None
+  """
+
+  # 載入 PNG 檔
+  image = Image.open(image_path)
+
+  # 建立文字浮水印
+  watermark = Image.new("RGBA", image.size, (0, 0, 0, 0))
+  draw = ImageDraw.Draw(watermark)
+  draw.text((0, 0), text, font=ImageFont.truetype("arial.ttf", 80), fill=(255, 25, 255, 128))
+
+  # 將文字浮水印加入 PNG 檔
+  image.paste(watermark, (0, 0), watermark)
+
+  # 儲存加入浮水印後的 PNG 檔
+  image.save(image_path)
+
+
 def crop_image(image_path, crop_length):
     """把圖檔依長度切割, 存檔後回傳檔名路徑"""
     
@@ -62,6 +90,7 @@ def send_to_line_notify_bot(msg, line_notify_token, photo_opened=None):
     data = {"message":msg}
     image_file = {'imageFile': photo_opened}
     r = requests.post(url=url,data=data,headers=headers,files=image_file)
+    
 
 def check_oe(url,account,pwd):
     """ 
@@ -145,6 +174,9 @@ def check_oe(url,account,pwd):
         else:
             report['crop_images'] = [report['png_filepath'],]
         
+        for img in report['crop_images']:
+            add_watermark(img, f"{report['branch']} {report['oe']} {report['date']}")
+            
         # 截圖完成, 找錯誤log
 
         # 找出綱頁中的table, 轉為dataframe, 再將有"失敗"字串的資料取出.
@@ -206,14 +238,12 @@ def check_showjob (url):
     # 產生截圖檔名, name rule ex: vhwc_showjob_20240226123705.png
     report['png_filename'] = f"{report['branch']}_{report['item']}_{report['date']}{report['time'].replace(':','')}.png"
     report['png_filepath'] = f"{report['png_foldername']}{report['png_filename']}"
-    
-    
-    
+        
     # https://g.co/gemini/share/ada92acb29a0
     options = webdriver.ChromeOptions()
-    #防止chrome自動關閉
+    # 防止chrome自動關閉
     options.add_experimental_option(name="detach", value=True)
-    #chrome 的無界面模式, 此模式才可以截長圖
+    # chrome 的無界面模式, 此模式才可以截長圖
     options.add_argument("headless")
 
     driver = webdriver.Chrome(options=options)
@@ -248,6 +278,10 @@ def check_showjob (url):
             report['crop_images'] = crop_image(image_path=report['png_filepath'],crop_length=2040)
         else :
             report['crop_images'] = [report['png_filepath'],]    
+        
+        for img in report['crop_images']:
+            add_watermark(img, f"{report['branch']} {report['item']} {report['date']}")
+     
 
         #截圖完成, 找錯誤log
         report_table = pd.read_html(driver.page_source)[0]
@@ -277,7 +311,8 @@ def check_showjob (url):
 def check_cyp2001(account,pwd):
     """ 
     ### 檢查外掛程式中處方log統計網頁 
-         
+    * 外掛不好用selenium取得網頁內容, 配合用requests取得綱頁, 
+    先存成html檔, 再用selenium開啟並截圖     
     """
     report = {
         "date" : dt.datetime.now().strftime('%Y%m%d'),
@@ -288,12 +323,7 @@ def check_cyp2001(account,pwd):
         "branch" : ['wc','cy'],
         "item" : "Prescription_log",
         "png_foldername" : "d:\\mis\\",
-        #"html_filename" : None,
-        #"png_filename" : None,
-        #'png_filepath' : None,
-        #'crop_images' : None,
-        #'fail_list' : None,
-        #"message" : None
+
     }
     
         
@@ -323,11 +353,9 @@ def check_cyp2001(account,pwd):
         
         loginname = driver.find_element(By.NAME,"cn")
         loginpwd = driver.find_element(By.NAME,"pw")
-        loginok = driver.find_element(By.CSS_SELECTOR,'input[value="確定"]')
-
         loginname.send_keys(account)
         loginpwd.send_keys(pwd)
-        loginpwd.send_keys(Keys.RETURN)
+        loginpwd.send_keys(Keys.RETURN) #直接按enter送出
     
         time.sleep(1)
         for b in report['branch'] :
@@ -344,12 +372,12 @@ def check_cyp2001(account,pwd):
             try:
                 response = requests.post(url=url,data=data)
                 response.raise_for_status()
-            except requests.exceptions.HTTPError as err:
+            except requests.exceptions.HTTPError as err:        #有問題可能是外掛網或登入有問題.
                 msg = f"vh{b} 處方LOG統計 \n ==={now.strftime('%Y%m%d %H:%M:%S')}===\n🚨 Fail: {url} 連線失敗"
                 send_to_line_notify_bot(msg=msg, line_notify_token=vhwc_line_token, photo_opened=None)
 
 
-            if response.status_code == 200:
+            if response.status_code == 200: #code 200 表示網頁正確取得, 寫入html檔.
                 with open(save_html_path, 'wb') as f:
                     f.write(response.content)
 
