@@ -12,15 +12,15 @@ import pandas as pd
 import requests
 from PIL import Image
 
-
-
+# line notify token
 test_line_token = "CclWwNgG6qbD5qx8eO3Oi4ii9azHfolj17SCzIE9UyI"
 vhwc_line_token = "HdkeCg1k4nehNa8tEIrJKYrNOeNZMrs89LQTKbf1tbz"
 vhwc_line_token = test_line_token
 
 
-
 def crop_image(image_path, crop_length):
+    """把圖檔依長度切割, 存檔後回傳檔名路徑"""
+    
     # 檢查圖片格式
     if not image_path.lower().endswith(".png"):
         raise ValueError("Image format must be PNG")
@@ -64,7 +64,12 @@ def send_to_line_notify_bot(msg, line_notify_token, photo_opened=None):
     r = requests.post(url=url,data=data,headers=headers,files=image_file)
 
 def check_oe(url,account,pwd):
-    #
+    """ 
+    ### 檢查cpoe和eroe網頁 
+        * 依傳入的綱址, 折出灣橋和嘉義, cpoe和eroe
+        * 長螢幕截圖, 過長的圖, line 會壓縮, 造成糊掉, 圖檔會依長度切割
+        * 會檢查表格中內格有出現"失敗"字串, 會傳訊息提醒
+    """
     url_content = url.split("/")
     #url sample = http://172.20.200.71/cpoe/m2/batch
 
@@ -170,7 +175,11 @@ def check_oe(url,account,pwd):
 
 
 def check_showjob (url):
-    
+    """ 
+    ### 檢查showjob網頁 
+        * 長螢幕截圖, 過長的圖, line 會壓縮, 造成糊掉, 圖檔會依長度切割
+        * 會檢查表格中內格有出現"失敗"字串, 會傳訊息提醒
+    """
     url_content = url.split("/")
     #url sample = http://172.20.200.41/NOPD/showjoblog.aspx
 
@@ -208,7 +217,7 @@ def check_showjob (url):
     options.add_argument("headless")
 
     driver = webdriver.Chrome(options=options)
-    #witdth 1000, showjob截圖後長度長, 長度any, 載入網頁後會變.
+    #width 1000, showjob截圖後長度長, 長度any, 載入網頁後會變.
     driver.set_window_size(width=1000,height=700)
     try:
         driver.get(url=url)
@@ -266,7 +275,10 @@ def check_showjob (url):
 
 
 def check_cyp2001(account,pwd):
-    
+    """ 
+    ### 檢查外掛程式中處方log統計網頁 
+         
+    """
     report = {
         "date" : dt.datetime.now().strftime('%Y%m%d'),
         "time" : dt.datetime.now().strftime('%H:%M:%S'),
@@ -279,9 +291,9 @@ def check_cyp2001(account,pwd):
         #"html_filename" : None,
         #"png_filename" : None,
         #'png_filepath' : None,
-        'crop_images' : None,
-        'fail_list' : None,
-        "message" : None
+        #'crop_images' : None,
+        #'fail_list' : None,
+        #"message" : None
     }
     
         
@@ -295,7 +307,7 @@ def check_cyp2001(account,pwd):
 
     #先開chrome登入外掛系統.
     driver = webdriver.Chrome(options=options)
-    #witdth 600, 外掛表格比較窄, 長度any, 載入網頁後會變.
+    #width 600, 外掛表格比較窄, 長度any, 載入網頁後會變.
     driver.set_window_size(width=400,height=600)
     
     try:
