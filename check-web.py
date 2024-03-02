@@ -10,7 +10,7 @@ import time
 import datetime as dt
 import pandas as pd
 import requests
-from PIL import Image
+from PIL import Image, ImageDraw, ImageFont
 
 # line notify token
 test_line_token = "CclWwNgG6qbD5qx8eO3Oi4ii9azHfolj17SCzIE9UyI"
