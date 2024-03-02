@@ -265,11 +265,30 @@ def check_showjob (url):
     return report
 
 
-def check_pluginreport(account,pwd):
+def check_cyp2001(account,pwd):
+    
+    report = {
+        "date" : dt.datetime.now().strftime('%Y%m%d'),
+        "time" : dt.datetime.now().strftime('%H:%M:%S'),
+        'taiway_yyyMMdd' : f"{dt.datetime.now().year - 1911}/{now:%m}/{now:%d}",
+        "url" : "http://172.19.1.21/medpt/medptlogin.php",
+        "url_connected" : False,
+        "branch" : ['wc','cy'],
+        "item" : "Prescription_log",
+        "png_foldername" : "d:\\mis\\",
+        #"html_filename" : None,
+        #"png_filename" : None,
+        #'png_filepath' : None,
+        'crop_images' : None,
+        'fail_list' : None,
+        "message" : None
+    }
+    
+        
     #檢查外掛報表
     # https://g.co/gemini/share/ada92acb29a0
     options = webdriver.ChromeOptions()
-    #防止chrome自動?閉
+    #防止chrome自動關閉
     options.add_experimental_option(name="detach", value=True)
     #chrome 的無界面模式, 此模式才可以截長圖
     options.add_argument("headless")
@@ -279,52 +298,60 @@ def check_pluginreport(account,pwd):
     #witdth 600, 外掛表格比較窄, 長度any, 載入網頁後會變.
     driver.set_window_size(width=400,height=600)
     
-    url="http://172.19.1.21/medpt/medptlogin.php"
-    driver.get(url=url)
-
-    loginname = driver.find_element(By.NAME,"cn")
-    loginpwd = driver.find_element(By.NAME,"pw")
-    loginok = driver.find_element(By.CSS_SELECTOR,'input[value="確定"]')
-
-    loginname.send_keys(account)
-    loginpwd.send_keys(pwd)
-    loginpwd.send_keys(Keys.RETURN)
-    
-    
-    branch = ['wc','cy']
-
-    now = dt.datetime.now()
-    taiwan_yyymmdd = f"{now.year - 1911}/{now:%m}/{now:%d}"
-    #print(taiwan_yyymmdd)
+    try:
+        driver.get(url=url)
+        report['url_connected'] = True
+    except (WebDriverException, TimeoutException) as e:
+        driver.close()
+        msg = f"外掛糸統\n🚨 Fail: {url} 連線失敗"    
+        send_to_line_notify_bot(msg=msg, line_notify_token=vhwc_line_token, photo_opened=None)
 
 
-    for b in branch:
-        now = dt.datetime.now()
-        path_title = f"d:\\mis\\vh{b}_plugin_{taiwan_yyymmdd.replace('/','')}"
-
-        url = url="http://172.19.1.21/medpt/cyp2001.php"
-        data = {'g_yyymmdd_s': taiwan_yyymmdd,'from': b,}
-
-        save_html_path = f"{path_title}.html"
-        save_img_path = f"{path_title}.png"
-
-        response = requests.post(url=url,data=data)
-
-        with open(save_html_path, 'wb') as f:
-            f.write(response.content)
-
-        driver.get(save_html_path)
-
-        width = driver.execute_script("return document.documentElement.scrollWidth")
-        height = driver.execute_script("return document.documentElement.scrollHeight")
-        driver.set_window_size(width, height) 
+    if report['url_connected']:
         
+        loginname = driver.find_element(By.NAME,"cn")
+        loginpwd = driver.find_element(By.NAME,"pw")
+        loginok = driver.find_element(By.CSS_SELECTOR,'input[value="確定"]')
+
+        loginname.send_keys(account)
+        loginpwd.send_keys(pwd)
+        loginpwd.send_keys(Keys.RETURN)
+    
         time.sleep(1)
-        driver.save_screenshot(save_img_path)
+        for b in report['branch'] :
+    
+            now = dt.datetime.now()
+            path_title = f"{report['png_foldname']}vh{b}_{report['item']}_{report['taiwan_yyymmdd'].replace('/','')}"
 
-        send_msg = f"vh{b} 處方LOG統計 \n ==={now.strftime('%Y%m%d %H:%M:%S')}==="
-        send_to_line_notify_bot(msg=send_msg,line_notify_token=vhwc_line_token,photo_opened=open(save_img_path,"rb"))
+            url = "http://172.19.1.21/medpt/cyp2001.php"
+            data = {'g_yyymmdd_s': report['taiwan_yyymmdd'],'from': b,}
 
+            save_html_path = f"{path_title}.html"
+            save_img_path = f"{path_title}.png"
+
+            try:
+                response = requests.post(url=url,data=data)
+                response.raise_for_status()
+            except requests.exceptions.HTTPError as err:
+                msg = f"vh{b} 處方LOG統計 \n ==={now.strftime('%Y%m%d %H:%M:%S')}===\n🚨 Fail: {url} 連線失敗"
+                send_to_line_notify_bot(msg=msg, line_notify_token=vhwc_line_token, photo_opened=None)
+
+
+            if response.status_code == 200:
+                with open(save_html_path, 'wb') as f:
+                    f.write(response.content)
+
+                driver.get(save_html_path)
+
+                width = driver.execute_script("return document.documentElement.scrollWidth")
+                height = driver.execute_script("return document.documentElement.scrollHeight")
+                driver.set_window_size(width, height) 
+                
+                time.sleep(1)
+                driver.save_screenshot(save_img_path)
+
+                msg = f"vh{b} 處方LOG統計 \n ==={now.strftime('%Y%m%d %H:%M:%S')}==="
+                send_to_line_notify_bot(msg=msg, line_notify_token=vhwc_line_token, photo_opened=open(save_img_path, "rb"))
 
     driver.close()
     
@@ -380,5 +407,5 @@ check_all_showjob(check_list)
     #只有早上0點30分需要檢查這個
 now = dt.datetime.now()
 if now.hour <=1:    
-    check_pluginreport(account=73058,pwd="Q1220416")    
+    check_cyp2001(account=73058,pwd="Q1220416")    
     

@@ -1,38 +1,31 @@
-﻿from selenium import webdriver
+﻿import datetime as dt
+import requests
 
-url="http://172.19.1.21/medpt/cyp2001.php"
-
-#檢查外掛報表
-
-options = webdriver.ChromeOptions()
-#防止chrome自動?閉
-options.add_experimental_option(name="detach", value=True)
-#chrome 的無界面模式, 此模式才可以截長圖
-#options.add_argument("headless")
-branch = {'vhwc' : '灣橋',
-        'vhcy' : '嘉義' }
-
- 
-#png_filename = f"{hospital[ip_2]}_{url_content[3]}_{now.strftime('%Y%m%d%H%M%S')}.png"
-#name rule ex: vhwc_eroe_20240226123705.png
-
-
-# 設定網址
-url = 'http://172.19.1.21/medpt/cyp2001.php'
-
-# 設定 POST 資料
-data = {
-    'g_yyymmdd_s': '113/02/29',
-    'from': 'cy',
+report = {
+    "date" : dt.datetime.now().strftime('%Y%m%d'),
+    "time" : dt.datetime.now().strftime('%H:%M:%S'),
+    'taiway_yyyMMdd' : f"{dt.datetime.now().year - 1911}/{dt.datetime.now():%m}/{dt.datetime.now():%d}",
+    "url" : "http://172.19.1.21/medpt/medptlogin.php",
+    "url_connected" : False,
+    "branch" : [{'vhwc':'wc'},{'vhcy':'cy'}],
+    "item" : "Prescription_log",
+    "png_foldername" : "d:\\mis\\",
+    "png_filename" : None,
+    'png_filepath' : None,
+    'crop_images' : None,
+    'fail_list' : None,
+    "message" : None
 }
 
 
+for branch in report['branch']:
+    for fullname, name in branch.items():
+        print(fullname)
+        print(name)
+        
+        
+url = "http://172.19.1.21/medpt/cyp2001.php"
+data = {'g_yyymmdd_s': 'taiwan_yyymmdd','from': 'b',}
 
-
-
-driver = webdriver.Chrome(options=options)
-#witdth 1800, 截圖後長度比較剛好, 長度any, 載入網頁後會變.
-driver.set_window_size(width=1800,height=700)
-    
-# 開啟網址
-driver.get(full_url)
+response = requests.post(url=url,data=data)        
+print(response.status_code)
