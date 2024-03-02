@@ -270,7 +270,7 @@ def check_cyp2001(account,pwd):
     report = {
         "date" : dt.datetime.now().strftime('%Y%m%d'),
         "time" : dt.datetime.now().strftime('%H:%M:%S'),
-        'taiway_yyyMMdd' : f"{dt.datetime.now().year - 1911}/{now:%m}/{now:%d}",
+        'taiwan_yyymmdd' : f"{dt.datetime.now().year - 1911}/{dt.datetime.now():%m}/{dt.datetime.now():%d}",
         "url" : "http://172.19.1.21/medpt/medptlogin.php",
         "url_connected" : False,
         "branch" : ['wc','cy'],
@@ -299,7 +299,7 @@ def check_cyp2001(account,pwd):
     driver.set_window_size(width=400,height=600)
     
     try:
-        driver.get(url=url)
+        driver.get(url=report['url'])
         report['url_connected'] = True
     except (WebDriverException, TimeoutException) as e:
         driver.close()
@@ -321,7 +321,7 @@ def check_cyp2001(account,pwd):
         for b in report['branch'] :
     
             now = dt.datetime.now()
-            path_title = f"{report['png_foldname']}vh{b}_{report['item']}_{report['taiwan_yyymmdd'].replace('/','')}"
+            path_title = f"{report['png_foldername']}vh{b}_{report['item']}_{report['taiwan_yyymmdd'].replace('/','')}"
 
             url = "http://172.19.1.21/medpt/cyp2001.php"
             data = {'g_yyymmdd_s': report['taiwan_yyymmdd'],'from': b,}
