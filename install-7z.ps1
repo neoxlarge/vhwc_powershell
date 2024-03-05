@@ -3,7 +3,7 @@
 
 param($runadmin)
 
-$mymodule_path = Split-Path $PSCommandPath + "\"
+$mymodule_path = "$(Split-Path $PSCommandPath)\"
 Import-Module $mymodule_path + "get-installedprogramlist.psm1"
 Import-Module $mymodule_path + "get-msiversion.psm1"
 Import-Module $mymodule_path + "compare-version.psm1"

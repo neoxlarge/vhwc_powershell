@@ -25,4 +25,3 @@ function get-msiversion {
 
 }
 
-Import-Module -Prefix       
