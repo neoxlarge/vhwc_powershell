@@ -3,8 +3,7 @@
 
 param($runadmin)
 
-$mymodule_path = "$(Split-Path $PSCommandPath)\"
-Import-Module -name "$($mymodule_path)vhwcmis_module.psm1"
+Import-Module -name "$(Split-Path $PSCommandPath)\vhwcmis_module.psm1"
 
 function install-7z {
     
@@ -13,12 +12,11 @@ function install-7z {
     $software_msi = "7z2201-x64.msi"
     $software_msi_x86 = "7z2201-x32.msi"
 
-
     ## 判斷OS是32(x86)或是64(AMD64), 其他值(ARM64)不安裝  
     switch ($env:PROCESSOR_ARCHITECTURE) {
         "AMD64" { $software_exec = $software_msi }
         "x86" { $software_exec = $software_msi_x86 }
-        default { Write-Warning "Unsupport CPU or OS:"  $env:PROCESSOR_ARCHITECTURE; $software_exec = $null }
+        default { throw "$software_name 無法正常安裝: 不支援的系統:  $($env:PROCESSOR_ARCHITECTURE)" }
     }
 
     ## 找出軟體是否己安裝
@@ -33,10 +31,13 @@ function install-7z {
         $check_version = compare-version -Version1 $msi_version -Version2 $software_is_installed.DisplayVersion
 
         if ($check_version) {
-            #msi版本比較新,移除舊的後, 把$software_is_installed清掉
+            #msi版本比較新,移除舊的後, 重新查詢$software_is_installed
             Write-Output "找到舊的版本: $($software_is_installed.DisplayName) : $($software_is_installed.DisplayVersion)"
+            Write-Output "Uninstall string: $($software_is_installed.uninstallString)"
             uninstall-software -name $software_is_installed.DisplayName
-            $software_is_installed = $null
+            
+            $all_installed_program = get-installedprogramlist
+            $software_is_installed = $all_installed_program | Where-Object -FilterScript { $_.DisplayName -like $software_name }
         }
 
     } 
@@ -65,9 +66,7 @@ function install-7z {
             }
             
             $proc.WaitForExit()
-        } else {
-            Write-Warning "$software_name 無法正常安裝."
-        }
+        } 
       
         
         #安裝完, 再重新取得安裝資訊

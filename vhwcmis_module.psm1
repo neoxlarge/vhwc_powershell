@@ -43,7 +43,8 @@ function uninstall-software {
 
         $running_proc = Start-Process -FilePath "msiexec.exe" -ArgumentList "$uninstallstring /passive" -Credential $credential -PassThru
         $running_proc.WaitForExit()     
-    } else {
+    }
+    else {
         return "找不到軟體: $name"
     }
 
@@ -54,9 +55,9 @@ function get-msiversion {
     # 從msi檔案中提取軟體的版本.
     # from https://joelitechlife.ca/2021/04/01/getting-version-information-from-windows-msi-installer/comment-page-1/#respond
     param (
-    [parameter(Mandatory=$true)] 
-    [ValidateNotNullOrEmpty()] 
-    [System.IO.FileInfo] $MSIPATH
+        [parameter(Mandatory = $true)] 
+        [ValidateNotNullOrEmpty()] 
+        [System.IO.FileInfo] $MSIPATH
     ) 
     if (!(Test-Path $MSIPATH.FullName)) { 
         throw "File '{0}' does not exist" -f $MSIPATH.FullName 
@@ -70,7 +71,8 @@ function get-msiversion {
         $Record = $View.GetType().InvokeMember( "Fetch", "InvokeMethod", $Null, $View, $Null ) 
         $Version = $Record.GetType().InvokeMember( "StringData", "GetProperty", $Null, $Record, 1 ) 
         return $Version
-    } catch { 
+    }
+    catch { 
         throw "Failed to get MSI file version: {0}." -f $_
     }
 
@@ -80,53 +82,69 @@ function get-msiversion {
 
 function  get-admin_cred {
     #取得管理員權限
-        $Username = "vhcy\vhwcmis"
-        $Password = "Mis20190610"
-        $securePassword = ConvertTo-SecureString $Password -AsPlainText -Force
-        $credential = New-Object System.Management.Automation.PSCredential($Username, $securePassword)
+    $Username = "vhcy\vhwcmis"
+    $Password = "Mis20190610"
+    $securePassword = ConvertTo-SecureString $Password -AsPlainText -Force
+    $credential = New-Object System.Management.Automation.PSCredential($Username, $securePassword)
     
-        return $credential
-    }
+    return $credential
+}
 
 
 
 
-    function Compare-Version {
-        <#
-        .SYNOPSIS
-            比對2個版本, $version1 大於 $version2 回傳$Ture , 等於或小於回傳$False
-        .DESCRIPTION
-            函數的詳細描述
-        #>
-        param (
-          [Parameter(Mandatory = $true)]
-          [string]$Version1, # 第一個版本
-      
-          [Parameter(Mandatory = $true)]
-          [string]$Version2     # 第二個版本
-        )
-      
-        # 將版本號拆分成陣列，以便逐個比較各個部分
-        $version1Array = $Version1.Split('.')
-        $version2Array = $Version2.Split('.')
-      
-        # 使用 foreach 迴圈遍歷每個部分進行比較
-        foreach ($i in 0..$version1Array.Count) {
-          if ([int]$version1Array[$i] -gt [int]$version2Array[$i]) {
+function Compare-Version {
+    <#
+    .SYNOPSIS
+        比對2個版本, $version1 大於 $version2 回傳$Ture , 等於或小於回傳$False
+    .DESCRIPTION
+        函數的詳細描述
+    #>
+    param (
+        [Parameter(Mandatory = $true)]
+        [string]$Version1, # 第一個版本
+    
+        [Parameter(Mandatory = $true)]
+        [string]$Version2     # 第二個版本
+    )
+    
+    # 將版本號拆分成陣列，以便逐個比較各個部分
+    $version1Array = $Version1.Split('.')
+    $version2Array = $Version2.Split('.')
+    
+    # 使用 foreach 迴圈遍歷每個部分進行比較
+    foreach ($i in 0..$version1Array.Count) {
+        if ([int]$version1Array[$i] -gt [int]$version2Array[$i]) {
             return $true    # 返回 $true 表示第一個版本號大於第二個版本號
-          }
-          elseif ([int]$version1Array[$i] -lt [int]$version2Array[$i]) {
+        }
+        elseif ([int]$version1Array[$i] -lt [int]$version2Array[$i]) {
             return $false   # 返回 $false 表示第一個版本號小於第二個版本號
-          }
-          else {
+        }
+        else {
             # 如果當前部分相等，則繼續比較下一個部分
             continue
-          }
         }
-      
-        # 如果完全相同，則表示版本號相同
-        return $false    # 返回 $true 表示兩個版本號相同
-      }
+    }
+    
+    # 如果完全相同，則表示版本號相同
+    return $false    # 返回 $true 表示兩個版本號相同
+}
     
       
-         
+function Get-OSVersion {
+    #取得OS的版本
+    $os = (Get-WmiObject -Class Win32_OperatingSystem).Caption
+
+    if ($os -like "*Windows 7*") {
+        return "Windows 7"
+    }
+    elseif ($os -like "*Windows 10*") {
+        return "Windows 10"
+    }
+    elseif ($os -like "*Windows 11*") {
+        return "Windows 11"
+    }
+    else {
+        return "Unknown OS"
+    }
+}         

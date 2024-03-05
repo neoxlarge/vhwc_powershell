@@ -84,15 +84,14 @@ function set-Java_env {
     # https://docs.oracle.com/javase/tutorial/security/toolfilex/rstep1.html
     write-host "匯入Java憑證."
 
-    $ca_path = "$PSScriptRoot\nursing.csr"
+    $ca_path = "$PSScriptRoot\trusted.certs"
     $keystore = "$env:USERPROFILE\AppData\LocalLow\Sun\Java\Deployment\security\trusted.certs"
-    try {
 
-        Start-Process -FilePath "keytool.exe" -ArgumentList "-import -trustcacerts -keystore $keystore -noprompt -file $ca_path -storepass """"" -NoNewWindow -Wait
+    if (!(Test-Path $keystore)) {
+        New-Item -Path $(Split-Path -Path  $keystore) -ItemType Directory -Force
+        Copy-Item -Path $ca_path -Destination $keystore -Force
     }
-    catch {
-        Write-Output  "Java控制台憑證匯入可能有錯誤."
-    }
+    
 
 
 }

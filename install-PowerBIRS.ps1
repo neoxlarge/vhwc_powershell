@@ -2,26 +2,8 @@
 
 param($runadmin)
 
-Import-Module ((Split-Path $PSCommandPath) + "\get-installedprogramlist.psm1")
+Import-Module -name "$(Split-Path $PSCommandPath)\vhwcmis_module.psm1"
 
-
-#取得OS的版本
-function Get-OSVersion {
-    $os = (Get-WmiObject -Class Win32_OperatingSystem).Caption
-
-    if ($os -like "*Windows 7*") {
-        return "Windows 7"
-    }
-    elseif ($os -like "*Windows 10*") {
-        return "Windows 10"
-    }
-    elseif ($os -like "*Windows 11*") {
-        return "Windows 11"
-    }
-    else {
-        return "Unknown OS"
-    }
-}
 
 function install-PowerBIRS {
     # 安裝Winnexus
@@ -37,8 +19,6 @@ function install-PowerBIRS {
     ## 找出軟體是否己安裝
 
     $all_installed_program = get-installedprogramlist
-
-   
     $software_is_installed = $all_installed_program | Where-Object -FilterScript { $_.DisplayName -like "$software_name*" }
 
     if (($software_is_installed -eq $null) -and ($(Get-OSVersion) -in @("Windows 10","Windows 11")) ) {
@@ -55,21 +35,20 @@ function install-PowerBIRS {
 
         #installing...
         if (!$check_admin) {
-            $running = Start-Process -FilePath "$($env:TEMP)\$software_exec" -ArgumentList "-passive -norestart ACCEPT_EULA=1" -Credential $credential -PassThru
-            $running.WaitForExit()
+            $proc = Start-Process -FilePath "$($env:TEMP)\$software_exec" -ArgumentList "-passive -norestart ACCEPT_EULA=1" -Credential $credential -PassThru
         }
         else {
-            Start-Process -FilePath "$($env:TEMP)\$software_exec" -ArgumentList "-passive -norestart ACCEPT_EULA=1" -Wait
+            $proc = Start-Process -FilePath "$($env:TEMP)\$software_exec" -ArgumentList "-passive -norestart ACCEPT_EULA=1" -PassThru
         }
-
-
-        Start-Sleep -Seconds 5 
+        $proc.WaitForExit()
    
      
         #安裝完, 再重新取得安裝資訊
         $all_installed_program = get-installedprogramlist
         $software_is_installed = $all_installed_program | Where-Object -FilterScript { $_.DisplayName -like "$software_name*" }
-    } 
+    } else {
+        Write-Output "$(Get-OSVersion)不會安裝PowerBI."
+    }
 
     Write-Output ("Software has installed: " + $software_is_installed.DisplayName)
     Write-Output ("Version: " + $software_is_installed.DisplayVersion)
@@ -92,11 +71,8 @@ if ($run_main -eq $null) {
     
     }
 
-    if ($check_admin) { 
-        install-PowerBIRS
-    }
+    install-PowerBIRS
+    
     #pause
 }
 
-
-$(Get-OSVersion) -in @("Windows 10", "Windows 11")

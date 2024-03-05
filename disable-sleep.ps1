@@ -20,8 +20,6 @@ function disable-sleep {
     Write-Output "關閉混合式睡眠:關閉"
     powercfg /hibernate off
 
-    Write-Output "睡眠-允許喚醒計時器:停用"
-    powercfg -setacvalueindex SCHEME_BALANCED SUB_SLEEP RTCWAKE 0
 }
 
 #檔案獨立執行時會執行函式, 如果是被匯入時不會執行函式.

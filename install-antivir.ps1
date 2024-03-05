@@ -2,7 +2,8 @@
 
 param($runadmin)
 
-Import-Module ((Split-Path $PSCommandPath) + "\get-installedprogramlist.psm1")
+$mymodule_path = "$(Split-Path $PSCommandPath)\"
+Import-Module -name "$($mymodule_path)vhwcmis_module.psm1"
 
 
 function install-AntiVir {
@@ -41,17 +42,19 @@ function install-AntiVir {
         switch ($env:PROCESSOR_ARCHITECTURE) {
             "AMD64" { $software_exec = $software_msi_x64 }
             "x86" { $software_exec = $software_msi_x32 }
-            default { Write-OutPut "Unsupport CPU or OS:"  $env:PROCESSOR_ARCHITECTURE; $software_exec = $null }
+            default { Write-Warning "$software_name 無法正常安裝: 不支援的系統:  $($env:PROCESSOR_ARCHITECTURE)"; $software_exec = $null }
         }
 
         if ($software_exec -ne $null) {
-            Start-Process -FilePath "msiexec.exe" -ArgumentList "/i ""$($env:temp + "\" + $software_Name + "\" + $software_exec)"" /passive /log install_officescan.log" -Wait
-            Start-Sleep -Seconds 5 
+            $argumentlist = "/i ""$($env:temp + "\" + $software_Name + "\" + $software_exec)"" /passive /log install_officescan.log"
+            if ($check_admin) {
+                $proc = Start-Process -FilePath "msiexec.exe" -ArgumentList $argumentlist -PassThru
+            } else {
+                $proc = Start-Process -FilePath "msiexec.exe" -ArgumentList $argumentlist -Credential $credential -PassThru
+            }
+            $proc.WaitForExit()
+            Start-Sleep -Seconds 1 
         }
-        else {
-            Write-Warning "$software_name 無法正常安裝."
-        }
-      
              
         #安裝完, 再重新取得安裝資訊
         $all_installed_program = get-installedprogramlist
@@ -77,12 +80,7 @@ if ($run_main -eq $null) {
         Start-Process powershell.exe -ArgumentList "-FILE `"$PSCommandPath`" -Executionpolicy bypass -NoProfile  -runadmin 1" -Verb Runas; exit
     
     }
-
-    if ($check_admin) { 
-        install-AntiVir
-    }
-    else {
-        Write-Warning "無法取得管理員權限來安裝軟體, 請以管理員帳號重試."
-    }
+    
+    install-AntiVir
     pause
 }

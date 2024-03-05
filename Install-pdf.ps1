@@ -34,7 +34,7 @@ Windows Registry Editor Version 5.00
 #新版adobe reader改名為adobe acrobat, registry應隨著變更為Adobe Arcobate.
 #>
 
-Import-Module ((Split-Path $PSCommandPath) + "\get-installedprogramlist.psm1")
+Import-Module -name "$(Split-Path $PSCommandPath)\vhwcmis_module.psm1"
 
 function install-pdf {
     #安裝adobe pdf

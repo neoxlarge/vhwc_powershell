@@ -5,9 +5,8 @@
 
 param($runadmin)
 
-$mymodule_path = Split-Path $PSCommandPath + "\"
-Import-Module $mymodule_path + "get-installedprogramlist.psm1"
-Import-Module $mymodule_path + "get-admin_cred.psm1"
+$mymodule_path = "$(Split-Path $PSCommandPath)\"
+Import-Module -name "$($mymodule_path)vhwcmis_module.psm1"
 
 
 function install_msi {
