@@ -3,9 +3,9 @@ function get-msiversion {
     # 從msi檔案中提取軟體的版本.
     # from https://joelitechlife.ca/2021/04/01/getting-version-information-from-windows-msi-installer/comment-page-1/#respond
     param (
-        [parameter(Mandatory=$true)] 
-        [ValidateNotNullOrEmpty()] 
-            [System.IO.FileInfo] $MSIPATH
+    [parameter(Mandatory=$true)] 
+    [ValidateNotNullOrEmpty()] 
+    [System.IO.FileInfo] $MSIPATH
     ) 
     if (!(Test-Path $MSIPATH.FullName)) { 
         throw "File '{0}' does not exist" -f $MSIPATH.FullName 
@@ -21,7 +21,17 @@ function get-msiversion {
         return $Version
     } catch { 
         throw "Failed to get MSI file version: {0}." -f $_
-    }       
+    }
 
 }
 
+
+function  get-admin_cred {
+
+    $Username = "vhcy\vhwcmis"
+    $Password = "Mis20190610"
+    $securePassword = ConvertTo-SecureString $Password -AsPlainText -Force
+    $credential = New-Object System.Management.Automation.PSCredential($Username, $securePassword)
+
+    return $credential
+}

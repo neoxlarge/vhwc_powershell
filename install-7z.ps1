@@ -4,10 +4,7 @@
 param($runadmin)
 
 $mymodule_path = "$(Split-Path $PSCommandPath)\"
-Import-Module $mymodule_path + "get-installedprogramlist.psm1"
-Import-Module $mymodule_path + "get-msiversion.psm1"
-Import-Module $mymodule_path + "compare-version.psm1"
-Import-Module $mymodule_path + "get-admin_cred.psm1"
+Import-Module -name "$($mymodule_path)vhwcmis_module.psm1"
 
 function install-7z {
     
@@ -15,6 +12,14 @@ function install-7z {
     $software_path = "\\172.20.5.187\mis\07-7-7z"
     $software_msi = "7z2201-x64.msi"
     $software_msi_x86 = "7z2201-x32.msi"
+
+
+    ## 判斷OS是32(x86)或是64(AMD64), 其他值(ARM64)不安裝  
+    switch ($env:PROCESSOR_ARCHITECTURE) {
+        "AMD64" { $software_exec = $software_msi }
+        "x86" { $software_exec = $software_msi_x86 }
+        default { Write-Warning "Unsupport CPU or OS:"  $env:PROCESSOR_ARCHITECTURE; $software_exec = $null }
+    }
 
     ## 找出軟體是否己安裝
 
@@ -24,7 +29,7 @@ function install-7z {
     if ($software_is_installed) {
         #己有安裝
         # 比較版本新舊
-        $msi_version = get-msiversion -MSIPATH ($software_path + "\" + $software_exec)
+        $msi_version = get-msiversion -MSIPATH $($software_path + "\" + $software_exec)
         $check_version = compare-version -Version1 $msi_version -Version2 $software_is_installed.DisplayVersion
 
         if ($check_version) {
@@ -45,13 +50,7 @@ function install-7z {
         $software_path = get-item -Path $software_path
         Copy-Item -Path $software_path -Destination $env:temp -Recurse -Force -Verbose
 
-        ## 判斷OS是32(x86)或是64(AMD64), 其他值(ARM64)不安裝  
-        switch ($env:PROCESSOR_ARCHITECTURE) {
-            "AMD64" { $software_exec = $software_msi }
-            "x86" { $software_exec = $software_msi_x86 }
-            default { Write-Warning "Unsupport CPU or OS:"  $env:PROCESSOR_ARCHITECTURE; $software_exec = $null }
-        }
-
+        
         if ($software_exec -ne $null) {
             $msiExecArgs = "/i $($env:temp + "\" + $software_path.Name + "\" + $software_exec) /passive"
             
@@ -81,9 +80,6 @@ function install-7z {
     Write-Output ("Version: " + $software_is_installed.DisplayVersion)
 
 }
-
-
-
 
 
 #檔案獨立執行時會執行函式, 如果是被載入時不會執行函式.
