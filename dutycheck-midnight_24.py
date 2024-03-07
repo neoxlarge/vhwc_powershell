@@ -439,7 +439,7 @@ check_list = [{'url' : 'http://172.20.200.41/NOPD/showjoblog.aspx'},
     
 def main(): 
     parser = argparse.ArgumentParser(description='傳入webdriver.exe路徑和圖片存檔資料夾')
-    parser.add_argument('--driver_path', type=str, default=None, help='webdriver.exe路徑',required=False)
+    parser.add_argument('--driver_path', type=str, default=r'd:\\mis\\webdriver\\chromedriver.exe', help='webdriver.exe路徑',required=False)
     parser.add_argument('--png_foldername', type=str, default=None, help='圖片存檔資料夾',required=False)
     args = parser.parse_args()
     
