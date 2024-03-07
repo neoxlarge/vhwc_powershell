@@ -92,8 +92,6 @@ function set-Java_env {
         Copy-Item -Path $ca_path -Destination $keystore -Force
     }
     
-
-
 }
 
 function install-Java {
