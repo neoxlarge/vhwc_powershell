@@ -12,12 +12,6 @@ import pandas as pd
 import requests
 from PIL import Image, ImageDraw, ImageFont
 
-# line notify token
-test_line_token = "CclWwNgG6qbD5qx8eO3Oi4ii9azHfolj17SCzIE9UyI"
-vhwc_line_token = "HdkeCg1k4nehNa8tEIrJKYrNOeNZMrs89LQTKbf1tbz"
-vhwc_line_token = test_line_token
-
-
 def add_watermark(image_path, text):
   """
   在 PNG 檔中加入文字浮水印
@@ -83,21 +77,14 @@ def crop_image(image_path, crop_length):
         
     return filepaths
 
-
-def send_to_line_notify_bot(msg, line_notify_token, photo_opened=None):
-    url = "https://notify-api.line.me/api/notify"
-    headers = {"Authorization": f"Bearer {line_notify_token}"}
-    data = {"message":msg}
-    image_file = {'imageFile': photo_opened}
-    r = requests.post(url=url,data=data,headers=headers,files=image_file)
-    
+   
 
 def check_oe(url,account,pwd):
     """ 
     ### 檢查cpoe和eroe網頁 
-        * 依傳入的綱址, 折出灣橋和嘉義, cpoe和eroe
-        * 長螢幕截圖, 過長的圖, line 會壓縮, 造成糊掉, 圖檔會依長度切割
-        * 會檢查表格中內格有出現"失敗"字串, 會傳訊息提醒
+    * 依傳入的綱址, 折出灣橋和嘉義, cpoe和eroe
+    * 長螢幕截圖, 過長的圖, line 會壓縮, 造成糊掉, 圖檔會依長度切割
+    * 會檢查表格中內格有出現"失敗"字串, 會傳訊息提醒
     """
     url_content = url.split("/")
     #url sample = http://172.20.200.71/cpoe/m2/batch
@@ -449,3 +436,9 @@ check_all_showjob(check_list)
 #if now.hour <=1:    
 check_cyp2001(account=73058,pwd="Q1220416")    
     
+def main(): 
+    ################################
+    print("VHWC/VHCY 截圖")
+
+if __name__ == "__main__": 
+    main()
