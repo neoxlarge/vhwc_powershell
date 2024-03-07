@@ -11,6 +11,7 @@ import datetime as dt
 import pandas as pd
 import requests
 from PIL import Image, ImageDraw, ImageFont
+import argparse
 
 def add_watermark(image_path, text):
   """
@@ -387,7 +388,7 @@ def check_all_oe(check_list):
     for check in check_list:
         report = check_oe(url=check['url'], account=check['account'],pwd=check['pwd'])
         
-        send_to_line_notify_bot(msg=report['message'], line_notify_token=vhwc_line_token,photo_opened=None)
+        #send_to_line_notify_bot(msg=report['message'], line_notify_token=vhwc_line_token,photo_opened=None)
         if report['crop_images']:
             for i in report["crop_images"]:
                 msg = f"{report['branch']} {report['oe']} {report['crop_images'].index(i) + 1} / {len(report['crop_images'])}"
@@ -419,13 +420,13 @@ check_list = [{'url':"http://172.20.200.71/cpoe/m2/batch",
                'pwd' : 'acervghtc'}
                ]
 
-check_all_oe(check_list)
+#check_all_oe(check_list)
 
 #檢查嘉義和灣橋的所有showjob
 check_list = [{'url' : 'http://172.20.200.41/NOPD/showjoblog.aspx'},
               {'url' : 'http://172.19.200.41/NOPD/showjoblog.aspx'}] 
                
-check_all_showjob(check_list)
+#check_all_showjob(check_list)
 
 
 
@@ -434,9 +435,14 @@ check_all_showjob(check_list)
     #只有早上0點30分需要檢查這個
 #now = dt.datetime.now()
 #if now.hour <=1:    
-check_cyp2001(account=73058,pwd="Q1220416")    
+#check_cyp2001(account=73058,pwd="Q1220416")    
     
 def main(): 
+    parser = argparse.ArgumentParser(description='傳入webdriver.exe路徑和圖片存檔資料夾')
+    parser.add_argument('--driver_path', type=str, default=None, help='webdriver.exe路徑',required=False)
+    parser.add_argument('--png_foldername', type=str, default=None, help='圖片存檔資料夾',required=False)
+    args = parser.parse_args()
+    
     ################################
     print("VHWC/VHCY 截圖")
 
