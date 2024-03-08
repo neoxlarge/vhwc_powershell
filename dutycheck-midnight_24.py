@@ -12,6 +12,9 @@ import pandas as pd
 import requests
 from PIL import Image, ImageDraw, ImageFont
 import argparse
+import json
+from io import StringIO
+
 
 def add_watermark(image_path, text):
   """
@@ -98,42 +101,53 @@ def check_oe(url,account,pwd):
     report = {
         "date" : dt.datetime.now().strftime('%Y%m%d'),
         "time" : dt.datetime.now().strftime('%H:%M:%S'),
+        "taiwan_yyymmdd" : f"{dt.datetime.now().year - 1911}/{dt.datetime.now():%m}/{dt.datetime.now():%d}",
         "url" : url,
         "url_connected" : False,
         "branch" : branch_ipcode[url_content[2].split(".")[1]],
-        "oe" : url_content[3],
-        "png_foldername" : "d:\\mis\\",
+        "checkitem" : url_content[3],
+        "png_foldername" : png_foldername,
         "png_filename" : None,
-        'png_filepath' : None,
-        'crop_images' : None,
-        'fail_list' : None,
-        "message" : None
+        "png_filepath" : None,
+        "crop_images" : None,
+        "fail_list" : None,
+        "message" : None,
+        "result" : False
     }
     
     # 產生截圖檔名, name rule ex: vhwc_eroe_20240226123705.png
-    report['png_filename'] = f"{report['branch']}_{report['oe']}_{report['date']}{report['time'].replace(':','')}.png"
+    report['png_filename'] = f"{report['branch']}_{report['checkitem']}_{report['date']}{report['time'].replace(':','')}.png"
     report['png_filepath'] = f"{report['png_foldername']}{report['png_filename']}"
 
     # https://g.co/gemini/share/ada92acb29a0
     options = webdriver.ChromeOptions()
     #防止chrome自動關閉
     options.add_experimental_option(name="detach", value=True)
+    #禁用devtools日誌
+    options.add_experimental_option('excludeSwitches', ['enable-logging'])
     #chrome 的無界面模式, 此模式才可以截長圖
     options.add_argument("headless")
-
-    driver = webdriver.Chrome(options=options)
+    #指定webdriver路徑
+    service = webdriver.ChromeService(driver_path)
+    #開啟chrome
+    driver = webdriver.Chrome(options=options,service=service)
     #width 1800, 截圖後長度比較剛好, 長度any, 載入網頁後會變.
     driver.set_window_size(width=1800,height=700)
+    driver.implicitly_wait(10)
+
     #檢查url是否可正常連線
     try:
         driver.get(url=url)
         report['url_connected'] = True
-        
-        
     except (WebDriverException, TimeoutException) as e:
         driver.close()
-        msg = f"🚨 Fail: {url} 連線失敗"
-        #report['url_connected'] = False
+        report['url_connected'] = False
+        report['message'] = "{url} 連線失敗"
+    except Exception as e:
+        driver.close()
+        report['url_connected'] = False
+        report['message'] = "不明原因失敗"
+            
         
     if report['url_connected']:    
         input_account = driver.find_element(By.NAME,"login")
@@ -144,7 +158,7 @@ def check_oe(url,account,pwd):
 
         input_submit = driver.find_element(By.NAME,"m2Login_submit")
         input_submit.click()
-        time.sleep(3)
+        #time.sleep(3)
 
         # 回傳網頁載入後的長寬
         width = driver.execute_script("return document.documentElement.scrollWidth")
@@ -163,14 +177,14 @@ def check_oe(url,account,pwd):
             report['crop_images'] = [report['png_filepath'],]
         
         for img in report['crop_images']:
-            add_watermark(img, f"{report['branch']} {report['oe']} {report['date']}")
+            add_watermark(img, f"{report['branch']} {report['checkitem']} {report['date']}")
             
         # 截圖完成, 找錯誤log
 
         # 找出綱頁中的table, 轉為dataframe, 再將有"失敗"字串的資料取出.
         report_element = driver.find_element(By.CLASS_NAME,"tableIn")
         report_html = report_element.get_attribute('outerHTML')
-        report_df = pd.read_html(report_html)[0]
+        report_df = pd.read_html(StringIO(report_html))[0]
         report['fail_list'] = report_df[report_df['執行狀態'].str.contains("失敗")]
 
         driver.close()
@@ -178,17 +192,23 @@ def check_oe(url,account,pwd):
         #整理失敗的資料, 轉成要發送的訊息
                 
         if report['fail_list'].empty:
-            msg = "🟢 Pass"
+            report['result'] = True
+            report['message'] = "Pass"
+            report['fail_list'] = report['fail_list'].to_string() 
+            
+            
         else:
-            msg = f"🚨 Fail: 總共{report['fail_list'].shape[0]}個\n"
+            report['result'] = False
+            msg = f"總共{report['fail_list'].shape[0]}個\n"
 
             #for r in range(report_fail_list.shape[0]):
             for r in range(report['fail_list'].shape[0]):
                 msg += f"ID: {report['fail_list'].iloc[r,0]}\n說明: {report['fail_list'].iloc[r,5]}\n---------\n"
                 
-    title_msg = f"{report['branch']} {report['oe']}\n ==={report['date']} {report['time']}===\n"            
-    report['message'] = title_msg + msg
-        
+            title_msg = f"{report['branch']} {report['checkitem']}\n ==={report['date']} {report['time']}===\n"            
+            report['message'] = title_msg + msg
+            report['fail_list'] = report['fail_list'].to_string() 
+                
     # 回傳要傳line的訊息和截圖儲存路徑(可能有切圖)
     return report
 
@@ -211,47 +231,59 @@ def check_showjob (url):
     report = {
         "date" : dt.datetime.now().strftime('%Y%m%d'),
         "time" : dt.datetime.now().strftime('%H:%M:%S'),
+        "taiwan_yyymmdd" : f"{dt.datetime.now().year - 1911}/{dt.datetime.now():%m}/{dt.datetime.now():%d}",
         "url" : url,
         "url_connected" : False,
         "branch" : branch_ipcode[url_content[2].split(".")[1]],
-        "item" : "showjob",
-        "png_foldername" : "d:\\mis\\",
+        "checkitem" : "showjob",
+        "png_foldername" : png_foldername,
         "png_filename" : None,
-        'png_filepath' : None,
-        'crop_images' : None,
-        'fail_list' : None,
-        "message" : None
+        "png_filepath" : None,
+        "crop_images" : None,
+        "fail_list" : None,
+        "message" : None,
+        "result" : False
     }
     
     # 產生截圖檔名, name rule ex: vhwc_showjob_20240226123705.png
-    report['png_filename'] = f"{report['branch']}_{report['item']}_{report['date']}{report['time'].replace(':','')}.png"
+    report['png_filename'] = f"{report['branch']}_{report['checkitem']}_{report['date']}{report['time'].replace(':','')}.png"
     report['png_filepath'] = f"{report['png_foldername']}{report['png_filename']}"
         
     # https://g.co/gemini/share/ada92acb29a0
     options = webdriver.ChromeOptions()
     # 防止chrome自動關閉
     options.add_experimental_option(name="detach", value=True)
+    options.add_experimental_option('excludeSwitches', ['enable-logging'])
     # chrome 的無界面模式, 此模式才可以截長圖
     options.add_argument("headless")
-
-    driver = webdriver.Chrome(options=options)
+    #指定webdriver路徑
+    service = webdriver.ChromeService(driver_path)
+    #開啟chrome
+    driver = webdriver.Chrome(options=options,service=service)
     #width 1000, showjob截圖後長度長, 長度any, 載入網頁後會變.
     driver.set_window_size(width=1000,height=700)
+    driver.implicitly_wait(10)
+
+    #檢查url是否可正常連線
     try:
         driver.get(url=url)
         report['url_connected'] = True
-        
-    except (WebDriverException,TimeoutException) as e:
+    except (WebDriverException, TimeoutException) as e:
         driver.close()
-        msg = f"🚨 Fail: {url} 連線失敗"    
+        report['url_connected'] = False
+        report['message'] = "{url} 連線失敗"
+    except Exception as e:
+        driver.close()
+        report['url_connected'] = False
+        report['message'] = "不明原因失敗"
+
 
     if report['url_connected']:
 
         button_run = driver.find_element(By.ID, "btnExec")
         button_run.click()
-
         #停長一點, 除非有寫等待載入完的code
-        time.sleep(5)
+        #time.sleep(5)
 
         width = driver.execute_script("return document.documentElement.scrollWidth")
         height = driver.execute_script("return document.documentElement.scrollHeight")
@@ -268,11 +300,11 @@ def check_showjob (url):
             report['crop_images'] = [report['png_filepath'],]    
         
         for img in report['crop_images']:
-            add_watermark(img, f"{report['branch']} {report['item']} {report['date']}")
+            add_watermark(img, f"{report['branch']} {report['checkitem']} {report['date']}")
      
 
         #截圖完成, 找錯誤log
-        report_table = pd.read_html(driver.page_source)[0]
+        report_table = pd.read_html(StringIO(driver.page_source))[0]
         new_head = report_table.iloc[2]
         report_table = report_table.drop(report_table.columns[:3],axis=0)
         report_table.columns = new_head
@@ -280,23 +312,25 @@ def check_showjob (url):
 
         driver.close()
     
-
         #整理report
         if report['fail_list'].empty:
-            msg = "🟢 Pass"
+            report['result'] = True
+            report['fail_list'] = report['fail_list'].to_string() 
         else:
-            msg = f"🚨 Fail: 總共{report['fail_list'].shape[0]}個\n"
+            report['result'] = False
+            msg = f"總共{report['fail_list'].shape[0]}個\n"
 
             for r in range(report['fail_list'].shape[0]) :
                 msg += f"程式代碼: {report['fail_list'].iloc[r,0]}\n執行狀況: {report['fail_list'].iloc[r,6]}\n---------\n"
             
-    title_msg = f"{report['branch']} showjob\n ==={report['date']} {report['time']}===\n"
-    report['message'] = title_msg + msg
+            title_msg = f"{report['branch']} {report['checkitem']}\n ==={report['date']} {report['time']}===\n"
+            report['message'] = title_msg + msg
+            report['fail_list'] = report['fail_list'].to_string() 
 
     return report
 
 
-def check_cyp2001(account,pwd):
+def check_cyp2001(branch,account,pwd):
     """ 
     ### 檢查外掛程式中處方log統計網頁 
     * 外掛不好用selenium取得網頁內容, 配合用requests取得綱頁, 
@@ -305,12 +339,18 @@ def check_cyp2001(account,pwd):
     report = {
         "date" : dt.datetime.now().strftime('%Y%m%d'),
         "time" : dt.datetime.now().strftime('%H:%M:%S'),
-        'taiwan_yyymmdd' : f"{dt.datetime.now().year - 1911}/{dt.datetime.now():%m}/{dt.datetime.now():%d}",
+        "taiwan_yyymmdd" : f"{dt.datetime.now().year - 1911}/{dt.datetime.now():%m}/{dt.datetime.now():%d}",
         "url" : "http://172.19.1.21/medpt/medptlogin.php",
         "url_connected" : False,
-        "branch" : ['wc','cy'],
-        "item" : "Prescription_log",
-        "png_foldername" : "d:\\mis\\",
+        "branch" : branch,
+        "checkitem" : "Prescription_log",
+        "png_foldername" : png_foldername,
+        "png_filename" : None,
+        "png_filepath" : None,
+        "crop_images" : None,
+        "fail_list" : None,
+        "message" : None,
+        "result" : False
 
     }
     
@@ -320,25 +360,33 @@ def check_cyp2001(account,pwd):
     options = webdriver.ChromeOptions()
     #防止chrome自動關閉
     options.add_experimental_option(name="detach", value=True)
+    options.add_experimental_option('excludeSwitches', ['enable-logging'])
     #chrome 的無界面模式, 此模式才可以截長圖
     options.add_argument("headless")
-
-    #先開chrome登入外掛系統.
+    #指定webdriver路徑
+    service = webdriver.ChromeService(driver_path)
+    #開啟chrome
+    driver = webdriver.Chrome(options=options,service=service)
     driver = webdriver.Chrome(options=options)
     #width 600, 外掛表格比較窄, 長度any, 載入網頁後會變.
     driver.set_window_size(width=400,height=600)
     
+    #檢查url是否可正常連線
     try:
         driver.get(url=report['url'])
         report['url_connected'] = True
     except (WebDriverException, TimeoutException) as e:
         driver.close()
-        msg = f"外掛糸統\n🚨 Fail: {url} 連線失敗"    
-        send_to_line_notify_bot(msg=msg, line_notify_token=vhwc_line_token, photo_opened=None)
+        report['url_connected'] = False
+        report['message'] = f"{report['url']} 連線失敗"
+    except Exception as e:
+        driver.close()
+        report['url_connected'] = False
+        report['message'] = "不明原因失敗"
 
-
+    
     if report['url_connected']:
-        
+        #第二層, 連去cyp2001.php, 取得cyp2001表格內容.
         loginname = driver.find_element(By.NAME,"cn")
         loginpwd = driver.find_element(By.NAME,"pw")
         loginname.send_keys(account)
@@ -346,89 +394,47 @@ def check_cyp2001(account,pwd):
         loginpwd.send_keys(Keys.RETURN) #直接按enter送出
     
         time.sleep(1)
-        for b in report['branch'] :
-    
-            now = dt.datetime.now()
-            path_title = f"{report['png_foldername']}vh{b}_{report['item']}_{report['taiwan_yyymmdd'].replace('/','')}"
+        
+        report['png_filename'] = f"{report['branch']}_{report['checkitem']}_{report['date']}{report['time'].replace(':', '')}.png"
+        report['png_filepath'] = f"{report['png_foldername']}{report['png_filename']}"
+        
 
-            url = "http://172.19.1.21/medpt/cyp2001.php"
-            data = {'g_yyymmdd_s': report['taiwan_yyymmdd'],'from': b,}
+        url = "http://172.19.1.21/medpt/cyp2001.php"
+        data = {'g_yyymmdd_s': report['taiwan_yyymmdd'],'from': {report['branch']},}
 
-            save_html_path = f"{path_title}.html"
-            save_img_path = f"{path_title}.png"
+        save_html_path = f"{report['png_filepath'].replace('.png','.html')}"
+        
+        try:
+            response = requests.post(url=url,data=data)
+            response.raise_for_status()
+        except requests.exceptions.HTTPError as err:        #有問題可能是cyp2001.php有問題.
+            report['url_connected'] = False
+            report['message'] = f"vh{report['branch']} {report['checkitem']} \n ==={report['date']} {report['time']}===\n {url} 連線失敗"
+            
+            
+        if response.status_code == 200: #code 200 表示網頁正確取得, 寫入html檔.
+            with open(save_html_path, 'wb') as f:
+                f.write(response.content)
 
-            try:
-                response = requests.post(url=url,data=data)
-                response.raise_for_status()
-            except requests.exceptions.HTTPError as err:        #有問題可能是外掛網或登入有問題.
-                msg = f"vh{b} 處方LOG統計 \n ==={now.strftime('%Y%m%d %H:%M:%S')}===\n🚨 Fail: {url} 連線失敗"
-                #send_to_line_notify_bot(msg=msg, line_notify_token=vhwc_line_token, photo_opened=None)
+            driver.get(save_html_path)
 
+            width = driver.execute_script("return document.documentElement.scrollWidth")
+            height = driver.execute_script("return document.documentElement.scrollHeight")
+            driver.set_window_size(width, height) 
+            
+            time.sleep(1)
+            driver.save_screenshot(report['png_filepath'])
 
-            if response.status_code == 200: #code 200 表示網頁正確取得, 寫入html檔.
-                with open(save_html_path, 'wb') as f:
-                    f.write(response.content)
-
-                driver.get(save_html_path)
-
-                width = driver.execute_script("return document.documentElement.scrollWidth")
-                height = driver.execute_script("return document.documentElement.scrollHeight")
-                driver.set_window_size(width, height) 
-                
-                time.sleep(1)
-                driver.save_screenshot(save_img_path)
-
-                msg = f"vh{b} 處方LOG統計 \n ==={now.strftime('%Y%m%d %H:%M:%S')}==="
-                #send_to_line_notify_bot(msg=msg, line_notify_token=vhwc_line_token, photo_opened=open(save_img_path, "rb"))
+            report['result'] = True
+            
+        else:
+            report['result'] = False
+            report['message'] = f"vh{report['branch']} {report['checkitem']} \n ==={report['date']} {report['time']}===\n {url} 網頁回應不正確:\n {response.status_code}"
 
     driver.close()
+
+    return report
     
-
-def check_all_oe(check_list):
-    for check in check_list:
-        report = check_oe(url=check['url'], account=check['account'],pwd=check['pwd'])
-        
-        #send_to_line_notify_bot(msg=report['message'], line_notify_token=vhwc_line_token,photo_opened=None)
-        if report['crop_images']:
-            for i in report["crop_images"]:
-                msg = f"{report['branch']} {report['oe']} {report['crop_images'].index(i) + 1} / {len(report['crop_images'])}"
-                #send_to_line_notify_bot(msg=msg, line_notify_token=vhwc_line_token, photo_opened=open(i, "rb"))
-                
-                
-def check_all_showjob(check_list):
-    for check in check_list:
-        report = check_showjob(url=check['url'])
-
-        send_to_line_notify_bot(msg=report['message'], line_notify_token=vhwc_line_token, photo_opened=None)
-        if report['crop_images']:
-            for i in report["crop_images"]:
-                msg = f"{report['branch']} showjob {report['crop_images'].index(i) + 1} / {len(report['crop_images'])}"
-                #send_to_line_notify_bot(msg=msg, line_notify_token=vhwc_line_token, photo_opened=open(i, "rb"))
-
-#檢查嘉義和灣橋的所有oe
-check_list = [{'url':"http://172.20.200.71/cpoe/m2/batch",
-               'account' :  'CC4F',
-               'pwd' : 'acervghtc'},
-               {'url':"http://172.20.200.71/eroe/m2/batch",
-               'account' :  'CC4F',
-               'pwd' : 'acervghtc'},
-               {'url':"http://172.19.200.71/cpoe/m2/batch",
-               'account' :  'CC4F',
-               'pwd' : 'acervghtc'},
-               {'url':"http://172.19.200.71/eroe/m2/batch",
-               'account' :  'CC4F',
-               'pwd' : 'acervghtc'}
-               ]
-
-#check_all_oe(check_list)
-
-#檢查嘉義和灣橋的所有showjob
-check_list = [{'url' : 'http://172.20.200.41/NOPD/showjoblog.aspx'},
-              {'url' : 'http://172.19.200.41/NOPD/showjoblog.aspx'}] 
-               
-#check_all_showjob(check_list)
-
-
 
 
 ### 檢查處方LOG統計
@@ -440,11 +446,55 @@ check_list = [{'url' : 'http://172.20.200.41/NOPD/showjoblog.aspx'},
 def main(): 
     parser = argparse.ArgumentParser(description='傳入webdriver.exe路徑和圖片存檔資料夾')
     parser.add_argument('--driver_path', type=str, default=r'd:\\mis\\webdriver\\chromedriver.exe', help='webdriver.exe路徑',required=False)
-    parser.add_argument('--png_foldername', type=str, default=None, help='圖片存檔資料夾',required=False)
-    args = parser.parse_args()
+    parser.add_argument('--png_foldername', type=str, default='d:\\mis\\', help='圖片存檔資料夾',required=False)
+    args = parser.parse_args(['--driver_path','d:\\mis\\webdriver\\chromedriver.exe','--png_foldername','d:\\mis\\'])
+    global png_foldername, driver_path
+    png_foldername = args.png_foldername
+    driver_path = args.driver_path
     
     ################################
-    print("VHWC/VHCY 截圖")
+    print("VHWC/VHCY 值班截圖")
+    
+    report_list = []
+
+    #檢查嘉義和灣橋的所有oe
+    check_list = [{'url':"http://172.20.200.71/cpoe/m2/batch",
+                'account' :  'CC4F',
+                'pwd' : 'acervghtc'},
+                {'url':"http://172.20.200.71/eroe/m2/batch",
+                'account' :  'CC4F',
+                'pwd' : 'acervghtc'},
+                {'url':"http://172.19.200.71/cpoe/m2/batch",
+                'account' :  'CC4F',
+                'pwd' : 'acervghtc'},
+                {'url':"http://172.19.200.71/eroe/m2/batch",
+                'account' :  'CC4F',
+                'pwd' : 'acervghtc'}
+                ]
+    
+    for check in check_list:
+        report = check_oe(url=check['url'], account=check['account'], pwd=check['pwd'])
+        report_list.append(report)
+                      
+    #檢查嘉義和灣橋的所有showjob
+    check_list = [{'url' : 'http://172.20.200.41/NOPD/showjoblog.aspx'},
+                {'url' : 'http://172.19.200.41/NOPD/showjoblog.aspx'}] 
+    
+    for check in check_list:
+        report = check_showjob(url=check['url'])
+        report_list.append(report)
+
+    check_list = ['wc','cy']
+    for check in check_list:
+        report = check_cyp2001(account=73058, pwd="Q1220416", branch=check)
+        report_list.append(report)    
+    
+    #把report_list存檔到png_foldername資料夾,格式是json, 檔名是dutycheck.json
+    json.dump(report_list, open(f"{png_foldername}dutycheck.json", "w"))
+    #print(report_list)        
+    
+
+
 
 if __name__ == "__main__": 
     main()
