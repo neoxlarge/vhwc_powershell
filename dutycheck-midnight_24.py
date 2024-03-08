@@ -150,7 +150,7 @@ def check_oe(url,account,pwd):
         report['url_connected'] = False
         report['message'] = "不明原因失敗"
     
-    print(f"檢查 {report['url_connected']}")        
+    print(f" {report['url_connected']}")        
         
     if report['url_connected']:    
         input_account = driver.find_element(By.NAME,"login")
@@ -282,7 +282,7 @@ def check_showjob (url):
         report['url_connected'] = False
         report['message'] = "不明原因失敗"
 
-    print(f"檢查 {report['url_connected']}")
+    print(f" {report['url_connected']}")
 
     if report['url_connected']:
 
@@ -421,7 +421,7 @@ def check_cyp2001(branch,account,pwd):
             report['url_connected'] = False
             report['message'] = f"vh{report['branch']} {report['checkitem']} \n ==={report['date']} {report['time']}===\n {url} 連線失敗"
             
-        print(f"檢查 {response.status_code}")    
+        print(f" status code: {response.status_code}")    
             
         if response.status_code == 200: #code 200 表示網頁正確取得, 寫入html檔.
             with open(save_html_path, 'wb') as f:
