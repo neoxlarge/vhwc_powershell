@@ -135,7 +135,7 @@ def check_oe(url,account,pwd):
     driver.set_window_size(width=1800,height=700)
     driver.implicitly_wait(10)
 
-    print(f"檢查 {report['url']}",end="\r")
+    print(f"檢查 {report['url']}",end="")
     
     #檢查url是否可正常連線
     try:
@@ -267,7 +267,7 @@ def check_showjob (url):
     driver.set_window_size(width=1000,height=700)
     driver.implicitly_wait(10)
 
-    print(f"檢查 {report['url']}",end="\r")
+    print(f"檢查 {report['url']}",end="")
 
     #檢查url是否可正常連線
     try:
@@ -373,11 +373,10 @@ def check_cyp2001(branch,account,pwd):
     service = webdriver.ChromeService(driver_path)
     #開啟chrome
     driver = webdriver.Chrome(options=options,service=service)
-    driver = webdriver.Chrome(options=options)
     #width 600, 外掛表格比較窄, 長度any, 載入網頁後會變.
     driver.set_window_size(width=400,height=600)
     
-    print(f"登入 {report['url']} branch: {report['branch']}", end="\r")
+    print(f"登入 {report['url']} branch: {report['branch']}", end="")
     
     #檢查url是否可正常連線
     try:
@@ -413,7 +412,7 @@ def check_cyp2001(branch,account,pwd):
 
         save_html_path = f"{report['png_filepath'].replace('.png','.html')}"
         
-        print(f"檢查 {url} branch: {report['branch']}", end="\r")
+        print(f"檢查 {url} branch: {report['branch']}", end="")
         
         try:
             response = requests.post(url=url,data=data)
