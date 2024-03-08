@@ -124,7 +124,7 @@ def check_oe(url,account,pwd):
     #防止chrome自動關閉
     options.add_experimental_option(name="detach", value=True)
     #禁用devtools日誌
-    options.add_experimental_option('excludeSwitches', ['enable-logging'])
+    options.add_experimental_option('excludeSwitches', ['disable-logging'])
     #chrome 的無界面模式, 此模式才可以截長圖
     options.add_argument("headless")
     #指定webdriver路徑
@@ -135,6 +135,8 @@ def check_oe(url,account,pwd):
     driver.set_window_size(width=1800,height=700)
     driver.implicitly_wait(10)
 
+    print(f"檢查 {report['url']}",end="\r")
+    
     #檢查url是否可正常連線
     try:
         driver.get(url=url)
@@ -147,7 +149,8 @@ def check_oe(url,account,pwd):
         driver.close()
         report['url_connected'] = False
         report['message'] = "不明原因失敗"
-            
+    
+    print(f"檢查 {report['url_connected']}")        
         
     if report['url_connected']:    
         input_account = driver.find_element(By.NAME,"login")
@@ -264,6 +267,8 @@ def check_showjob (url):
     driver.set_window_size(width=1000,height=700)
     driver.implicitly_wait(10)
 
+    print(f"檢查 {report['url']}",end="\r")
+
     #檢查url是否可正常連線
     try:
         driver.get(url=url)
@@ -277,6 +282,7 @@ def check_showjob (url):
         report['url_connected'] = False
         report['message'] = "不明原因失敗"
 
+    print(f"檢查 {report['url_connected']}")
 
     if report['url_connected']:
 
@@ -371,6 +377,8 @@ def check_cyp2001(branch,account,pwd):
     #width 600, 外掛表格比較窄, 長度any, 載入網頁後會變.
     driver.set_window_size(width=400,height=600)
     
+    print(f"登入 {report['url']} branch: {report['branch']}", end="\r")
+    
     #檢查url是否可正常連線
     try:
         driver.get(url=report['url'])
@@ -384,6 +392,7 @@ def check_cyp2001(branch,account,pwd):
         report['url_connected'] = False
         report['message'] = "不明原因失敗"
 
+    print(f"檢查 {report['url_connected']}")
     
     if report['url_connected']:
         #第二層, 連去cyp2001.php, 取得cyp2001表格內容.
@@ -395,7 +404,7 @@ def check_cyp2001(branch,account,pwd):
     
         time.sleep(1)
         
-        report['png_filename'] = f"{report['branch']}_{report['checkitem']}_{report['date']}{report['time'].replace(':', '')}.png"
+        report['png_filename'] = f"vh{report['branch']}_{report['checkitem']}_{report['date']}{report['time'].replace(':', '')}.png"
         report['png_filepath'] = f"{report['png_foldername']}{report['png_filename']}"
         
 
@@ -404,6 +413,8 @@ def check_cyp2001(branch,account,pwd):
 
         save_html_path = f"{report['png_filepath'].replace('.png','.html')}"
         
+        print(f"檢查 {url} branch: {report['branch']}", end="\r")
+        
         try:
             response = requests.post(url=url,data=data)
             response.raise_for_status()
@@ -411,6 +422,7 @@ def check_cyp2001(branch,account,pwd):
             report['url_connected'] = False
             report['message'] = f"vh{report['branch']} {report['checkitem']} \n ==={report['date']} {report['time']}===\n {url} 連線失敗"
             
+        print(f"檢查 {response.status_code}")    
             
         if response.status_code == 200: #code 200 表示網頁正確取得, 寫入html檔.
             with open(save_html_path, 'wb') as f:
@@ -445,7 +457,7 @@ def check_cyp2001(branch,account,pwd):
     
 def main(): 
     parser = argparse.ArgumentParser(description='傳入webdriver.exe路徑和圖片存檔資料夾')
-    parser.add_argument('--driver_path', type=str, default=r'd:\\mis\\webdriver\\chromedriver.exe', help='webdriver.exe路徑',required=False)
+    parser.add_argument('--driver_path', type=str, default='d:\\mis\\webdriver\\chromedriver.exe', help='webdriver.exe路徑',required=False)
     parser.add_argument('--png_foldername', type=str, default='d:\\mis\\', help='圖片存檔資料夾',required=False)
     args = parser.parse_args(['--driver_path','d:\\mis\\webdriver\\chromedriver.exe','--png_foldername','d:\\mis\\'])
     global png_foldername, driver_path
