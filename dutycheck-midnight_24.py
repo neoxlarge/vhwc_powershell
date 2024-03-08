@@ -391,7 +391,7 @@ def check_cyp2001(branch,account,pwd):
         report['url_connected'] = False
         report['message'] = "不明原因失敗"
 
-    print(f"檢查 {report['url_connected']}")
+    print(f" {report['url_connected']}")
     
     if report['url_connected']:
         #第二層, 連去cyp2001.php, 取得cyp2001表格內容.
@@ -446,24 +446,17 @@ def check_cyp2001(branch,account,pwd):
 
     return report
     
-
-
-### 檢查處方LOG統計
-    #只有早上0點30分需要檢查這個
-#now = dt.datetime.now()
-#if now.hour <=1:    
-#check_cyp2001(account=73058,pwd="Q1220416")    
     
 def main(): 
     parser = argparse.ArgumentParser(description='傳入webdriver.exe路徑和圖片存檔資料夾')
     parser.add_argument('--driver_path', type=str, default='d:\\mis\\webdriver\\chromedriver.exe', help='webdriver.exe路徑',required=False)
     parser.add_argument('--png_foldername', type=str, default='d:\\mis\\', help='圖片存檔資料夾',required=False)
-    args = parser.parse_args(['--driver_path','d:\\mis\\webdriver\\chromedriver.exe','--png_foldername','d:\\mis\\'])
+    #args = parser.parse_args(['--driver_path','d:\\mis\\webdriver\\chromedriver.exe','--png_foldername','d:\\mis\\'])
+    args = parser.parse_args()
     global png_foldername, driver_path
     png_foldername = args.png_foldername
     driver_path = args.driver_path
     
-    ################################
     print("VHWC/VHCY 值班截圖")
     
     report_list = []
@@ -495,17 +488,18 @@ def main():
         report = check_showjob(url=check['url'])
         report_list.append(report)
 
-    check_list = ['wc','cy']
-    for check in check_list:
-        report = check_cyp2001(account=73058, pwd="Q1220416", branch=check)
-        report_list.append(report)    
-    
+    ### 檢查處方LOG統計
+    #只有早上0點30分需要檢查這個
+    now = dt.datetime.now()
+    if now.hour <=1:    
+        check_list = ['wc','cy']
+        for check in check_list:
+            report = check_cyp2001(account=73058, pwd="Q1220416", branch=check)
+            report_list.append(report)    
+        
     #把report_list存檔到png_foldername資料夾,格式是json, 檔名是dutycheck.json
     json.dump(report_list, open(f"{png_foldername}dutycheck.json", "w"))
-    #print(report_list)        
+            
     
-
-
-
 if __name__ == "__main__": 
     main()
