@@ -450,11 +450,11 @@ def check_cyp2001(branch,account,pwd):
 def main(): 
     parser = argparse.ArgumentParser(description='傳入webdriver.exe路徑和圖片存檔資料夾')
     parser.add_argument('--driver_path', type=str, default='d:\\mis\\webdriver\\chromedriver.exe', help='webdriver.exe路徑',required=False)
-    parser.add_argument('--png_foldername', type=str, default='d:\\mis\\', help='圖片存檔資料夾',required=False)
+    parser.add_argument('--output_path', type=str, default='d:\\mis\\', help='圖片存檔資料夾',required=False)
     #args = parser.parse_args(['--driver_path','d:\\mis\\webdriver\\chromedriver.exe','--png_foldername','d:\\mis\\'])
     args = parser.parse_args()
     global png_foldername, driver_path
-    png_foldername = args.png_foldername
+    png_foldername = args.output_path
     driver_path = args.driver_path
     
     print("VHWC/VHCY 值班截圖")
