@@ -1,50 +1,59 @@
-# «Ø¥ßsession¨ì¹Å¸q»·ºİ®à­±¥D¾÷ 172.19.1.24
-# ¦b24°õ¦æºI¹Ïµ{¦¡¦s¦^¥»¦a
-
+ï»¿# å»ºç«‹sessionåˆ°å˜‰ç¾©é ç«¯æ¡Œé¢ä¸»æ©Ÿ 172.19.1.24
+# åœ¨24åŸ·è¡Œæˆªåœ–ç¨‹å¼å­˜å›æœ¬åœ°
 
 function Send-LineNotifyMessage {
     [CmdletBinding()]
     param (
         
-        [string]$Token = "CclWwNgG6qbD5qx8eO3Oi4ii9azHfolj17SCzIE9UyI", # Line Notify ¦s¨úÅv§ú
+        [string]$Token = "CclWwNgG6qbD5qx8eO3Oi4ii9azHfolj17SCzIE9UyI", # Line Notify å­˜å–æ¬Šæ–
 
         [Parameter(Mandatory = $true)]
-        [string]$Message, # ­nµo°eªº°T®§¤º®e
+        [string]$Message, # è¦ç™¼é€çš„è¨Šæ¯å…§å®¹
 
-        [string]$StickerPackageId, # ­n¤@¨Ö¶Ç°eªº¶K¹Ï®M¥ó ID
+        [string]$StickerPackageId, # è¦ä¸€ä½µå‚³é€çš„è²¼åœ–å¥—ä»¶ ID
 
-        [string]$StickerId              # ­n¤@¨Ö¶Ç°eªº¶K¹Ï ID
+        [string]$StickerId,              # è¦ä¸€ä½µå‚³é€çš„è²¼åœ– ID
+
+        [string]$ImagePath # è¦å‚³é€çš„åœ–ç‰‡æª”æ¡ˆè·¯å¾‘
     )
 
-    # Line Notify API ªº URI
+    # Line Notify API çš„ URI
     $uri = "https://notify-api.line.me/api/notify"
 
-    # ³]©w HTTP Header¡A¥]§t Line Notify ¦s¨úÅv§ú
+    # è¨­å®š HTTP Headerï¼ŒåŒ…å« Line Notify å­˜å–æ¬Šæ–
     $headers = @{ "Authorization" = "Bearer $Token" }
 
-    # ³]©w­n¶Ç°eªº°T®§¤º®e
+    # è¨­å®šè¦å‚³é€çš„è¨Šæ¯å…§å®¹
     $payload = @{
         "message" = $Message
     }
 
-    # ¦pªG­n¶Ç°e¶K¹Ï¡A¥[¤J¶K¹Ï®M¥ó ID ©M¶K¹Ï ID
+    # å¦‚æœæœ‰å‚³é€åœ–ç‰‡ï¼Œå°‡åœ–ç‰‡è½‰æ›ç‚º Base64 å­—ä¸²
+    if ($ImagePath) {
+        $imageBytes = [System.IO.File]::ReadAllBytes($ImagePath)
+        $payload["image"] = [System.Convert]::ToBase64String($imageBytes)
+    }
+
+    # å¦‚æœè¦å‚³é€è²¼åœ–ï¼ŒåŠ å…¥è²¼åœ–å¥—ä»¶ ID å’Œè²¼åœ– ID
     if ($StickerPackageId -and $StickerId) {
         $payload["stickerPackageId"] = $StickerPackageId
         $payload["stickerId"] = $StickerId
     }
 
     try {
-        # ¨Ï¥Î Invoke-RestMethod ¶Ç°e HTTP POST ½Ğ¨D
+        # ä½¿ç”¨ Invoke-RestMethod å‚³é€ HTTP POST è«‹æ±‚
         Invoke-RestMethod -Uri $uri -Method Post -Headers $headers -Body $payload
 
-        # °T®§¦¨¥\¶Ç°e
-        Write-Output "°T®§¤w¦¨¥\¶Ç°e¡C"
+        # è¨Šæ¯æˆåŠŸå‚³é€
+        Write-Output "è¨Šæ¯å·²æˆåŠŸå‚³é€ã€‚"
     }
     catch {
-        # µo¥Í¿ù»~¡A¿é¥X¿ù»~°T®§
+        # ç™¼ç”ŸéŒ¯èª¤ï¼Œè¼¸å‡ºéŒ¯èª¤è¨Šæ¯
         Write-Error $_.Exception.Message
     }
+    Start-Sleep -s 1
 }
+
 
 
 $Username = "vhcy\73058"
@@ -59,7 +68,7 @@ $script_block = {
     param($output_path)
 
     write-output $output_path
-    #powershell»·ºİµn¤J«á, ¤£·|¦³\\172.20.5.185\misªºÅv­­, ­n±¾¤WºÏºĞ¾÷«á¤~¦³Åv­­.  
+    #powershellé ç«¯ç™»å…¥å¾Œ, ä¸æœƒæœ‰\\172.20.5.185\misçš„æ¬Šé™, è¦æ›ä¸Šç£ç¢Ÿæ©Ÿå¾Œæ‰æœ‰æ¬Šé™.  
     $Username = "vhcy\73058"
     $Password = "Q1220416-"
     $securePassword = ConvertTo-SecureString $Password -AsPlainText -Force
@@ -74,19 +83,30 @@ $script_block = {
 
  }
  
- #Invoke-Command -ComputerName $remote_computer -ScriptBlock $script_block -Credential $credential  -ArgumentList $output_path
+#Invoke-Command -ComputerName $remote_computer -ScriptBlock $script_block -Credential $credential  -ArgumentList $output_path
 
-$json = Get-Content -Path ($output_path + "\dutycheck.json")
+$json = Get-Content -Path "$output_path\dutycheck.json"
 $reprots = ConvertFrom-Json -InputObject $json
 
 foreach ($re in $reprots) {
-    $title_message = "$($re.branch) $($re.date) $($re.time)"
+    $msg = "$($re.branch)  $($re.checkitem)`n ===$($re.date) $($re.time)=== `n"
 
+    if ($re.result -eq $true) {
+        $msg += "ğŸŸ¢ Pass: "
+    } else {
+        $msg += "ğŸš¨ Fail: $($re.message)"
+    }
 
-
-
-    $send_msg = $title_message
+    $send_msg = $msg
     Send-LineNotifyMessage -Message $send_msg
+
+    foreach ($png in $re.crop_images) {
+        $msg = "$($re.crop_images.IndexOf($png) + 1)/$($re.crop_images.Count)"
+        Send-LineNotifyMessage -Message $msg -ImagePath $re
+    }
+
+
+
 }
 
 
