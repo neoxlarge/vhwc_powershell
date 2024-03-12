@@ -1,8 +1,10 @@
 ﻿# 建立session到嘉義遠端桌面主機 172.19.1.24
 # 在24執行截圖程式存回本地
+#AVt3SxMcHhatY2fuG2j6HzKGdb5BOTmrfAlEiBolQOO
+#CclWwNgG6qbD5qx8eO3Oi4ii9azHfolj17SCzIE9UyI
 function Send-LineNotify {
     param (
-        [string]$token = "CclWwNgG6qbD5qx8eO3Oi4ii9azHfolj17SCzIE9UyI",
+        [string]$token = "AVt3SxMcHhatY2fuG2j6HzKGdb5BOTmrfAlEiBolQOO",
         [string]$message,
         [string]$imagePath
     )

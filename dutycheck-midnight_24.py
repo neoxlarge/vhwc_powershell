@@ -289,13 +289,13 @@ def check_showjob (url):
         button_run = driver.find_element(By.ID, "btnExec")
         button_run.click()
         #停長一點, 除非有寫等待載入完的code
-        #time.sleep(5)
+        time.sleep(2)
 
         width = driver.execute_script("return document.documentElement.scrollWidth")
         height = driver.execute_script("return document.documentElement.scrollHeight")
         
-        driver.set_window_size(width, height) 
-        time.sleep(1) 
+        driver.set_window_size(width, height + 600) 
+        time.sleep(2) 
         
         driver.get_screenshot_as_file(report['png_filepath'])
 
