@@ -4,7 +4,7 @@
 #CclWwNgG6qbD5qx8eO3Oi4ii9azHfolj17SCzIE9UyI
 function Send-LineNotify {
     param (
-        [string]$token = "AVt3SxMcHhatY2fuG2j6HzKGdb5BOTmrfAlEiBolQOO",
+        [string]$token = "CclWwNgG6qbD5qx8eO3Oi4ii9azHfolj17SCzIE9UyI",
         [string]$message,
         [string]$imagePath
     )
