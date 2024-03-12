@@ -1,59 +1,53 @@
 ﻿# 建立session到嘉義遠端桌面主機 172.19.1.24
 # 在24執行截圖程式存回本地
-
-function Send-LineNotifyMessage {
-    [CmdletBinding()]
+function Send-LineNotify {
     param (
-        
-        [string]$Token = "CclWwNgG6qbD5qx8eO3Oi4ii9azHfolj17SCzIE9UyI", # Line Notify 存取權杖
-
-        [Parameter(Mandatory = $true)]
-        [string]$Message, # 要發送的訊息內容
-
-        [string]$StickerPackageId, # 要一併傳送的貼圖套件 ID
-
-        [string]$StickerId,              # 要一併傳送的貼圖 ID
-
-        [string]$ImagePath # 要傳送的圖片檔案路徑
+        [string]$token = "CclWwNgG6qbD5qx8eO3Oi4ii9azHfolj17SCzIE9UyI",
+        [string]$message,
+        [string]$imagePath
     )
 
-    # Line Notify API 的 URI
     $uri = "https://notify-api.line.me/api/notify"
 
-    # 設定 HTTP Header，包含 Line Notify 存取權杖
-    $headers = @{ "Authorization" = "Bearer $Token" }
-
-    # 設定要傳送的訊息內容
-    $payload = @{
-        "message" = $Message
+    # 准备消息内容
+    $body = @{
+        message = $message
     }
 
-    # 如果有傳送圖片，將圖片轉換為 Base64 字串
-    if ($ImagePath) {
-        $imageBytes = [System.IO.File]::ReadAllBytes($ImagePath)
-        $payload["image"] = [System.Convert]::ToBase64String($imageBytes)
+    # 准备 multipart/form-data 格式的消息体
+    $multipartContent = [System.Net.Http.MultipartFormDataContent]::new()
+    foreach ($key in $body.Keys) {
+        $content = [System.Net.Http.StringContent]::new($body[$key])
+        $multipartContent.Add($content, $key)
     }
 
-    # 如果要傳送貼圖，加入貼圖套件 ID 和貼圖 ID
-    if ($StickerPackageId -and $StickerId) {
-        $payload["stickerPackageId"] = $StickerPackageId
-        $payload["stickerId"] = $StickerId
+    # 添加图片文件
+    if ($imagePath -ne "") {
+        $imageStream = [System.IO.File]::OpenRead($imagePath)
+        $imageContent = [System.Net.Http.StreamContent]::new($imageStream)
+        $imageContent.Headers.ContentType = [System.Net.Http.Headers.MediaTypeHeaderValue]::new("image/png")  # 可根据实际图片类型调整
+        $multipartContent.Add($imageContent, "imageFile", (Split-Path $imagePath -Leaf))
     }
 
-    try {
-        # 使用 Invoke-RestMethod 傳送 HTTP POST 請求
-        Invoke-RestMethod -Uri $uri -Method Post -Headers $headers -Body $payload
+    # 准备 HTTP 请求
+    $request = [System.Net.Http.HttpRequestMessage]::new([System.Net.Http.HttpMethod]::Post, $uri)
+    $request.Headers.Authorization = "Bearer $token"
+    $request.Content = $multipartContent
 
-        # 訊息成功傳送
-        Write-Output "訊息已成功傳送。"
+    # 发送请求
+    $httpClient = [System.Net.Http.HttpClient]::new()
+    $response = $httpClient.SendAsync($request).Result
+
+    # 处理响应
+    if ($response.IsSuccessStatusCode) {
+        Write-Host "Message sent successfully."
     }
-    catch {
-        # 發生錯誤，輸出錯誤訊息
-        Write-Error $_.Exception.Message
+    else {
+        Write-Host "Failed to send message. StatusCode: $($response.StatusCode), Reason: $($response.ReasonPhrase)"
     }
-    Start-Sleep -s 1
+
+    start-sleep -second 2
 }
-
 
 
 $Username = "vhcy\73058"
@@ -62,7 +56,7 @@ $securePassword = ConvertTo-SecureString $Password -AsPlainText -Force
 $credential = New-Object System.Management.Automation.PSCredential($Username, $securePassword)
 
 $remote_computer = 'remote_WIN2016.vhcy.gov.tw'
-$output_path ='\\172.20.5.185\mis\webdriver'
+$output_path = '\\172.20.5.185\mis\webdriver'
 
 $script_block = {
     param($output_path)
@@ -76,14 +70,14 @@ $script_block = {
 
     New-PSDrive -Name Q -Root "$output_path" -Credential $credential -PSProvider FileSystem -Persist
     
-    $proc = Start-Process -FilePath "D:\mis\webdriver\dutycheck-midnight_24.exe" -ArgumentList "--output_path $output_path" -PassThru
+    $proc = Start-Process -FilePath "D:\mis\webdriver\dutycheck-midnight_24.exe" -ArgumentList "--output_path $output_path\" -PassThru
     $proc.WaitForExit()
     
     Remove-PSDrive -Name "Q"
 
- }
+}
  
-#Invoke-Command -ComputerName $remote_computer -ScriptBlock $script_block -Credential $credential  -ArgumentList $output_path
+Invoke-Command -ComputerName $remote_computer -ScriptBlock $script_block -Credential $credential  -ArgumentList $output_path
 
 $json = Get-Content -Path "$output_path\dutycheck.json"
 $reprots = ConvertFrom-Json -InputObject $json
@@ -93,18 +87,21 @@ foreach ($re in $reprots) {
 
     if ($re.result -eq $true) {
         $msg += "🟢 Pass: "
-    } else {
+    }
+    else {
         $msg += "🚨 Fail: $($re.message)"
     }
 
     $send_msg = $msg
-    Send-LineNotifyMessage -Message $send_msg
-
-    foreach ($png in $re.crop_images) {
-        $msg = "$($re.crop_images.IndexOf($png) + 1)/$($re.crop_images.Count)"
-        Send-LineNotifyMessage -Message $msg -ImagePath $re
+    Send-LineNotify -Message $send_msg
+    if ($re.crop_images.count -ne 0) {
+        foreach ($png in $re.crop_images) {
+            $msg = "$($re.crop_images.IndexOf($png) + 1)/$($re.crop_images.Count)"
+            Send-LineNotify -Message $msg -ImagePath $png
+        }
+    } else {
+        Send-LineNotify -Message $re.branch -ImagePath $re.png_filepath
     }
-
 
 
 }

@@ -1,51 +1,98 @@
-#line_notify_token  = "CclWwNgG6qbD5qx8eO3Oi4ii9azHfolj17SCzIE9UyI"
+ï»¿#line_notify_token  = "CclWwNgG6qbD5qx8eO3Oi4ii9azHfolj17SCzIE9UyI"
 
 
 function Send-LineNotifyMessage {
     [CmdletBinding()]
     param (
         
-        [string]$Token = "CclWwNgG6qbD5qx8eO3Oi4ii9azHfolj17SCzIE9UyI",                 # Line Notify ¦s¨úÅv§ú
+        [string]$Token = "CclWwNgG6qbD5qx8eO3Oi4ii9azHfolj17SCzIE9UyI",                 # Line Notify å­˜å–æ¬Šæ–
 
         [Parameter(Mandatory = $true)]
-        [string]$Message,               # ­nµo°eªº°T®§¤º®e
+        [string]$Message,               # è¦ç™¼é€çš„è¨Šæ¯å…§å®¹
 
-        [string]$StickerPackageId,      # ­n¤@¨Ö¶Ç°eªº¶K¹Ï®M¥ó ID
+        [string]$StickerPackageId,      # è¦ä¸€ä½µå‚³é€çš„è²¼åœ–å¥—ä»¶ ID
 
-        [string]$StickerId              # ­n¤@¨Ö¶Ç°eªº¶K¹Ï ID
+        [string]$StickerId              # è¦ä¸€ä½µå‚³é€çš„è²¼åœ– ID
     )
 
-    # Line Notify API ªº URI
+    # Line Notify API çš„ URI
     $uri = "https://notify-api.line.me/api/notify"
 
-    # ³]©w HTTP Header¡A¥]§t Line Notify ¦s¨úÅv§ú
+    # è¨­å®š HTTP Headerï¼ŒåŒ…å« Line Notify å­˜å–æ¬Šæ–
     $headers = @{ "Authorization" = "Bearer $Token" }
 
-    # ³]©w­n¶Ç°eªº°T®§¤º®e
+    # è¨­å®šè¦å‚³é€çš„è¨Šæ¯å…§å®¹
     $payload = @{
         "message" = $Message
     }
 
-    # ¦pªG­n¶Ç°e¶K¹Ï¡A¥[¤J¶K¹Ï®M¥ó ID ©M¶K¹Ï ID
+    # å¦‚æœè¦å‚³é€è²¼åœ–ï¼ŒåŠ å…¥è²¼åœ–å¥—ä»¶ ID å’Œè²¼åœ– ID
     if ($StickerPackageId -and $StickerId) {
         $payload["stickerPackageId"] = $StickerPackageId
         $payload["stickerId"] = $StickerId
     }
 
     try {
-        # ¨Ï¥Î Invoke-RestMethod ¶Ç°e HTTP POST ½Ğ¨D
+        # ä½¿ç”¨ Invoke-RestMethod å‚³é€ HTTP POST è«‹æ±‚
         Invoke-RestMethod -Uri $uri -Method Post -Headers $headers -Body $payload
 
-        # °T®§¦¨¥\¶Ç°e
-        Write-Output "°T®§¤w¦¨¥\¶Ç°e¡C"
+        # è¨Šæ¯æˆåŠŸå‚³é€
+        Write-Output "è¨Šæ¯å·²æˆåŠŸå‚³é€ã€‚"
     }
     catch {
-        # µo¥Í¿ù»~¡A¿é¥X¿ù»~°T®§
+        # ç™¼ç”ŸéŒ¯èª¤ï¼Œè¼¸å‡ºéŒ¯èª¤è¨Šæ¯
         Write-Error $_.Exception.Message
     }
 }
 
 
+
+function Send-LineNotifyMessage2 {
+    [CmdletBinding()]
+    param (
+      [Parameter(Mandatory = $true)]
+      [string]$Token, # LINE Notify å­˜å–æ¬Šæ–
+      [Parameter(Mandatory = $true)]
+      [string]$Message, # è¦ç™¼é€çš„è¨Šæ¯å…§å®¹
+      [string]$ImagePath, # è¦å‚³é€çš„åœ–ç‰‡æª”æ¡ˆè·¯å¾‘
+      [string]$StickerPackageId, # è¦ä¸€ä½µå‚³é€çš„è²¼åœ–å¥—ä»¶ ID
+      [string]$StickerId # è¦ä¸€ä½µå‚³é€çš„è²¼åœ– ID
+    )
+  
+    # LINE Notify API çš„ URI
+    $uri = "https://notify-api.line.me/api/notify"
+  
+    # å»ºç«‹ HTTP Header
+    $headers = New-Object System.Collections.Hashtable
+    $headers.Add("Authorization", "Bearer $Token")
+    $headers.Add("Content-Type", "multipart/form-data;boundary=$boundary")
+  
+    # å»ºç«‹ Form æ¬„ä½
+    $form = New-Object System.Collections.Hashtable
+    $form.Add("message", $Message)
+  
+    # å¦‚æœè¦å‚³é€åœ–ç‰‡
+    if ($ImagePath) {
+      $fileData = [System.IO.File]::ReadAllBytes($ImagePath)
+      $form.Add("imageFile", [PSCustomObject]@{
+        "Content-Type" = "image/png"
+        "Content-Disposition" = "form-data; name=\'imageFile\'; filename=\'$(Split-Path $ImagePath -Leaf)\'"
+        "Value" = $fileData
+      })
+    }
+  
+    # å¦‚æœè¦å‚³é€è²¼åœ–ï¼ŒåŠ å…¥è²¼åœ–å¥—ä»¶ ID å’Œè²¼åœ– ID
+    if ($StickerPackageId -and $StickerId) {
+      $form.Add("stickerPackageId", $StickerPackageId)
+      $form.Add("stickerId", $StickerId)
+    }
+  
+    # ä½¿ç”¨ Invoke-WebRequest å‚³é€ HTTP POST è«‹æ±‚
+    Invoke-RestMethod -Uri $uri -Method Post -Headers $headers -Body $form
+  }
+  
+
 $line_token = "CclWwNgG6qbD5qx8eO3Oi4ii9azHfolj17SCzIE9UyI"
 
-Send-LineNotifyMessage -Token $line_token -Message "vhwc test line "
+#Send-LineNotifyMessage -Token $line_token -Message "vhwc test line "
+Send-LineNotifyMessage2 -Token $line_token -Message "haha" #-ImagePath d:\mis\webdriver\vhcy_cpoe_20240311205152.png

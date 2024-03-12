@@ -208,8 +208,8 @@ def check_oe(url,account,pwd):
             for r in range(report['fail_list'].shape[0]):
                 msg += f"ID: {report['fail_list'].iloc[r,0]}\n說明: {report['fail_list'].iloc[r,5]}\n---------\n"
                 
-            title_msg = f"{report['branch']} {report['checkitem']}\n ==={report['date']} {report['time']}===\n"            
-            report['message'] = title_msg + msg
+            #title_msg = f"{report['branch']} {report['checkitem']}\n ==={report['date']} {report['time']}===\n"            
+            report['message'] = msg
             report['fail_list'] = report['fail_list'].to_string() 
                 
     # 回傳要傳line的訊息和截圖儲存路徑(可能有切圖)
@@ -329,8 +329,8 @@ def check_showjob (url):
             for r in range(report['fail_list'].shape[0]) :
                 msg += f"程式代碼: {report['fail_list'].iloc[r,0]}\n執行狀況: {report['fail_list'].iloc[r,6]}\n---------\n"
             
-            title_msg = f"{report['branch']} {report['checkitem']}\n ==={report['date']} {report['time']}===\n"
-            report['message'] = title_msg + msg
+            #title_msg = f"{report['branch']} {report['checkitem']}\n ==={report['date']} {report['time']}===\n"
+            report['message'] = msg
             report['fail_list'] = report['fail_list'].to_string() 
 
     return report
@@ -490,12 +490,11 @@ def main():
 
     ### 檢查處方LOG統計
     #只有早上0點30分需要檢查這個
-    now = dt.datetime.now()
-    if now.hour <=1:    
-        check_list = ['wc','cy']
-        for check in check_list:
-            report = check_cyp2001(account=73058, pwd="Q1220416", branch=check)
-            report_list.append(report)    
+        
+    check_list = ['wc','cy']
+    for check in check_list:
+        report = check_cyp2001(account=73058, pwd="Q1220416", branch=check)
+        report_list.append(report)    
         
     #把report_list存檔到png_foldername資料夾,格式是json, 檔名是dutycheck.json
     json.dump(report_list, open(f"{png_foldername}dutycheck.json", "w"))
