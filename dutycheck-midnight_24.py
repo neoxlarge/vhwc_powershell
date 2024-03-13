@@ -1,3 +1,19 @@
+# VHWC/VHCY 值班截圖
+# 主要是用來值班截圖
+# 用selenium實作網頁爬蟲, 以chrome讀取網頁. 截圖還有產生一個dutycheck.json結果報告檔.
+# 檢查: vhwc, vhcy 各檢查以下
+# 1. cpoe, eroe
+# 2. showjob
+# 3. 外掛報表\處方LOG統計
+# 參數:
+# --driver_path 指定chromedriver.exe 的位置, 預設在d:\mis\webdrive\chromedriver.exe, chromedriver.exe 
+#               要配合糸統安裝的chrome. 如果chrome有更新,chromedriver.exe也要一起更新.
+# --output_path 輸出截圖的位置, 預設在d:\mis\webdrive\sebdriver
+#
+# 目前172.19.1.24可以產生vhwc, vhcy的結果, 所以編成.exe到24上跑. 結果存回\\172.20.5.185\mis\webdriver 後
+# 配合dutycheck-midnight_control.ps1 發送 line notify 截圖.
+
+
 from selenium import webdriver
 ## BY: 也就是依照條件尋找元素中XPATH、CLASS NAME、ID、CSS選擇器等都會用到的Library
 from selenium.webdriver.common.by import By
@@ -264,7 +280,7 @@ def check_showjob (url):
     #開啟chrome
     driver = webdriver.Chrome(options=options,service=service)
     #width 1000, showjob截圖後長度長, 長度any, 載入網頁後會變.
-    driver.set_window_size(width=1000,height=700)
+    driver.set_window_size(width=800,height=700)
     driver.implicitly_wait(10)
 
     print(f"檢查 {report['url']}",end="")
@@ -293,7 +309,7 @@ def check_showjob (url):
 
         width = driver.execute_script("return document.documentElement.scrollWidth")
         height = driver.execute_script("return document.documentElement.scrollHeight")
-        
+        time.sleep(2) 
         driver.set_window_size(width, height + 600) 
         time.sleep(2) 
         
@@ -448,9 +464,9 @@ def check_cyp2001(branch,account,pwd):
     
     
 def main(): 
-    parser = argparse.ArgumentParser(description='傳入webdriver.exe路徑和圖片存檔資料夾')
+    parser = argparse.ArgumentParser(prog="VHWC/VHCY 值班截圖",description='傳入webdriver.exe路徑和圖片存檔資料夾')
     parser.add_argument('--driver_path', type=str, default='d:\\mis\\webdriver\\chromedriver.exe', help='webdriver.exe路徑',required=False)
-    parser.add_argument('--output_path', type=str, default='d:\\mis\\', help='圖片存檔資料夾',required=False)
+    parser.add_argument('--output_path', type=str, default='d:\\mis\\webdriver\\', help='圖片存檔資料夾',required=False)
     #args = parser.parse_args(['--driver_path','d:\\mis\\webdriver\\chromedriver.exe','--png_foldername','d:\\mis\\'])
     args = parser.parse_args()
     global png_foldername, driver_path
@@ -461,7 +477,7 @@ def main():
     
     report_list = []
 
-    #檢查嘉義和灣橋的所有oe
+    ### 檢查嘉義和灣橋的所有oe ##################################################
     check_list = [{'url':"http://172.20.200.71/cpoe/m2/batch",
                 'account' :  'CC4F',
                 'pwd' : 'acervghtc'},
@@ -480,7 +496,7 @@ def main():
         report = check_oe(url=check['url'], account=check['account'], pwd=check['pwd'])
         report_list.append(report)
                       
-    #檢查嘉義和灣橋的所有showjob
+    ### 檢查嘉義和灣橋的所有showjob ######################################
     check_list = [{'url' : 'http://172.20.200.41/NOPD/showjoblog.aspx'},
                 {'url' : 'http://172.19.200.41/NOPD/showjoblog.aspx'}] 
     
@@ -488,9 +504,7 @@ def main():
         report = check_showjob(url=check['url'])
         report_list.append(report)
 
-    ### 檢查處方LOG統計
-    #只有早上0點30分需要檢查這個
-        
+    ### 檢查處方LOG統計 ##################################################
     check_list = ['wc','cy']
     for check in check_list:
         report = check_cyp2001(account=73058, pwd="Q1220416", branch=check)
