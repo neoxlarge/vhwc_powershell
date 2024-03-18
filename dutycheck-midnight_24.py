@@ -51,7 +51,7 @@ def add_watermark(image_path, text):
   # 建立文字浮水印
   watermark = Image.new("RGBA", image.size, (0, 0, 0, 0))
   draw = ImageDraw.Draw(watermark)
-  draw.text((0, 0), text, font=ImageFont.truetype("arial.ttf", 80), fill=(255, 25, 255, 128))
+  draw.text((0, 0), text, font=ImageFont.truetype("arial.ttf", 60), fill=(255, 25, 200, 100))
 
   # 將文字浮水印加入 PNG 檔
   image.paste(watermark, (0, 0), watermark)
@@ -310,12 +310,12 @@ def check_showjob (url):
         width = driver.execute_script("return document.documentElement.scrollWidth")
         height = driver.execute_script("return document.documentElement.scrollHeight")
         time.sleep(2) 
-        driver.set_window_size(width, height + 600) 
+        driver.set_window_size(width, height + 70) 
         time.sleep(2) 
         
         driver.get_screenshot_as_file(report['png_filepath'])
 
-        #line notify 傳送圖片可能有限制, 過長會壓縮. 如果超過2500, 就截切圖片. 
+        #line notify 傳送圖片可能有限制, 過長會壓縮. 如果超過2040, 就截切圖片. 
         if height > 2040:
             report['crop_images'] = crop_image(image_path=report['png_filepath'],crop_length=2040)
         else :
@@ -330,7 +330,7 @@ def check_showjob (url):
         new_head = report_table.iloc[2]
         report_table = report_table.drop(report_table.columns[:3],axis=0)
         report_table.columns = new_head
-        report['fail_list'] = report_table[report_table['執行時間'].str.contains("失敗")]
+        report['fail_list'] = report_table[report_table['結束時間'].str.contains("失敗")]  #20240318 fixed.
 
         driver.close()
     
