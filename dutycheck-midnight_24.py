@@ -330,7 +330,7 @@ def check_showjob (url):
         new_head = report_table.iloc[2]
         report_table = report_table.drop(report_table.columns[:3],axis=0)
         report_table.columns = new_head
-        report_table = report_table['結束時間'].fillna(" ") #'結束時間'欄位讀到pandas裡是NaN, 改成" ",就不會出錯.
+        report_table = report_table.fillna(" ") #'結束時間'欄位讀到pandas裡是NaN, 改成" ",就不會出錯.
         report['fail_list'] = report_table[report_table['結束時間'].str.contains("失敗")]  #20240318 fixed. hsowjob的失敗會出現在'結束時間'.
 
         driver.close()
