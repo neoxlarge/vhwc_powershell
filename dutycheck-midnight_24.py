@@ -310,7 +310,7 @@ def check_showjob (url):
         width = driver.execute_script("return document.documentElement.scrollWidth")
         height = driver.execute_script("return document.documentElement.scrollHeight")
         time.sleep(2) 
-        driver.set_window_size(width, height + 70) 
+        driver.set_window_size(width, height + 90) 
         time.sleep(2) 
         
         driver.get_screenshot_as_file(report['png_filepath'])
@@ -330,6 +330,7 @@ def check_showjob (url):
         new_head = report_table.iloc[2]
         report_table = report_table.drop(report_table.columns[:3],axis=0)
         report_table.columns = new_head
+        print(report_table)
         report['fail_list'] = report_table[report_table['結束時間'].str.contains("失敗")]  #20240318 fixed. hsowjob的失敗會出現在'結束時間'.
 
         driver.close()
