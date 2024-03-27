@@ -104,7 +104,9 @@ $script_block = {
 Invoke-Command -ComputerName $remote_computer -ScriptBlock $script_block -Credential $credential  -ArgumentList $output_path
 
 # 讀取截圖報告
-$json = Get-Content -Path "$output_path\dutycheck.json"
+
+$yyyymmdd = (get-date -Format "yyyyMMddtt").Replace("上午","AM").Replace("下午","PM")
+$json = Get-Content -Path "$output_path\dutycheck_$yyyymmdd.json"
 $reprots = ConvertFrom-Json -InputObject $json
 
 # 依內容發出line notify
