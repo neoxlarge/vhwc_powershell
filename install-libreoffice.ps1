@@ -8,6 +8,10 @@ Import-Module -name "$(Split-Path $PSCommandPath)\vhwcmis_module.psm1"
 
 function install-libreoffice {
     
+    if ($credential) {
+        $credential = get-admin_cred
+    }
+
     $software_name = "LibreOffice*"
     $software_path = "\\172.20.1.122\share\software\00newpc\10-LibreOffice"
     $software_msi = "LibreOffice_Win_x64.msi"
@@ -28,7 +32,10 @@ function install-libreoffice {
     if ($software_is_installed) {
         #己有安裝
         # 比較版本新舊
-        $msi_version = get-msiversion -MSIPATH ($software_path + "\" + $software_exec)
+
+        $software = get-tiem -PassThru ($software_path + "\" + $software_exec) -Credential $credential
+
+        $msi_version = get-msiversion -MSIPATH ($software.FullName)
         $check_version = compare-version -Version1 $msi_version -Version2 $software_is_installed.DisplayVersion
 
         if ($check_version) {
@@ -49,7 +56,7 @@ function install-libreoffice {
 
         #復制檔案到本機暫存"
         $software_path = get-item -Path $software_path
-        Copy-Item -Path $software_path -Destination $env:temp -Recurse -Force -Verbose
+        Copy-Item -Path $software_path -Destination $env:temp -Recurse -Force -Verbose -Credential $credential
 
         
         if ($software_exec -ne $null) {
