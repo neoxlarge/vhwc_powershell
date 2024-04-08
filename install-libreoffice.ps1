@@ -8,7 +8,7 @@ Import-Module -name "$(Split-Path $PSCommandPath)\vhwcmis_module.psm1"
 
 function install-libreoffice {
     
-    if ($credential) {
+    if (!$credential) {
         $credential = get-admin_cred
     }
 
@@ -29,13 +29,24 @@ function install-libreoffice {
     $all_installed_program = get-installedprogramlist
     $software_is_installed = $all_installed_program | Where-Object -FilterScript { $_.DisplayName -like $software_name }
 
+
+    if (!(Test-Path -Path $software_path)) {
+
+        New-PSDrive -Name $software_name -Root "$software_path" -PSProvider FileSystem -Credential $credential
+        
+        }
+
     if ($software_is_installed) {
         #己有安裝
         # 比較版本新舊
+        
+        if (!(Test-Path -Path $software_path)) {
 
-        $software = get-tiem -PassThru ($software_path + "\" + $software_exec) -Credential $credential
+        New-PSDrive -Name $software_name -Root "$software_path" -PSProvider FileSystem -Credential $credential
+        
+        }
 
-        $msi_version = get-msiversion -MSIPATH ($software.FullName)
+        $msi_version = get-msiversion -MSIPATH ($software_path + "\" + $software_exec)
         $check_version = compare-version -Version1 $msi_version -Version2 $software_is_installed.DisplayVersion
 
         if ($check_version) {
@@ -56,7 +67,7 @@ function install-libreoffice {
 
         #復制檔案到本機暫存"
         $software_path = get-item -Path $software_path
-        Copy-Item -Path $software_path -Destination $env:temp -Recurse -Force -Verbose -Credential $credential
+        Copy-Item -Path $software_path -Destination $env:temp -Recurse -Force -Verbose 
 
         
         if ($software_exec -ne $null) {
@@ -80,6 +91,10 @@ function install-libreoffice {
         $all_installed_program = get-installedprogramlist
         $software_is_installed = $all_installed_program | Where-Object -FilterScript { $_.DisplayName -like $software_name }
     
+    }
+
+    if ($newpsd) {
+    Remove-PSDrive -Name $software_name
     }
 
     Write-Output ("Software has installed: " + $software_is_installed.DisplayName)
