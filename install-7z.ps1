@@ -7,6 +7,10 @@ Import-Module -name "$(Split-Path $PSCommandPath)\vhwcmis_module.psm1"
 
 function install-7z {
     
+    if (!$credential) {
+        $credential = get-admin_cred
+    }
+
     $software_name = "7-Zip*"
     $software_path = "\\172.20.5.187\mis\07-7-7z"
     $software_msi = "7z2201-x64.msi"
@@ -19,8 +23,12 @@ function install-7z {
         default { throw "$software_name 無法正常安裝: 不支援的系統:  $($env:PROCESSOR_ARCHITECTURE)" }
     }
 
-    ## 找出軟體是否己安裝
+    # 預先連線到安裝來源的路徑.
+    if (!(Test-Path -Path $software_path)) {
+        New-PSDrive -Name $software_name -Root "$software_path" -PSProvider FileSystem -Credential $credential
+        }
 
+    ## 找出軟體是否己安裝
     $all_installed_program = get-installedprogramlist
     $software_is_installed = $all_installed_program | Where-Object -FilterScript { $_.DisplayName -like $software_name }
 

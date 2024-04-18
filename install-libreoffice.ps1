@@ -8,7 +8,7 @@ Import-Module -name "$(Split-Path $PSCommandPath)\vhwcmis_module.psm1"
 
 function install-libreoffice {
     
-    if (!$credential) {
+    if (!$check_admin) {
         $credential = get-admin_cred
     }
 
@@ -29,23 +29,14 @@ function install-libreoffice {
     $all_installed_program = get-installedprogramlist
     $software_is_installed = $all_installed_program | Where-Object -FilterScript { $_.DisplayName -like $software_name }
 
-
+    # 預先連線到安裝來源的路徑.
     if (!(Test-Path -Path $software_path)) {
-
         New-PSDrive -Name $software_name -Root "$software_path" -PSProvider FileSystem -Credential $credential
-        
         }
 
     if ($software_is_installed) {
         #己有安裝
         # 比較版本新舊
-        
-        if (!(Test-Path -Path $software_path)) {
-
-        New-PSDrive -Name $software_name -Root "$software_path" -PSProvider FileSystem -Credential $credential
-        
-        }
-
         $msi_version = get-msiversion -MSIPATH ($software_path + "\" + $software_exec)
         $check_version = compare-version -Version1 $msi_version -Version2 $software_is_installed.DisplayVersion
 
@@ -93,7 +84,7 @@ function install-libreoffice {
     
     }
 
-    if ($newpsd) {
+    if (Get-PSDrive -Name $software_name) {
     Remove-PSDrive -Name $software_name
     }
 

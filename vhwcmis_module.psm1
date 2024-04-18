@@ -17,28 +17,42 @@ function get-installedprogramlist {
 
 
 
+function  get-admin_cred {
+    #取得管理員權限
+    $Username = "vhcy\vhwcmis"
+    $Password = "Mis20190610"
+    $securePassword = ConvertTo-SecureString $Password -AsPlainText -Force
+    $credential = New-Object System.Management.Automation.PSCredential($Username, $securePassword)
+    
+    return $credential
+}
+
+
+
 function uninstall-software {
     <#
     .SYNOPSIS
         移除指定名字的軟體
     
     #>
-
+    param(
     [Parameter(Mandatory = $true)]
     [string]$name 
+    )
+    
 
-
-    $mymodule_path = Split-Path $PSCommandPath + "\"
-    Import-Module $mymodule_path + "get-installedprogramlist.psm1"
-    Import-Module $mymodule_path + "get-admin_cred.psm1"
+    #$mymodule_path = Split-Path $PSCommandPath + "\"
+    #Import-Module $mymodule_path + "get-installedprogramlist.psm1"
+    #Import-Module $mymodule_path + "get-admin_cred.psm1"
 
     $credential = get-admin_cred
 
     $all_installed_program = get-installedprogramlist
     $software_is_installed = $all_installed_program | Where-Object -FilterScript { $_.DisplayName -like $name }
 
-
+    
     if ($software_is_installed -ne $null) {
+        Write-output "Uninstalling : $name"
         $uninstallstring = $software_is_installed.uninstallString.Split(" ")[1].replace("I", "X")
 
         $running_proc = Start-Process -FilePath "msiexec.exe" -ArgumentList "$uninstallstring /passive" -Credential $credential -PassThru
@@ -76,18 +90,6 @@ function get-msiversion {
         throw "Failed to get MSI file version: {0}." -f $_
     }
 
-}
-
-
-
-function  get-admin_cred {
-    #取得管理員權限
-    $Username = "vhcy\vhwcmis"
-    $Password = "Mis20190610"
-    $securePassword = ConvertTo-SecureString $Password -AsPlainText -Force
-    $credential = New-Object System.Management.Automation.PSCredential($Username, $securePassword)
-    
-    return $credential
 }
 
 
