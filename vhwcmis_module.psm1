@@ -52,7 +52,7 @@ function uninstall-software {
 
     
     if ($software_is_installed -ne $null) {
-        Write-output "Uninstalling : $name"
+        
         $uninstallstring = $software_is_installed.uninstallString.Split(" ")[1].replace("I", "X")
 
         $running_proc = Start-Process -FilePath "msiexec.exe" -ArgumentList "$uninstallstring /passive" -Credential $credential -PassThru

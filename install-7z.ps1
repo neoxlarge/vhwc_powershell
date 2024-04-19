@@ -13,8 +13,8 @@ function install-7z {
 
     $software_name = "7-Zip*"
     $software_path = "\\172.20.5.187\mis\07-7-7z"
-    $software_msi = "7z2201-x64.msi"
-    $software_msi_x86 = "7z2201-x32.msi"
+    $software_msi = "7z-x64.msi"
+    $software_msi_x86 = "7z-x32.msi"
 
     ## 判斷OS是32(x86)或是64(AMD64), 其他值(ARM64)不安裝  
     switch ($env:PROCESSOR_ARCHITECTURE) {
@@ -22,6 +22,14 @@ function install-7z {
         "x86" { $software_exec = $software_msi_x86 }
         default { throw "$software_name 無法正常安裝: 不支援的系統:  $($env:PROCESSOR_ARCHITECTURE)" }
     }
+
+    $msi_version = get-msiversion -MSIPATH $($software_path + "\" + $software_exec)
+    Write-output "========================"
+    Write-Output "Software: $software_name"
+    Write-Output "Source path: $software_path\$software_exec"
+    write-output "ource version: $msi_version"
+    Write-output "========================"
+
 
     # 預先連線到安裝來源的路徑.
     if (!(Test-Path -Path $software_path)) {
@@ -40,9 +48,12 @@ function install-7z {
 
         if ($check_version) {
             #msi版本比較新,移除舊的後, 重新查詢$software_is_installed
-            Write-Output "找到舊的版本: $($software_is_installed.DisplayName) : $($software_is_installed.DisplayVersion)"
+            Write-Output "Find installed version(old): $($software_is_installed.DisplayVersion)"
             Write-Output "Uninstall string: $($software_is_installed.uninstallString)"
+            Write-Output "Uninstalling $software_name"
+            Write-output "========================"
             uninstall-software -name $software_is_installed.DisplayName
+
             
             $all_installed_program = get-installedprogramlist
             $software_is_installed = $all_installed_program | Where-Object -FilterScript { $_.DisplayName -like $software_name }
@@ -53,7 +64,7 @@ function install-7z {
 
     if ($null -eq $software_is_installed) {
     
-        Write-Output "Start to insall: $software_name"
+        Write-Output "Insalling: $software_name"
 
         #復制檔案到本機暫存"
         $software_path = get-item -Path $software_path

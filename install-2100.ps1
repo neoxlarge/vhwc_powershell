@@ -5,9 +5,7 @@
 
 param($runadmin)
 
-$mymodule_path = "$(Split-Path $PSCommandPath)\"
-Import-Module -name "$($mymodule_path)vhwcmis_module.psm1"
-
+Import-Module -name "$(Split-Path $PSCommandPath)\vhwcmis_module.psm1"
 
 function install_msi {
     #$mode 是msiexec的參數, 預設i是安裝, fa是強制重新裝
