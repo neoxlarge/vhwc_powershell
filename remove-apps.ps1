@@ -33,7 +33,9 @@ function Remove-AppsinWin10 {
         "Microsoft.XboxApp",                
         "Microsoft.Xbox.TCUI",
         "5A894077.McAfeeSecurity",
-        "B9ECED6F.ASUSPCAssistant")              
+        "B9ECED6F.ASUSPCAssistant",
+        "4DF9E0F8.Netflix",
+        "ZhuhaiKingsoftOfficeSoftw.WPSOffice")              
 
     # 遍歷每個要移除的應用程式
     foreach ($app in $appsToRemove) {
