@@ -317,15 +317,16 @@ function Send-LineNotifyMessage {
 
 $line_apikey ="lh1Ph23drpmFVzmzT5VilhQSawzjhNHyBTYNNsOUBjt"
 
-# device status:
-# Replace Drum
+# device status: 底下的印表機狀況會發出通知
 $warning_status = @("Replace Drum","Drum End Soon","No Drum Unit",
                 "Toner Low","Replace Toner","Cartidge Error",
                 "Jam Inside","Jam Rear","Size Error DX")
 
 
 # 定義要登入的網址
+# 一開始的登入畫面, 可不用輸入密碼.
 $url_login = "/general/status.html"
+# 詳細的資訊, 需要登入 
 $url_info = "/general/information.html?kind=item"
 
 foreach ($printer in $printers.keys) {
