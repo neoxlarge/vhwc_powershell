@@ -72,7 +72,7 @@ $printers_list = @{
         'location'           = '診間108 精神科'
         'password_vhwc'      = 'Us2791072'
         'password_factroy'   = ''
-        'always_on'          = $true
+        
     } 
  
     'wnur-opd-pra1'    = @{'ip' = '172.20.9.54'
@@ -103,6 +103,7 @@ $printers_list = @{
         'location'           = '藥劑科藥庫'
         'password_vhwc'      = 'Us2791072'
         'password_factroy'   = 'N+K$*sOc'
+
     }
 
     'wpha-pha-pr02'    = @{'ip' = '172.20.9.82'
@@ -159,12 +160,14 @@ $printers_list = @{
         'location'           = 'ICU'
         'password_vhwc'      = 'Us2791072'
         'password_factroy'   = '9>X-G2a&'
+        'always_on'          = $true
     }
                     
     'wpsy-psy-pr02'    = @{'ip' = '172.20.5.30'
         'location'           = 'ICU'
         'password_vhwc'      = 'Us2791072'
         'password_factroy'   = 'FQK>1Ncx'
+        'always_on'          = $true
     }                    
 
 
@@ -184,12 +187,14 @@ $printers_list = @{
         'location'           = 'M5A'
         'password_vhwc'      = 'Us2791072'
         'password_factroy'   = 'i+3Rx7fs'
+        'always_on'          = $true
     }    
 
     'wnur-m5a-pr02'    = @{'ip' = '172.20.5.61'
         'location'           = 'M5A'
         'password_vhwc'      = 'Us2791072'
         'password_factroy'   = '#GhYeVTg'
+        'always_on'          = $true
     }    
 
 
@@ -203,6 +208,7 @@ $printers_list = @{
         'location'           = '6F資訊室'
         'password_vhwc'      = 'Us2791072'
         'password_factory'   = ''
+        'always_on'          = $true
     }       
 
     'wnur-opd-pr21'    = @{'ip' = '172.20.12.201'
@@ -488,7 +494,7 @@ function Schedulecheck-L5100DN  {
 
 }
 
-
+$DebugPreference = "Continue"
 
 
 $timer_hours = @(8..17)
@@ -505,9 +511,10 @@ foreach ($printer in $printers_list.keys) {
 while ($true) {
     $now = Get-Date
     if ($now.Hour -in (8,14) -and $now.Minute -in (0)) {
-        Write-Host $now
+        Write-debug "$now : Daily check L5100DN all"
         Schedulecheck-L5100DN -printers $printers_list        
     } elseif ($now.Hour -in $timer_hours -and $now.minute -in $timer_minutes) {
+        write-debug "$now : check L5100DN always on"
         Schedulecheck-L5100DN -printers $printersWithAlwaysOn
     }
 
