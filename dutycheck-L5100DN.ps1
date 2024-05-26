@@ -351,7 +351,14 @@ $printers_list = @{
 
 }
 
+$tc200s = @{
+    'wnur-erx-prb1' = @{
+        'ip'        = '172.20.3.107'
+        'location'  = '急診室'
+        'always_on' = $true
+    }
 
+}
 
 function Send-LineNotifyMessage {
     [CmdletBinding()]
@@ -398,14 +405,12 @@ function Send-LineNotifyMessage {
 }
 
 
-function Schedulecheck-L5100DN  {
+function Schedulecheck-L5100DN {
 
     param(
         $printers
     )
 
-    Write-Debug $printers.keys
-    Write-Debug "***-------------------"
     $line_apikey = "lh1Ph23drpmFVzmzT5VilhQSawzjhNHyBTYNNsOUBjt"
 
     # device status: 異常狀態
@@ -418,7 +423,7 @@ function Schedulecheck-L5100DN  {
     # https://support.brother.com/g/s/id/htmldoc/printer/cv_hll5000d/use/manual/index.html#GUID-D508418E-CC5B-42EE-8001-EFFA0AFD6A51_168                
 
     # 為了避免漏抓, 不在以下正常的狀態就算異常.
-    $normal_status = @("Sleep", "Deep Sleep", "Ready", "No Paper T2", "Printing","Please Wait")
+    $normal_status = @("Sleep", "Deep Sleep", "Ready", "No Paper T2", "Printing", "Please Wait")
 
 
     # 定義要登入的網址
@@ -476,7 +481,8 @@ function Schedulecheck-L5100DN  {
                 Send-LineNotifyMessage -Token $line_apikey -Message $msg
             }
 
-        } else {
+        }
+        else {
 
             if ($printers.$printer.always_on -eq $true) {
                 $msg = "🚨L5100DN `nName: $printer `n"
@@ -494,12 +500,63 @@ function Schedulecheck-L5100DN  {
 
 }
 
+
+function schedulecheck_tc200 {
+    param(
+        $printers
+    )
+    
+    # status page
+    $url_status = "/cgi-bin/status.cgi"
+
+    $normal_status = @('Ready')
+
+    foreach ($printer in $pinters) {
+
+        $network_status = Test-Connection -IPAddress $($printers.$printer.ip) -Count 1 -Quiet
+
+        if ($network_status -eq $true) {
+
+            $response = Invoke-WebRequest -Uri "$($printers.$printer.ip)$url_status"
+
+            $devicestatus = [regex]::Match($response.Content, '<TD class="(greentext|redtext|whitetext|yellowtext|bluetext)">(.*?)</TD>').Groups[2].Value.Trim()
+        
+            if ($deviceStatus -notin $normal_status) {
+                $msg = "🚨TC200 `nName: $printer `n"
+                $msg += "IP: $($printers.$printer.ip) `n"
+                $msg += "Status: $deviceStatus `n"
+                $msg += "Location: $($printers.$printer.location)"
+
+                Send-LineNotifyMessage -Token $line_apikey -Message $msg
+            }
+
+
+
+        } else {
+            #network fail
+            if ($printers.$printer.always_on -eq $true) {
+                $msg = "🚨TC200 `nName: $printer `n"
+                $msg += "IP: $($printers.$printer.ip) `n"
+                $msg += "Status: Network Fail, 注意此機須在線! `n"
+                $msg += "Location: $($printers.$printer.location)"
+
+                Send-LineNotifyMessage -Token $line_apikey -Message $msg
+
+            }
+        }
+
+    }
+
+}
+
+# log的資訊, Continue會顯示, SilentContinue不會顯示.
 $DebugPreference = "Continue"
 
-
+# 定時的時間
 $timer_hours = @(8..17)
-$timer_minutes = @(0,15,30,45)
+$timer_minutes = @(0, 15, 30, 45)
 
+# 把always_on的過慮出來. always_on = $true 表示這台必須隨時在線.
 $printersWithAlwaysOn = @{}
 foreach ($printer in $printers_list.keys) {
     if ($printers_list.$printer.always_on -eq $true) {
@@ -510,10 +567,11 @@ foreach ($printer in $printers_list.keys) {
 
 while ($true) {
     $now = Get-Date
-    if ($now.Hour -in (8,14) -and $now.Minute -in (0)) {
+    if ($now.Hour -in (8, 14) -and $now.Minute -in (0)) {
         Write-debug "$now : Daily check L5100DN all"
         Schedulecheck-L5100DN -printers $printers_list        
-    } elseif ($now.Hour -in $timer_hours -and $now.minute -in $timer_minutes) {
+    }
+    elseif ($now.Hour -in $timer_hours -and $now.minute -in $timer_minutes) {
         write-debug "$now : check L5100DN always on"
         Schedulecheck-L5100DN -printers $printersWithAlwaysOn
     }
