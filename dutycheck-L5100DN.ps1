@@ -208,7 +208,6 @@ $printers_list = @{
         'location'           = '6F資訊室'
         'password_vhwc'      = 'Us2791072'
         'password_factory'   = ''
-        'always_on'          = $true
     }       
 
     'wnur-opd-pr21'    = @{'ip' = '172.20.12.201'
@@ -358,6 +357,11 @@ $tc200s = @{
         'always_on' = $true
     }
 
+    'wmis-000-prb1' = @{
+        'ip'        = '172.20.5.177'
+        'location'  = '6F資訊室'
+        'always_on' = $true
+    }
 }
 
 function Send-LineNotifyMessage {
@@ -501,7 +505,7 @@ function Schedulecheck-L5100DN {
 }
 
 
-function schedulecheck_tc200 {
+function schedulecheck-tc200 {
     param(
         $printers
     )
@@ -511,16 +515,21 @@ function schedulecheck_tc200 {
 
     $normal_status = @('Ready')
 
-    foreach ($printer in $pinters) {
+    write-debug $printers.keys
+
+    foreach ($printer in $printers.keys) {
 
         $network_status = Test-Connection -IPAddress $($printers.$printer.ip) -Count 1 -Quiet
+        Write-debug "printer ip: $($printers.$printer.ip) network status: $network_status"
 
         if ($network_status -eq $true) {
+            
+            #$response = & curl.exe --http0.9 http://172.20.5.177/cgi-bin/status.cgi
+            $response = & "curl.exe" "--http0.9" "http://$($printers.$printer.ip)$url_status"
 
-            $response = Invoke-WebRequest -Uri "$($printers.$printer.ip)$url_status"
+            $devicestatus = [regex]::Match($response, 'Printer Status</TD><TD></TD></TR><TR><TD class=(.*?)>(.*?)</TD>').Groups[2].Value.Trim()
+            write-debug "device satus: $devicestatus"
 
-            $devicestatus = [regex]::Match($response.Content, '<TD class="(greentext|redtext|whitetext|yellowtext|bluetext)">(.*?)</TD>').Groups[2].Value.Trim()
-        
             if ($deviceStatus -notin $normal_status) {
                 $msg = "🚨TC200 `nName: $printer `n"
                 $msg += "IP: $($printers.$printer.ip) `n"
