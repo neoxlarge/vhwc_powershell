@@ -1,5 +1,5 @@
 ﻿# printer ip table
-$printers_list = @{
+$L5100DNs = @{
 
     'wadm-mrr-pc02'    = @{'ip' = '172.20.2.253'
         'location'           = '病歷室'
@@ -415,8 +415,6 @@ function Schedulecheck-L5100DN {
         $printers
     )
 
-    $line_apikey = "lh1Ph23drpmFVzmzT5VilhQSawzjhNHyBTYNNsOUBjt"
-
     # device status: 異常狀態
     # 底下為廠商印出的貼紙上所列的異常
     $warning_status = @("Replace Drum", "Drum End Soon", "No Drum Unit",
@@ -454,6 +452,8 @@ function Schedulecheck-L5100DN {
         
             Write-Debug "Device status: $deviceStatus"
         
+            <# #####################此段為登入印表機的web介面, 取得更多內容, 但目前暫無用到.  ##############################
+
             #登入取得更多資訊
         
             $formData = @{
@@ -473,8 +473,14 @@ function Schedulecheck-L5100DN {
 
             $response_info = Invoke-WebRequest -Uri "http://$($printers.$printer.ip)$($url_info)" -WebSession $sess 
 
-            #Out-File -InputObject $response_info.Content -FilePath "d:\$($printer).html"
+            
 
+            # 將取得的網頁,存到檔案.
+            # Out-File -InputObject $response_info.Content -FilePath "d:\$($printer).html"
+
+
+
+            ########################################################################################################### #>
 
             if ($deviceStatus -notin $normal_status) {
                 $msg = "🚨L5100DN `nName: $printer `n"
@@ -497,11 +503,8 @@ function Schedulecheck-L5100DN {
                 Send-LineNotifyMessage -Token $line_apikey -Message $msg
 
             }
-
         }
-    
     }
-
 }
 
 
@@ -524,14 +527,17 @@ function schedulecheck-tc200 {
 
         if ($network_status -eq $true) {
             
-            #$response = & curl.exe --http0.9 http://172.20.5.177/cgi-bin/status.cgi
+            # TSC TC200 的web介面, 用了http 0.9的 拹定, invoke-webrequest 用出現錯誤無法使用， 
+            # 改用curl.exe 的方式取得網頁資料.
+
+            # $response = & curl.exe --http0.9 http://172.20.5.177/cgi-bin/status.cgi
             $response = & "curl.exe" "--http0.9" "http://$($printers.$printer.ip)$url_status"
 
             $devicestatus = [regex]::Match($response, 'Printer Status</TD><TD></TD></TR><TR><TD class=(.*?)>(.*?)</TD>').Groups[2].Value.Trim()
             write-debug "device satus: $devicestatus"
 
             if ($deviceStatus -notin $normal_status) {
-                $msg = "🚨TC200 `nName: $printer `n"
+                $msg = "🚨TSC Barcode `nName: $printer `n"
                 $msg += "IP: $($printers.$printer.ip) `n"
                 $msg += "Status: $deviceStatus `n"
                 $msg += "Location: $($printers.$printer.location)"
@@ -539,12 +545,10 @@ function schedulecheck-tc200 {
                 Send-LineNotifyMessage -Token $line_apikey -Message $msg
             }
 
-
-
         } else {
             #network fail
             if ($printers.$printer.always_on -eq $true) {
-                $msg = "🚨TC200 `nName: $printer `n"
+                $msg = "🚨TSC Barcode `nName: $printer `n"
                 $msg += "IP: $($printers.$printer.ip) `n"
                 $msg += "Status: Network Fail, 注意此機須在線! `n"
                 $msg += "Location: $($printers.$printer.location)"
@@ -553,23 +557,31 @@ function schedulecheck-tc200 {
 
             }
         }
-
     }
-
 }
 
 # log的資訊, Continue會顯示, SilentContinue不會顯示.
 $DebugPreference = "Continue"
+
+# line notify token
+$line_apikey = "XkxO98qPwgpqoYQXsSsoSu94yHGA0TV9pZSVRkeZpqk"
 
 # 定時的時間
 $timer_hours = @(8..17)
 $timer_minutes = @(0, 15, 30, 45)
 
 # 把always_on的過慮出來. always_on = $true 表示這台必須隨時在線.
-$printersWithAlwaysOn = @{}
-foreach ($printer in $printers_list.keys) {
-    if ($printers_list.$printer.always_on -eq $true) {
-        $printersWithAlwaysOn.$printer = $printers_list.$printer
+$L5100DNsWithAlwaysOn = @{}
+foreach ($printer in $L5100DNs.keys) {
+    if ($L5100DNs.$printer.always_on -eq $true) {
+        $L5100DNsWithAlwaysOn.$printer = $L5100DNs.$printer
+    }
+}
+
+$tc200sWithAlwaysOn = @{}
+foreach ($printer in $tc200s.keys) {
+    if ($tc200s.$printer.always_on -eq $true) {
+        $tc200sWithAlwaysOn.$printer = $tc200s.$printer
     }
 }
 
@@ -578,11 +590,20 @@ while ($true) {
     $now = Get-Date
     if ($now.Hour -in (8, 14) -and $now.Minute -in (0)) {
         Write-debug "$now : Daily check L5100DN all"
-        Schedulecheck-L5100DN -printers $printers_list        
+        Schedulecheck-L5100DN -printers $L5100DNs        
     }
     elseif ($now.Hour -in $timer_hours -and $now.minute -in $timer_minutes) {
         write-debug "$now : check L5100DN always on"
-        Schedulecheck-L5100DN -printers $printersWithAlwaysOn
+        Schedulecheck-L5100DN -printers $L5100DNsWithAlwaysOn
+    }
+
+    if ($now.Hour -in (8, 14) -and $now.Minute -in (0)) {
+        Write-debug "$now : Daily check L5100DN all"
+        schedulecheck-tc200 -printers $tc200s       
+    }
+    elseif ($now.Hour -in $timer_hours -and $now.minute -in $timer_minutes) {
+        write-debug "$now : check L5100DN always on"
+        schedulecheck-tc200 -printers $tc200sWithAlwaysOn
     }
 
     start-sleep -Seconds 60
