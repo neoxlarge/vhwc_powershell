@@ -1,4 +1,24 @@
-﻿# printer ip table
+﻿write-host "灣橋印表機檢查通知Line notify"
+# 1. 檢查排程 每天8點 和下午2點 檢查 L5100DN 和 TSC barcode
+# 2. 從web介面取得印表機狀況, 如果不是以下狀熊就發通知.
+#    - L5100DN normal_status = @("Sleep", "Deep Sleep", "Ready","No Paper T1", "No Paper T2", "Printing", "Please Wait","No Paper MP")
+#    - TC barcode normal_status = @('Ready')
+# 3. 重點印表機檢查排程, 每天8點到17點, 每0,15,30,45分, 檢查有always_on = $true的印表機.
+#    例如急診,ICU,M5A等
+# 4. 重點印表機, 必須在線, 網路連不上也會通知.
+
+# 設定值
+# log的資訊, Continue會顯示, SilentContinue不會顯示.
+$DebugPreference = "Continue"
+
+# line notify token
+$line_apikey = "XkxO98qPwgpqoYQXsSsoSu94yHGA0TV9pZSVRkeZpqk"
+
+# 定時的時間
+$timer_hours = @(8..17) #8點到17點
+$timer_minutes = @(0, 15, 30, 45)
+
+# printer ip table
 $L5100DNs = @{
 
     'wadm-mrr-pc02'    = @{'ip' = '172.20.2.253'
@@ -110,6 +130,7 @@ $L5100DNs = @{
         'location'           = '藥劑科中醫'
         'password_vhwc'      = 'Us2791072'
         'password_factroy'   = 'TnUR%AUs'
+        'always_on'          = $true
     }
 
     'wnur-erx-pr03'    = @{'ip' = '172.20.3.113'
@@ -163,7 +184,7 @@ $L5100DNs = @{
         'always_on'          = $true
     }
                     
-    'wpsy-psy-pr02'    = @{'ip' = '172.20.5.30'
+    'wnur-icu-pr02'    = @{'ip' = '172.20.5.30'
         'location'           = 'ICU'
         'password_vhwc'      = 'Us2791072'
         'password_factroy'   = 'FQK>1Ncx'
@@ -181,6 +202,12 @@ $L5100DNs = @{
         'location'           = 'M3'
         'password_vhwc'      = 'Us2791072'
         'password_factroy'   = '8#5s31u@'
+    } 
+
+    'wnur-orw-pr01'    = @{'ip' = '172.20.5.29'
+        'location'           = '開刀房'
+        'password_vhwc'      = 'Us2791072'
+        'password_factroy'   = ''
     } 
 
     'wnur-m5a-pr01'    = @{'ip' = '172.20.5.60'
@@ -202,6 +229,7 @@ $L5100DNs = @{
         'location'           = 'M5A'
         'password_vhwc'      = 'Us2791072'
         'password_factroy'   = 'YC5@r>*p'
+        'always_on'          = $true
     }                        
 
     'wmis-000-pr06'    = @{'ip' = '172.20.5.158'
@@ -327,7 +355,7 @@ $L5100DNs = @{
     'wnur-b5w-pr01'    = @{'ip' = '172.20.2.124'
         'location'           = 'B5'
         'password_vhwc'      = 'Us2791072'
-        'password_factory'   = ''
+        'password_factory'   = '3dkj43F7'
     }  
 
     'wnur-b5w-pr02'    = @{'ip' = '172.20.2.104'
@@ -351,6 +379,12 @@ $L5100DNs = @{
 }
 
 $tc200s = @{
+
+    'wnur-opd-pdb6' = @{
+        'ip'        = '172.20.9.41'
+        'location'  = '診間106'
+    }
+
     'wnur-erx-prb1' = @{
         'ip'        = '172.20.3.107'
         'location'  = '急診室'
@@ -360,7 +394,70 @@ $tc200s = @{
     'wmis-000-prb1' = @{
         'ip'        = '172.20.5.177'
         'location'  = '6F資訊室'
+        
+    }
+
+    'wnur-m5b-prb1' = @{
+        'ip'        = '172.20.5.41'
+        'location'  = 'M5B'
         'always_on' = $true
+    }
+
+    'wnur-m5a-prb1' = @{
+        'ip'        = '172.20.5.40'
+        'location'  = 'M5A'
+        'always_on' = $true
+    }
+
+    'wnur-icu-prb1' = @{
+        'ip'        = '172.20.5.42'
+        'location'  = 'ICU'
+        'always_on' = $true
+    }
+
+    'wnur-m3w-prb1' = @{
+        'ip'        = '172.20.5.43'
+        'location'  = 'M3'
+    }
+
+    'wnur-a1w-ba01' = @{
+        'ip'        = '172.20.17.211'
+        'location'  = 'A1'
+    }
+
+    'wnur-a2w-prb1' = @{
+        'ip'        = '172.20.17.212'
+        'location'  = 'A2'
+    }
+
+    'wnur-opd-dp07' = @{
+        'ip'        = '172.20.17.213'
+        'location'  = '可能在A3'
+    }
+
+    'wnur-a5w-ba01' = @{
+        'ip'        = '172.20.17.215'
+        'location'  = 'A5'
+    }
+
+    'wnur-b1w-prb1' = @{
+        'ip'        = '172.20.2.119'
+        'location'  = 'B1'
+    }
+    
+    'wnur-b2w-prb1' = @{
+        'ip'        = '172.20.2.114'
+        'location'  = 'B2'
+    }
+
+    'wnur-b3w-prb1' = @{
+        'ip'        = '172.20.2.116'
+        'location'  = 'B3'
+    }
+
+    'wnur-b5w-prb1' = @{
+        'ip'        = '172.20.2.117'
+        'location'  = 'B5'
     }
 }
 
@@ -425,7 +522,7 @@ function Schedulecheck-L5100DN {
     # https://support.brother.com/g/s/id/htmldoc/printer/cv_hll5000d/use/manual/index.html#GUID-D508418E-CC5B-42EE-8001-EFFA0AFD6A51_168                
 
     # 為了避免漏抓, 不在以下正常的狀態就算異常.
-    $normal_status = @("Sleep", "Deep Sleep", "Ready", "No Paper T2", "Printing", "Please Wait")
+    $normal_status = @("Sleep", "Deep Sleep", "Ready","No Paper T1", "No Paper T2", "Printing", "Please Wait","No Paper","No Paper MP")
 
 
     # 定義要登入的網址
@@ -436,8 +533,8 @@ function Schedulecheck-L5100DN {
 
     foreach ($printer in $printers.keys) {
             
-        $network_status = Test-Connection -IPAddress $printers.$printer.ip -Count 1 -Quiet
-        Write-debug "printer ip: $($printers.$printer.ip) network status: $network_status"
+        $network_status = Test-Connection -IPAddress $printers.$printer.ip -Count 3 -Quiet
+        Write-debug "printer ip: $($printers.$printer.ip) $($printers.$printer.location) network status: $network_status"
 
         if ($network_status -eq $true) {
 
@@ -518,12 +615,11 @@ function schedulecheck-tc200 {
 
     $normal_status = @('Ready')
 
-    write-debug $printers.keys
 
     foreach ($printer in $printers.keys) {
 
-        $network_status = Test-Connection -IPAddress $($printers.$printer.ip) -Count 1 -Quiet
-        Write-debug "printer ip: $($printers.$printer.ip) network status: $network_status"
+        $network_status = Test-Connection -IPAddress $($printers.$printer.ip) -Count 3 -Quiet
+        Write-debug "printer ip: $($printers.$printer.ip) $($printers.$printer.location) network status: $network_status"
 
         if ($network_status -eq $true) {
             
@@ -531,7 +627,9 @@ function schedulecheck-tc200 {
             # 改用curl.exe 的方式取得網頁資料.
 
             # $response = & curl.exe --http0.9 http://172.20.5.177/cgi-bin/status.cgi
-            $response = & "curl.exe" "--http0.9" "http://$($printers.$printer.ip)$url_status"
+            # $response = & "curl.exe" "--http0.9" "http://$($printers.$printer.ip)$url_status"
+
+            $response = Invoke-Command -ScriptBlock { & "curl.exe" "--http0.9" "http://$($printers.$printer.ip)$url_status" }
 
             $devicestatus = [regex]::Match($response, 'Printer Status</TD><TD></TD></TR><TR><TD class=(.*?)>(.*?)</TD>').Groups[2].Value.Trim()
             write-debug "device satus: $devicestatus"
@@ -560,15 +658,7 @@ function schedulecheck-tc200 {
     }
 }
 
-# log的資訊, Continue會顯示, SilentContinue不會顯示.
-$DebugPreference = "Continue"
 
-# line notify token
-$line_apikey = "XkxO98qPwgpqoYQXsSsoSu94yHGA0TV9pZSVRkeZpqk"
-
-# 定時的時間
-$timer_hours = @(8..17)
-$timer_minutes = @(0, 15, 30, 45)
 
 # 把always_on的過慮出來. always_on = $true 表示這台必須隨時在線.
 $L5100DNsWithAlwaysOn = @{}
@@ -593,16 +683,16 @@ while ($true) {
         Schedulecheck-L5100DN -printers $L5100DNs        
     }
     elseif ($now.Hour -in $timer_hours -and $now.minute -in $timer_minutes) {
-        write-debug "$now : check L5100DN always on"
+        write-debug "$now : Check L5100DN always on"
         Schedulecheck-L5100DN -printers $L5100DNsWithAlwaysOn
     }
 
     if ($now.Hour -in (8, 14) -and $now.Minute -in (0)) {
-        Write-debug "$now : Daily check L5100DN all"
+        Write-debug "$now : Daily check TSC barcode all"
         schedulecheck-tc200 -printers $tc200s       
     }
     elseif ($now.Hour -in $timer_hours -and $now.minute -in $timer_minutes) {
-        write-debug "$now : check L5100DN always on"
+        write-debug "$now : Check TSC Barcode always on"
         schedulecheck-tc200 -printers $tc200sWithAlwaysOn
     }
 
