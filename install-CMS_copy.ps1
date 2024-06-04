@@ -2,6 +2,13 @@
 
 param($runadmin)
 
+if (!$PSVersionTable.PSCompatibleVersions -match "^5\.1") {
+    Write-Output "powershell requires version 5.1, exit"
+    Start-Sleep -Seconds 3
+    exit
+}
+
+
 $pspaths = @()
 try {
     $pspath = Split-Path $PSCommandPath
