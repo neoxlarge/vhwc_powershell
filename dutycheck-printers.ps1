@@ -1,4 +1,12 @@
-﻿write-host "灣橋印表機檢查通知Line notify"
+﻿$mutexName = "Global\dutycheck-printers"
+$mutex = New-Object System.Threading.Mutex($false, $mutexName)
+
+if ($mutex.WaitOne(0,$false) -eq $false) { 
+    Write-Host "印表機檢查通知己在執行中,結束."
+    exit }
+
+write-host "灣橋印表機檢查通知Line notify"
+
 # 1. 檢查排程 每天8點 和下午2點 檢查 L5100DN 和 TSC barcode
 # 2. 從web介面取得印表機狀況, 如果不是以下狀熊就發通知.
 #    - L5100DN normal_status = @("Sleep", "Deep Sleep", "Ready","No Paper T1", "No Paper T2", "Printing", "Please Wait","No Paper MP")
@@ -698,3 +706,4 @@ while ($true) {
 
     start-sleep -Seconds 60
 }
+
