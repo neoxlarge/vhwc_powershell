@@ -149,7 +149,7 @@ $L5100DNs = @{
     }
 
     'wnur-erx-pr02'    = @{'ip' = '172.20.3.44'
-        'location'           = '急診室 肉側'
+        'location'           = '急診室 內側'
         'password_vhwc'      = 'Us2791072'
         'password_factroy'   = 'f1C7xdaT'
         'always_on'          = $true
@@ -234,7 +234,7 @@ $L5100DNs = @{
 
 
     'wnur-m5b-pr01'    = @{'ip' = '172.20.5.36'
-        'location'           = 'M5A'
+        'location'           = 'M5B'
         'password_vhwc'      = 'Us2791072'
         'password_factroy'   = 'YC5@r>*p'
         'always_on'          = $true
