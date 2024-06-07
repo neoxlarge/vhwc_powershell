@@ -8,6 +8,10 @@ if (!$PSVersionTable.PSCompatibleVersions -match "^5\.1") {
     exit
 }
 
+# 取得vhwcmis_module.psm1的3種方式:
+# 1.程式執行當前路徑, 放到Group police執行可能抓不到.
+# 2.常用的路徑, d:\mis\vhwc_powershell, 不是每台都有放.
+# 3.連到NAS上取得.
 
 $pspaths = @()
 try {
@@ -20,6 +24,28 @@ catch [System.Management.Automation.CommandNotFoundException] {
 finally {
     $pspaths.add("$pspath\vhwcmis_module.psm1")
 }
+
+try {
+    $Username = "vhcy\vhwcmis"
+    $Password = "Mis20190610"
+    $securePassword = ConvertTo-SecureString $Password -AsPlainText -Force
+    $credential = New-Object System.Management.Automation.PSCredential($Username, $securePassword)
+
+    $software_name = "NHIServiSignAdapterSetup"
+    $software_path = "\\172.20.5.187\mis\05-CMS_CGServiSignAdapterSetup\CMS_CGServiSignAdapterSetup"
+    
+    # 預先連線到安裝來源的路徑.
+    if (!(Test-Path -Path $software_path)) {
+        New-PSDrive -Name $software_name -Root "$software_path" -PSProvider FileSystem -Credential $credential | Out-Null
+        }
+
+
+}
+catch {
+    <#Do this if a terminating exception happens#>
+}
+
+
 
 $pspaths.Add("\\172.20.1.122\share\software\00newpc\vhwc_powershell\vhwcmis_module.psm1")
 $pspaths.Add("d:\mis\vhwc_powershell\vhwcmis_module.psm1")
