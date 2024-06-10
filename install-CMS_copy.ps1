@@ -2,6 +2,7 @@
 
 param($runadmin)
 
+# 要求powershell v5.1以上才執行, win7預設powershell v2.0.
 if (!$PSVersionTable.PSCompatibleVersions -match "^5\.1") {
     Write-Output "powershell requires version 5.1, exit"
     Start-Sleep -Seconds 3
@@ -14,41 +15,23 @@ if (!$PSVersionTable.PSCompatibleVersions -match "^5\.1") {
 # 3.連到NAS上取得.
 
 $pspaths = @()
-try {
-    $pspath = Split-Path $PSCommandPath
-}
-catch [System.Management.Automation.CommandNotFoundException] {
-    $scriptPath = $MyInvocation.MyCommand.Path
-    $pspath = [System.IO.Path]::GetDirectoryName($scriptPath)
-}
-finally {
-    $pspaths.add("$pspath\vhwcmis_module.psm1")
-}
 
-try {
+$pspaths.add("$(Split-Path $PSCommandPath)\vhwcmis_module.psm1")
+$pspaths.Add("d:\mis\vhwc_powershell\vhwcmis_module.psm1")
+
+$path = "\\172.20.1.122\share\software\00newpc\vhwc_powershell\vhwcmis_module.psm1"
+if (!(test-pateh $path)) {
     $Username = "vhcy\vhwcmis"
     $Password = "Mis20190610"
     $securePassword = ConvertTo-SecureString $Password -AsPlainText -Force
     $credential = New-Object System.Management.Automation.PSCredential($Username, $securePassword)
-
     $software_name = "NHIServiSignAdapterSetup"
-    $software_path = "\\172.20.5.187\mis\05-CMS_CGServiSignAdapterSetup\CMS_CGServiSignAdapterSetup"
-    
-    # 預先連線到安裝來源的路徑.
-    if (!(Test-Path -Path $software_path)) {
-        New-PSDrive -Name $software_name -Root "$software_path" -PSProvider FileSystem -Credential $credential | Out-Null
-        }
 
-
+    New-PSDrive -Name $software_name -Root "$path" -PSProvider FileSystem -Credential $credential | Out-Null
 }
-catch {
-    <#Do this if a terminating exception happens#>
-}
+$pspaths.Add($path)
 
 
-
-$pspaths.Add("\\172.20.1.122\share\software\00newpc\vhwc_powershell\vhwcmis_module.psm1")
-$pspaths.Add("d:\mis\vhwc_powershell\vhwcmis_module.psm1")
 
 foreach ($path in $pspaths) {
     Import-Module $path -ErrorAction SilentlyContinue
@@ -59,13 +42,6 @@ foreach ($path in $pspaths) {
 
 
 
-$function_exist = Get-Command -Name get-installedprogramlist -CommandType Function -ErrorAction SilentlyContinue
-
-
-Start-Sleep -Seconds 100
-
-
-Import-Module ((Split-Path $PSCommandPath) + "\get-installedprogramlist.psm1")
 
 function install-CMS {
     ## 安裝CMS_CGServiSignAdapter
@@ -73,25 +49,37 @@ function install-CMS {
 
     $software_name = "NHIServiSignAdapterSetup"
     $software_path = "\\172.20.5.187\mis\05-CMS_CGServiSignAdapterSetup\CMS_CGServiSignAdapterSetup"
-    $software_exec = "NHIServiSignAdapterSetup_1.0.22.0830.exe"
+    $software_exec = "NHIServiSignAdapterSetup.exe"
     
     $all_installed_program = get-installedprogramlist
    
     $software_is_installed = $all_installed_program | Where-Object -FilterScript { $_.DisplayName -like "$software_name*" }
 
-    if ($null -eq $software_is_installed) {
+
+    if ($software_is_installed) {
+        $msi_version = get-msiversion -MSIPATH "$software_path\$software_exec"
+
+        $result = Compare-Version -Version1 $msi_version -Version2 $software_is_installed.DisplayVersion
+
+        if ($result) {
+            uninstall-software -name $software_name
+            $software_is_installed = $null
+        }
+    }
+
+    if ($software_is_installed -eq $null) {
+        # 沒安裝, 直接安裝.
         Write-Output "Start to install $software_name"
 
         #來源路徑 ,要復制的路徑,and 安裝執行程式名稱
         $software_path = get-item -Path $software_path
-        
-        
+                
         #復制檔案到temp
         Copy-Item -Path $software_path -Destination $env:temp -Recurse -Force -Verbose
 
         #installing...
         $process_id = Start-Process -FilePath "$env:temp\$($software_path.Name)\$software_exec" -PassThru
-    
+
         #依安裝文件, CGServiSignMonitor會最後被開啟, 所以檢查到該程序執行後, 表示安裝完成.
         $process_exist = $null
         while ($process_exist -eq $null) {
@@ -99,13 +87,14 @@ function install-CMS {
             if ($process_exist -ne $null) { Stop-Process -Name $process_id.Name }
             write-output ($process_id.Name + "is installing...wait 5 seconds.")
             Start-Sleep -Seconds 5
-        }
+        } 
 
         #安裝完, 再重新取得安裝資訊
         $all_installed_program = get-installedprogramlist
         $software_is_installed = $all_installed_program | Where-Object -FilterScript { $_.DisplayName -like "$software_name*" }
 
-    } 
+
+    }
 
     Write-output ("software has installed:" + $software_is_installed.DisplayName )
     Write-Output ("Version:" + $software_is_installed.DisplayVersion)
