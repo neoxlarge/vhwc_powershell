@@ -369,7 +369,7 @@ $L5100DNs = @{
     'wnur-b5w-pr02'    = @{'ip' = '172.20.2.104'
         'location'           = 'B5'
         'password_vhwc'      = 'Us2791072'
-        'password_factory'   = ''
+        'password_factory'   = 'uGif4Bpn'
     }  
 
     'wdie-out-pr01'    = @{'ip' = '172.20.2.149'
@@ -621,7 +621,7 @@ function schedulecheck-tc200 {
     # status page
     $url_status = "/cgi-bin/status.cgi"
 
-    $normal_status = @('Ready')
+    $normal_status = @('Ready','Printing')
 
 
     foreach ($printer in $printers.keys) {

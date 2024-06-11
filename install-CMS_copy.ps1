@@ -16,11 +16,11 @@ if (!$PSVersionTable.PSCompatibleVersions -match "^5\.1") {
 
 $pspaths = @()
 
-$pspaths.add("$(Split-Path $PSCommandPath)\vhwcmis_module.psm1")
-$pspaths.Add("d:\mis\vhwc_powershell\vhwcmis_module.psm1")
+$pspaths += "$(Split-Path $PSCommandPath)\vhwcmis_module.psm1"
+$pspaths += "d:\mis\vhwc_powershell\vhwcmis_module.psm1"
 
 $path = "\\172.20.1.122\share\software\00newpc\vhwc_powershell\vhwcmis_module.psm1"
-if (!(test-pateh $path)) {
+if (!(test-path $path)) {
     $Username = "vhcy\vhwcmis"
     $Password = "Mis20190610"
     $securePassword = ConvertTo-SecureString $Password -AsPlainText -Force
@@ -29,7 +29,7 @@ if (!(test-pateh $path)) {
 
     New-PSDrive -Name $software_name -Root "$path" -PSProvider FileSystem -Credential $credential | Out-Null
 }
-$pspaths.Add($path)
+$pspaths += $path
 
 
 
