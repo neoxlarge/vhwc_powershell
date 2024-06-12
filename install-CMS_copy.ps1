@@ -17,7 +17,7 @@ function install-CMS {
     # 取得vhwcmis_module.psm1的3種方式:
     # 1.程式執行當前路徑, 放到Group police執行可能抓不到.
     # 2.常用的路徑, d:\mis\vhwc_powershell, 不是每台都有放.
-    # 3.連到NAS上取得.
+    # 3.連到NAS上取得. 非網域的電腦會沒有NAS的權限, 須手動連上NAS.
 
     $pspaths = @()
     $pspaths += "$(Split-Path $PSCommandPath)\vhwcmis_module.psm1"
@@ -29,9 +29,9 @@ function install-CMS {
         $Password = "Us2791072"
         $securePassword = ConvertTo-SecureString $Password -AsPlainText -Force
         $credential = New-Object System.Management.Automation.PSCredential($Username, $securePassword)
-        $software_name = "NHIServiSignAdapterSetup"
+        $nas_name = "nas122"
 
-        New-PSDrive -Name $software_name -Root "$path" -PSProvider FileSystem -Credential $credential | Out-Null
+        New-PSDrive -Name $nas_name -Root "$path" -PSProvider FileSystem -Credential $credential | Out-Null
     }
     $pspaths += "$path\vhwcmis_module.psm1"
 
@@ -100,8 +100,8 @@ function install-CMS {
     Write-output ("software has installed:" + $software_is_installed.DisplayName )
     Write-Output ("Version:" + $software_is_installed.DisplayVersion)
 
-    if (!$(Get-PSDrive -Name $software_name -ErrorAction SilentlyContinue) -eq $null) {
-        Remove-PSDrive -Name $software_name
+    if (!$(Get-PSDrive -Name $nas_name -ErrorAction SilentlyContinue) -eq $null) {
+        Remove-PSDrive -Name $nas_name
     }
     
 
