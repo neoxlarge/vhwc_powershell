@@ -1,4 +1,6 @@
-#安裝CMS_CGServiSignAdapter
+# 安裝CMS_CGServiSignAdapter
+# 20240611 因為CGServiSignAdapter有更新到1.0.23
+# 原本的1.0.22會要求要更新才能登入健保VPN.
 
 param($runadmin)
 
@@ -9,46 +11,43 @@ if (!$PSVersionTable.PSCompatibleVersions -match "^5\.1") {
     exit
 }
 
-# 取得vhwcmis_module.psm1的3種方式:
-# 1.程式執行當前路徑, 放到Group police執行可能抓不到.
-# 2.常用的路徑, d:\mis\vhwc_powershell, 不是每台都有放.
-# 3.連到NAS上取得.
-
-$pspaths = @()
-
-$pspaths += "$(Split-Path $PSCommandPath)\vhwcmis_module.psm1"
-$pspaths += "d:\mis\vhwc_powershell\vhwcmis_module.psm1"
-
-$path = "\\172.20.1.122\share\software\00newpc\vhwc_powershell\vhwcmis_module.psm1"
-if (!(test-path $path)) {
-    $Username = "vhcy\vhwcmis"
-    $Password = "Mis20190610"
-    $securePassword = ConvertTo-SecureString $Password -AsPlainText -Force
-    $credential = New-Object System.Management.Automation.PSCredential($Username, $securePassword)
-    $software_name = "NHIServiSignAdapterSetup"
-
-    New-PSDrive -Name $software_name -Root "$path" -PSProvider FileSystem -Credential $credential | Out-Null
-}
-$pspaths += $path
-
-
-
-foreach ($path in $pspaths) {
-    Import-Module $path -ErrorAction SilentlyContinue
-    if ((get-command -Name "get-installedprogramlist" -CommandType Function -ErrorAction SilentlyContinue)) {
-        break
-    }
-}
-
-
-
 
 function install-CMS {
+
+    # 取得vhwcmis_module.psm1的3種方式:
+    # 1.程式執行當前路徑, 放到Group police執行可能抓不到.
+    # 2.常用的路徑, d:\mis\vhwc_powershell, 不是每台都有放.
+    # 3.連到NAS上取得.
+
+    $pspaths = @()
+    $pspaths += "$(Split-Path $PSCommandPath)\vhwcmis_module.psm1"
+    $pspaths += "d:\mis\vhwc_powershell\vhwcmis_module.psm1"
+
+    $path = "\\172.20.1.122\share\software\00newpc\vhwc_powershell"
+    if (!(test-path $path)) {
+        $Username = "software_download"
+        $Password = "Us2791072"
+        $securePassword = ConvertTo-SecureString $Password -AsPlainText -Force
+        $credential = New-Object System.Management.Automation.PSCredential($Username, $securePassword)
+        $software_name = "NHIServiSignAdapterSetup"
+
+        New-PSDrive -Name $software_name -Root "$path" -PSProvider FileSystem -Credential $credential | Out-Null
+    }
+    $pspaths += "$path\vhwcmis_module.psm1"
+
+    foreach ($path in $pspaths) {
+        Import-Module $path -ErrorAction SilentlyContinue
+        if ((get-command -Name "get-installedprogramlist" -CommandType Function -ErrorAction SilentlyContinue)) {
+            break
+        }
+    }
+
+
     ## 安裝CMS_CGServiSignAdapter
     ### 依文件要求,安裝前應關閉防毒軟體, 所以比防毒先安裝
 
     $software_name = "NHIServiSignAdapterSetup"
-    $software_path = "\\172.20.5.187\mis\05-CMS_CGServiSignAdapterSetup\CMS_CGServiSignAdapterSetup"
+    $software_path = "\\172.20.1.122\share\software\00newpc\05-CMS_CGServiSignAdapterSetup\CMS_CGServiSignAdapterSetup"
     $software_exec = "NHIServiSignAdapterSetup.exe"
     
     $all_installed_program = get-installedprogramlist
@@ -57,12 +56,14 @@ function install-CMS {
 
 
     if ($software_is_installed) {
-        $msi_version = get-msiversion -MSIPATH "$software_path\$software_exec"
+        $exe_version = (Get-ItemProperty -Path "$software_path\$software_exec").VersionInfo.FileversionRaw.toString()
 
-        $result = Compare-Version -Version1 $msi_version -Version2 $software_is_installed.DisplayVersion
+        $result = Compare-Version -Version1 $exe_version -Version2 $software_is_installed.DisplayVersion
 
         if ($result) {
-            uninstall-software -name $software_name
+            Write-Output "Find old version $software_name : $($all_installed_program.DisplayVersion)"
+            Write-Output "Removing old version."
+            Start-Process -FilePath $software_is_installed.UninstallString -ArgumentList "/S" -Wait
             $software_is_installed = $null
         }
     }
@@ -99,6 +100,11 @@ function install-CMS {
     Write-output ("software has installed:" + $software_is_installed.DisplayName )
     Write-Output ("Version:" + $software_is_installed.DisplayVersion)
 
+    if (!$(Get-PSDrive -Name $software_name -ErrorAction SilentlyContinue) -eq $null) {
+        Remove-PSDrive -Name $software_name
+    }
+    
+
 }
 
 
@@ -121,5 +127,6 @@ if ($run_main -eq $null) {
     else {
         Write-Warning "無法取得管理員權限來安裝軟體, 請以管理員帳號重試."
     }
-    pause
+    #pause
+    Start-Sleep -Seconds 5
 }
