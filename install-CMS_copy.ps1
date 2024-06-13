@@ -25,13 +25,13 @@ function install-CMS {
 
     $path = "\\172.20.1.122\share\software\00newpc\vhwc_powershell"
     if (!(test-path $path)) {
-        $Username = "software_download"
-        $Password = "Us2791072"
-        $securePassword = ConvertTo-SecureString $Password -AsPlainText -Force
-        $credential = New-Object System.Management.Automation.PSCredential($Username, $securePassword)
+        $nas_Username = "software_download"
+        $nas_Password = "Us2791072"
+        $nas_securePassword = ConvertTo-SecureString $nas_Password -AsPlainText -Force
+        $nas_credential = New-Object System.Management.Automation.PSCredential($nas_Username, $nas_securePassword)
         $nas_name = "nas122"
 
-        New-PSDrive -Name $nas_name -Root "$path" -PSProvider FileSystem -Credential $credential | Out-Null
+        New-PSDrive -Name $nas_name -Root "$path" -PSProvider FileSystem -Credential $nas_credential | Out-Null
     }
     $pspaths += "$path\vhwcmis_module.psm1"
 
@@ -100,7 +100,7 @@ function install-CMS {
     Write-output ("software has installed:" + $software_is_installed.DisplayName )
     Write-Output ("Version:" + $software_is_installed.DisplayVersion)
 
-    if (!$(Get-PSDrive -Name $nas_name -ErrorAction SilentlyContinue) -eq $null) {
+    if (! ($(Get-PSDrive -Name $nas_name -ErrorAction SilentlyContinue) -eq $null)) {
         Remove-PSDrive -Name $nas_name
     }
     
