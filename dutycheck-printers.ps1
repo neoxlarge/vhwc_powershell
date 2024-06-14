@@ -440,7 +440,7 @@ $tc200s = @{
 
     'wnur-opd-dp07' = @{
         'ip'        = '172.20.17.213'
-        'location'  = '可能在A3'
+        'location'  = 'A3'
     }
 
     'wnur-a5w-ba01' = @{

@@ -8,8 +8,11 @@
 # 2.檢查IP下有 "校時結束" 字串, 表pass.
 #
 # 20240608
-# 1. 因為NAS帳號和密碼有改, 連增連線NAS的帳號和密碼.
-# 2. 更改檔名為dutycheck-serverlog.ps1  
+# 1. 因為NAS帳號和密碼有改, 連增連線NAS的帳號(local\vhwcmis)和密碼.
+# 2. 更改檔名為dutycheck-serverlog.ps1
+#    
+# 測試用token: nlmG6NCFd9aSfccfVXD30ymVYgYv5K8SO0fkVIGzpZw
+# VHWC檢查用token "HdkeCg1k4nehNa8tEIrJKYrNOeNZMrs89LQTKbf1tbz"
 
 # 連線網路磁碟機 20240608
 $Username = "wmis-000-pc05\vhwcmis"
@@ -18,7 +21,7 @@ $securePassword = ConvertTo-SecureString $Password -AsPlainText -Force
 $credential = New-Object System.Management.Automation.PSCredential($Username, $securePassword)
 
 $psdname = "server_log"
-$psdpath = "\\172.20.1.122"
+$psdpath = "\\172.20.1.122\log"
 
 New-PSDrive -Name $psdname -Root "$psdpath" -PSProvider FileSystem -Credential $credential
 
@@ -196,63 +199,77 @@ Send-LineNotifyMessage -Message $send_msg
 
 $ntp_logpath = "\\172.20.1.122\log\ntp-log\allntp-ntpsync-$($today.AddDays(-1).ToString('yyyyMMdd')).txt" #log產生為前一天晚上, 調整-1天.
 
-$ntp = Get-Content -Path $ntp_logpath
+if (Test-Path -Path $ntp_logpath) {
+    $ntp = Get-Content -Path $ntp_logpath
 
-$ntp_result = [ordered]@{}
-$index = 0
-foreach ($n in $ntp) {
-    if ($n -like "*-----172*") {
-        #每找到一筆ip,都是建立一筆新記錄. "ip"有2種格式, 一種是172.20.1.1 , 一種是172-20-1-1
-        $ntp_result.Add( "$index", @{
-                'ip' = $n.Replace('"', '').Replace(' ', '').Replace('-----', '').Replace('-', '.')
-                'start'                   = $n.ReadCount
-                'ntp'                     = ''
-                'end'                     = ''
-                'result'                  = 'Fail'
-            })
-        if ($index -gt 0) {    #每一筆ip, 都是上一筆記錄的結束, 除了第一筆和最後一筆. 這裡排除第一筆.                 
-            $ntp_result[$($index - 1)]['end'] = $n.ReadCount - 2  #往上移2行為上一筆的end行
+    $ntp_result = [ordered]@{}
+    $index = 0
+    foreach ($n in $ntp) {
+        if ($n -like "*-----172*") {
+            #每找到一筆ip,都是建立一筆新記錄. "ip"有2種格式, 一種是172.20.1.1 , 一種是172-20-1-1
+            $ntp_result.Add( "$index", @{
+                    'ip'     = $n.Replace('"', '').Replace(' ', '').Replace('-----', '').Replace('-', '.')
+                    'start'  = $n.ReadCount
+                    'ntp'    = ''
+                    'end'    = ''
+                    'result' = 'Fail'
+                })
+            if ($index -gt 0) {
+                #每一筆ip, 都是上一筆記錄的結束, 除了第一筆和最後一筆. 這裡排除第一筆.                 
+                $ntp_result[$($index - 1)]['end'] = $n.ReadCount - 2  #往上移2行為上一筆的end行
+            }
+
+            $index += 1
+
         }
-
-        $index += 1
-
-    } elseif ($n.ReadCount -eq $ntp.count) { #這是最後一行了, 就是最後一筆的end
-        $ntp_result[$index - 1]['end'] = $n.ReadCount
+        elseif ($n.ReadCount -eq $ntp.count) {
+            #這是最後一行了, 就是最後一筆的end
+            $ntp_result[$index - 1]['end'] = $n.ReadCount
         
-    } elseif ($n -like "*校時結束*") {  #找到校時結束字串為pass
-        $ntp_result[$index - 1]['ntp'] = $n.ReadCount
-        $ntp_result[$index - 1]['result'] = 'Pass'
-    }
+        }
+        elseif ($n -like "*校時結束*") {
+            #找到校時結束字串為pass
+            $ntp_result[$index - 1]['ntp'] = $n.ReadCount
+            $ntp_result[$index - 1]['result'] = 'Pass'
+        }
     
-}
+    }
 
-#Line notify 傳送字數有限制, 分成幾筆傳一次, 以$group決定幾筆.
-$msg_title = "NTP chect report ($($ntp_result.keys.count)個)`n ==" + $today.ToString('yyyyMMdd') + "==`n"
-$msgs = ""
-$group = 10
-$counter = 1
-foreach ($re in $ntp_result.keys) {
+    #Line notify 傳送字數有限制, 分成幾筆傳一次, 以$group決定幾筆.
+    $msg_title = "NTP chect report ($($ntp_result.keys.count)個)`n ==" + $today.ToString('yyyyMMdd') + "==`n"
+    $msgs = ""
+    $group = 10
+    $counter = 1
+    foreach ($re in $ntp_result.keys) {
     
-    if ($ntp_result[$re]['result'] -eq "pass") {
-        $msg = "🟢($re) Pass: " + $ntp_result[$re]['ip'] + "`n"
-    }
-    else {
-        $msg = "🚨($re) Fail: " + $ntp_result[$re]['ip'] + "`n"
-    }
+        if ($ntp_result[$re]['result'] -eq "pass") {
+            $msg = "🟢($re) Pass: " + $ntp_result[$re]['ip'] + "`n"
+        }
+        else {
+            $msg = "🚨($re) Fail: " + $ntp_result[$re]['ip'] + "`n"
+        }
        
-    $msgs += $msg
+        $msgs += $msg
     
-    if ($counter -eq $group -or ($re -eq $ntp_result.keys.count - 1)) {
+        if ($counter -eq $group -or ($re -eq $ntp_result.keys.count - 1)) {
         
-        Send-LineNotifyMessage -Message $($msg_title + $msgs)
-        Start-Sleep -s 1
-        $counter = 0
-        $msgs = ""
-    }
+            Send-LineNotifyMessage -Message $($msg_title + $msgs)
+            Start-Sleep -s 1
+            $counter = 0
+            $msgs = ""
+        }
     
-    $counter += 1
+        $counter += 1
 
+    }
 }
+else {
+    $msg_title = "NTP chect report ==" + $today.ToString('yyyyMMdd') + "==`n"
+    $msg = "🚨 Fail, 找不到檔案: $ntp_logpath"
+    Send-LineNotifyMessage -Message $($msg_title + $msg)
+}
+
+
 
 # 釋放網路連線
 Remove-PSDrive -Name $psdname

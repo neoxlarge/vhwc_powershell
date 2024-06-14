@@ -61,7 +61,7 @@ function install-CMS {
         $result = Compare-Version -Version1 $exe_version -Version2 $software_is_installed.DisplayVersion
 
         if ($result) {
-            Write-Output "Find old version $software_name : $($all_installed_program.DisplayVersion)"
+            Write-Output "Find old version $software_name : $($software_is_installed.DisplayVersion)"
             Write-Output "Removing old version."
             Start-Process -FilePath $software_is_installed.UninstallString -ArgumentList "/S" -Wait
             $software_is_installed = $null

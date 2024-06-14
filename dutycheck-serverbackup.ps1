@@ -7,7 +7,13 @@
 #
 # 200-033-hisdb-vghtc dmp產生時間為早上11點多, 早於這時會檢查到前一天的檔當而出現Fail判斷. 排程下午1點半執行.
 # 排程 powershell.exe -file d:\mis\vhwc_powershell\check-serverbackup.ps1
-
+# 20240613
+# 1. 因為NAS帳號和密碼有改, 連增連線NAS的帳號(local\vhwcmis)和密碼.
+# 2. 更改檔名為dutycheck-serverbackup.ps1  
+# 3. 因dmp檔案變大, 調整檔案size檢查的值 \\172.20.1.122\backup\200-033-hisdb-vghtc
+#
+# 測試用token: nlmG6NCFd9aSfccfVXD30ymVYgYv5K8SO0fkVIGzpZw
+# VHWC檢查用token "HdkeCg1k4nehNa8tEIrJKYrNOeNZMrs89LQTKbf1tbz"
 
 
 function Send-LineNotifyMessage {
@@ -118,7 +124,7 @@ function check_backup_file {
             $result["file_path"] = $full_path
         }
         Default {
-            throw "mode參數不正確性!!"
+            throw "mode參數不正確!!"
 
         }
     }
@@ -237,7 +243,7 @@ $check_list = [ordered]@{
         "mode"         = "yyyyMMdd"
         "pre_filename" = "exp_lob_vghtc_"
         "sub_filename" = "dmp"
-        "size"         = 144000000kb
+        "size"         = 160000000kb #20240613 由144000000kb調整到160000000kb
         "day_shift"    = 0
     }
 
@@ -246,7 +252,7 @@ $check_list = [ordered]@{
         "mode"         = "yyyyMMdd"
         "pre_filename" = "exp_lob_emr_"
         "sub_filename" = "dmp"
-        "size"         = 260800000kb
+        "size"         = 280000000kb #20240613 由260800000kb調整到280000000kb
         "day_shift"    = 0
     }
 
@@ -255,7 +261,7 @@ $check_list = [ordered]@{
         "mode"         = "yyyyMMdd"
         "pre_filename" = "exp_full_hissp1_"
         "sub_filename" = "dmp"
-        "size"         = 16400000kb
+        "size"         = 17000000kb #20240613 由16400000kb調整到17000000kb
         "day_shift"    = 0
     }
 
@@ -267,8 +273,8 @@ $Password = "Mis20190610"
 $securePassword = ConvertTo-SecureString $Password -AsPlainText -Force
 $credential = New-Object System.Management.Automation.PSCredential($Username, $securePassword)
 
-$psdname = "server_log"
-$psdpath = "\\172.20.1.122\log"
+$psdname = "server_backup"
+$psdpath = "\\172.20.1.122\backup"
 
 New-PSDrive -Name $psdname -Root "$psdpath" -PSProvider FileSystem -Credential $credential
 
