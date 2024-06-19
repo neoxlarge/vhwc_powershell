@@ -107,6 +107,7 @@ $L5100DNs = @{
         'location'           = '診間102 注射室'
         'password_vhwc'      = 'Us2791072'
         'password_factroy'   = ':WBBC2/V'
+        
     }      
 
     'wadm-nhi-pr02'    = @{'ip' = '172.20.3.104'
@@ -431,41 +432,49 @@ $tc200s = @{
     'wnur-a1w-ba01' = @{
         'ip'        = '172.20.17.211'
         'location'  = 'A1'
+        'always_on' = $true
     }
 
     'wnur-a2w-prb1' = @{
         'ip'        = '172.20.17.212'
         'location'  = 'A2'
+        'always_on' = $true
     }
 
     'wnur-opd-dp07' = @{
         'ip'        = '172.20.17.213'
         'location'  = 'A3'
+        'always_on' = $true
     }
 
     'wnur-a5w-ba01' = @{
         'ip'        = '172.20.17.215'
         'location'  = 'A5'
+        'always_on' = $true
     }
 
     'wnur-b1w-prb1' = @{
         'ip'        = '172.20.2.119'
         'location'  = 'B1'
+        'always_on' = $true
     }
     
     'wnur-b2w-prb1' = @{
         'ip'        = '172.20.2.114'
         'location'  = 'B2'
+        'always_on' = $true
     }
 
     'wnur-b3w-prb1' = @{
         'ip'        = '172.20.2.116'
         'location'  = 'B3'
+        'always_on' = $true
     }
 
     'wnur-b5w-prb1' = @{
         'ip'        = '172.20.2.117'
         'location'  = 'B5'
+        'always_on' = $true
     }
 }
 
