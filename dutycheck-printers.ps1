@@ -269,6 +269,7 @@ $L5100DNs = @{
         'location'           = '復建科櫃台'
         'password_vhwc'      = 'Us2791072'
         'password_factory'   = 'gF$g$Gec'
+        
     }            
 
     'wreh-000-pr02'    = @{'ip' = '172.20.17.200'
@@ -281,96 +282,112 @@ $L5100DNs = @{
         'location'           = 'A1'
         'password_vhwc'      = 'Us2791072'
         'password_factory'   = ''
+        'always_on'          = $true
     }  
                     
     'wnur-a1w-pr02'    = @{'ip' = '172.20.17.201'
         'location'           = 'A1'
         'password_vhwc'      = 'Us2791072'
         'password_factory'   = ''
+        'always_on'          = $true
     }  
 
     'wnur-a2w-pr01'    = @{'ip' = '172.20.17.70'
         'location'           = 'A2'
         'password_vhwc'      = 'Us2791072'
         'password_factory'   = ''
+        'always_on'          = $true
     }  
 
     'wnur-a2w-pr02'    = @{'ip' = '172.20.17.202'
         'location'           = 'A2'
         'password_vhwc'      = 'Us2791072'
         'password_factory'   = ''
+        'always_on'          = $true
     }  
 
     'wnur-a3w-pr01'    = @{'ip' = '172.20.17.71'
         'location'           = 'A3'
         'password_vhwc'      = 'Us2791072'
         'password_factory'   = ''
+        'always_on'          = $true
     }  
 
     'wnur-a3w-pr02'    = @{'ip' = '172.20.17.203'
         'location'           = 'A3'
         'password_vhwc'      = 'Us2791072'
         'password_factory'   = ''
+        'always_on'          = $true
     }  
 
     'wnur-a5w-pr01'    = @{'ip' = '172.20.17.72'
         'location'           = 'A5'
         'password_vhwc'      = 'Us2791072'
         'password_factory'   = ''
+        'always_on'          = $true
     }  
 
     'wnur-a5w-pr02'    = @{'ip' = '172.20.17.205'
         'location'           = 'A5'
         'password_vhwc'      = 'Us2791072'
         'password_factory'   = ''
+        'always_on'          = $true
     }  
 
     'wnur-b1w-pr01'    = @{'ip' = '172.20.2.121'
         'location'           = 'B1'
         'password_vhwc'      = 'Us2791072'
         'password_factory'   = ''
+        'always_on'          = $true
     }  
 
     'wnur-b1w-pr02'    = @{'ip' = '172.20.2.100'
         'location'           = 'B1'
         'password_vhwc'      = 'Us2791072'
         'password_factory'   = ''
+        'always_on'          = $true
     }  
 
     'wnur-b2w-pr01'    = @{'ip' = '172.20.2.122'
         'location'           = 'B2'
         'password_vhwc'      = 'Us2791072'
         'password_factory'   = ''
+        'always_on'          = $true
     }  
 
     'wnur-b2w-pr02'    = @{'ip' = '172.20.2.101'
         'location'           = 'B2'
         'password_vhwc'      = 'Us2791072'
         'password_factory'   = ''
+        'always_on'          = $true
     }  
 
     'wnur-b3w-pr01'    = @{'ip' = '172.20.2.123'
         'location'           = 'B3'
         'password_vhwc'      = 'Us2791072'
         'password_factory'   = ''
+        'always_on'          = $true
     }  
 
     'wnur-b3w-pr02'    = @{'ip' = '172.20.2.102'
         'location'           = 'B3'
         'password_vhwc'      = 'Us2791072'
         'password_factory'   = ''
+        'always_on'          = $true
     }  
 
     'wnur-b5w-pr01'    = @{'ip' = '172.20.2.124'
         'location'           = 'B5'
         'password_vhwc'      = 'Us2791072'
         'password_factory'   = '3dkj43F7'
+        'always_on'          = $true
     }  
 
     'wnur-b5w-pr02'    = @{'ip' = '172.20.2.104'
         'location'           = 'B5'
         'password_vhwc'      = 'Us2791072'
         'password_factory'   = 'uGif4Bpn'
+        'always_on'          = $true
     }  
 
     'wdie-out-pr01'    = @{'ip' = '172.20.2.149'
