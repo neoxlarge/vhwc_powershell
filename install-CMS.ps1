@@ -12,6 +12,8 @@ if (!$PSVersionTable.PSCompatibleVersions -match "^5\.1") {
 }
 
 
+
+
 function install-CMS {
 
     # 取得vhwcmis_module.psm1的3種方式:
@@ -20,9 +22,11 @@ function install-CMS {
     # 3.連到NAS上取得. 非網域的電腦會沒有NAS的權限, 須手動連上NAS.
 
     $pspaths = @()
-    $pspaths += "$(Split-Path $PSCommandPath)\vhwcmis_module.psm1"
-    $pspaths += "d:\mis\vhwc_powershell\vhwcmis_module.psm1"
-    
+    if ($PSCommandPath -contains "\") {$pspaths += "$(Split-Path $PSCommandPath)\vhwcmis_module.psm1"}
+
+    $local_path = "d:\mis\vhwc_powershell\vhwcmis_module.psm1"
+    if (Test-Path $local_path){$pspaths += $local_path}
+
     $nas_name = "nas122"
 
     $path = "\\172.20.1.122\share\software\00newpc\vhwc_powershell"
@@ -44,6 +48,13 @@ function install-CMS {
     }
 
 
+    $logFile = "$env:temp\install-cms.log"
+
+    Add-Content -Path $logFile -Value "$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss'):" 
+    Add-Content -Path $logFile -Value "vhwcmis_module.psm1 path:"
+    $pspaths.GetEnumerator() | ForEach-Object {
+        Add-Content -Path $logFile -Value "$_"
+    }
     ## 安裝CMS_CGServiSignAdapter
     ### 依文件要求,安裝前應關閉防毒軟體, 所以比防毒先安裝
 
