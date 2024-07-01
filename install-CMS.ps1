@@ -12,7 +12,24 @@ if (!$PSVersionTable.PSCompatibleVersions -match "^5\.1") {
 }
 
 
+function Get-IPv4Address {
+    <#
+    回傳找到的IP,只能在172.*才能用. 
+    #>
 
+    $ip = Get-WmiObject -Class Win32_NetworkAdapterConfiguration |
+    Where-Object { $_.IPAddress -ne $null -and $_.IPAddress[0] -like "172.20.*" } |
+    Select-Object -ExpandProperty IPAddress |
+    Where-Object { $_ -match "\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}" } |
+    Select-Object -First 1
+
+    if ($ip -eq $null) {
+        return $null
+    }
+    else {     
+        return $ip
+    }
+}
 
 function install-CMS {
 
@@ -28,17 +45,16 @@ function install-CMS {
     if (Test-Path $local_path){$pspaths += $local_path}
 
     $nas_name = "nas122"
-
-    $path = "\\172.20.1.122\share\software\00newpc\vhwc_powershell"
-    if (!(test-path $path)) {
+    $nas_path = "\\172.20.1.122\share\software\00newpc\vhwc_powershell"
+    if (!(test-path $nas_path)) {
         $nas_Username = "software_download"
         $nas_Password = "Us2791072"
         $nas_securePassword = ConvertTo-SecureString $nas_Password -AsPlainText -Force
         $nas_credential = New-Object System.Management.Automation.PSCredential($nas_Username, $nas_securePassword)
     
-        New-PSDrive -Name $nas_name -Root "$path" -PSProvider FileSystem -Credential $nas_credential | Out-Null
+        New-PSDrive -Name $nas_name -Root "$nas_path" -PSProvider FileSystem -Credential $nas_credential | Out-Null
     }
-    $pspaths += "$path\vhwcmis_module.psm1"
+    $pspaths += "$nas_path\vhwcmis_module.psm1"
 
     foreach ($path in $pspaths) {
         Import-Module $path -ErrorAction SilentlyContinue
@@ -48,13 +64,9 @@ function install-CMS {
     }
 
 
-    $logFile = "$env:temp\install-cms.log"
+    $log_file = "\\172.20.1.14\update\0001-中榮系統環境設定\install-cms.log"
+    
 
-    Add-Content -Path $logFile -Value "$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss'):" 
-    Add-Content -Path $logFile -Value "vhwcmis_module.psm1 path:"
-    $pspaths.GetEnumerator() | ForEach-Object {
-        Add-Content -Path $logFile -Value "$_"
-    }
     ## 安裝CMS_CGServiSignAdapter
     ### 依文件要求,安裝前應關閉防毒軟體, 所以比防毒先安裝
 
@@ -73,7 +85,13 @@ function install-CMS {
         $result = Compare-Version -Version1 $exe_version -Version2 $software_is_installed.DisplayVersion
 
         if ($result) {
-            Write-Output "Find old version $software_name : $($software_is_installed.DisplayVersion)"
+            $ipv4 = Get-IPv4Address 
+
+            $log_string = "Find old CMS version:$($software_is_installed.DisplayVersion),$env:COMPUTERNAME,$ipv4,$(Get-Date)"
+            $log_string | Add-Content -PassThru $log_file
+            
+  
+            Write-Output "Find old CMS version $software_name : $($software_is_installed.DisplayVersion)"
             Write-Output "Removing old version."
             Start-Process -FilePath $software_is_installed.UninstallString -ArgumentList "/S" -Wait
             $software_is_installed = $null
