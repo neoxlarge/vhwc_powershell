@@ -12,25 +12,6 @@ if (!$PSVersionTable.PSCompatibleVersions -match "^5\.1") {
 }
 
 
-function Get-IPv4Address {
-    <#
-    回傳找到的IP,只能在172.*才能用. 
-    #>
-
-    $ip = Get-WmiObject -Class Win32_NetworkAdapterConfiguration |
-    Where-Object { $_.IPAddress -ne $null -and $_.IPAddress[0] -like "172.20.*" } |
-    Select-Object -ExpandProperty IPAddress |
-    Where-Object { $_ -match "\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}" } |
-    Select-Object -First 1
-
-    if ($ip -eq $null) {
-        return $null
-    }
-    else {     
-        return $ip
-    }
-}
-
 function install-CMS {
 
     # 取得vhwcmis_module.psm1的3種方式:
@@ -85,13 +66,11 @@ function install-CMS {
         $result = Compare-Version -Version1 $exe_version -Version2 $software_is_installed.DisplayVersion
 
         if ($result) {
+ 
             $ipv4 = Get-IPv4Address 
-
-            $log_string = "Find old CMS version:$($software_is_installed.DisplayVersion),$env:COMPUTERNAME,$ipv4,$(Get-Date)"
-            $log_string | Add-Content -PassThru $log_file
-            
+            Write-Log -logfile $log_file -message "Find old CMS version:$($software_is_installed.DisplayVersion),$env:COMPUTERNAME,$ipv4"
   
-            Write-Output "Find old CMS version $software_name : $($software_is_installed.DisplayVersion)"
+            Write-Output "Find old CMS $software_name, version: $($software_is_installed.DisplayVersion)"
             Write-Output "Removing old version."
             Start-Process -FilePath $software_is_installed.UninstallString -ArgumentList "/S" -Wait
             $software_is_installed = $null

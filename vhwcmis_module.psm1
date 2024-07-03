@@ -152,3 +152,30 @@ function Get-OSVersion {
 }         
 
 
+function Get-IPv4Address {
+    <#
+    回傳找到的IP,只能在172.*才能用. 
+    #>
+
+    $ip = Get-WmiObject -Class Win32_NetworkAdapterConfiguration |
+    Where-Object { $_.IPAddress -ne $null -and $_.IPAddress[0] -like "172.20.*" } |
+    Select-Object -ExpandProperty IPAddress |
+    Where-Object { $_ -match "\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}" } |
+    Select-Object -First 1
+
+    if ($ip -eq $null) {
+        return $null
+    }
+    else {     
+        return $ip
+    }
+}
+
+function Write-Log {
+    param(
+        [string]$Message,
+        [string]$LogFile = "C:\Logs\MyLog.txt"
+    )
+    $TimeStamp = (Get-Date).ToString("yyyy-MM-dd HH:mm:ss")
+    "$TimeStamp - $Message" | Out-File -FilePath $LogFile -Append
+}
