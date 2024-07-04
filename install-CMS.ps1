@@ -22,8 +22,6 @@ function install-CMS {
     $pspaths = @()
     if ($PSCommandPath -contains "\") {$pspaths += "$(Split-Path $PSCommandPath)\vhwcmis_module.psm1"}
 
-    $local_path = "d:\mis\vhwc_powershell\vhwcmis_module.psm1"
-    if (Test-Path $local_path){$pspaths += $local_path}
 
     $nas_name = "nas122"
     $nas_path = "\\172.20.1.122\share\software\00newpc\vhwc_powershell"
@@ -36,6 +34,9 @@ function install-CMS {
         New-PSDrive -Name $nas_name -Root "$nas_path" -PSProvider FileSystem -Credential $nas_credential | Out-Null
     }
     $pspaths += "$nas_path\vhwcmis_module.psm1"
+
+    $local_path = "d:\mis\vhwc_powershell\vhwcmis_module.psm1"
+    if (Test-Path $local_path){$pspaths += $local_path}
 
     foreach ($path in $pspaths) {
         Import-Module $path -ErrorAction SilentlyContinue
