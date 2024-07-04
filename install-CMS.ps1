@@ -46,7 +46,7 @@ function install-CMS {
     }
 
 
-    $log_file = "\\172.20.1.14\update\0001-中榮系統環境設定\install-cms.log"
+    $log_file = "\\172.20.1.14\update\0001-中榮系統環境設\VHWC_logs\update-cms.log"
     
 
     ## 安裝CMS_CGServiSignAdapter
