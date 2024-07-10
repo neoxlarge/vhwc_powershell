@@ -11,43 +11,43 @@ if (!$PSVersionTable.PSCompatibleVersions -match "^5\.1") {
     exit
 }
 
+# import vhwcmis_module.psm1
+# 取得vhwcmis_module.psm1的3種方式:
+# 1.程式執行當前路徑, 放到Group police執行可能抓不到.
+# 2.常用的路徑, d:\mis\vhwc_powershell, 不是每台都有放.
+# 3.連到NAS上取得. 非網域的電腦會沒有NAS的權限, 須手動連上NAS.
+
+$pspaths = @()
+if ($PSCommandPath -contains "\") {$pspaths += "$(Split-Path $PSCommandPath)\vhwcmis_module.psm1"}
+$nas_name = "nas122"
+$nas_path = "\\172.20.1.122\share\software\00newpc\vhwc_powershell"
+if (!(test-path $nas_path)) {
+    $nas_Username = "software_download"
+    $nas_Password = "Us2791072"
+    $nas_securePassword = ConvertTo-SecureString $nas_Password -AsPlainText -Force
+    $nas_credential = New-Object System.Management.Automation.PSCredential($nas_Username, $nas_securePassword)
+    
+    New-PSDrive -Name $nas_name -Root "$nas_path" -PSProvider FileSystem -Credential $nas_credential | Out-Null
+}
+$pspaths += "$nas_path\vhwcmis_module.psm1"
+
+$local_path = "d:\mis\vhwc_powershell\vhwcmis_module.psm1"
+if (Test-Path $local_path){$pspaths += $local_path}
+foreach ($path in $pspaths) {
+    Import-Module $path -ErrorAction SilentlyContinue
+    if ((get-command -Name "get-installedprogramlist" -CommandType Function -ErrorAction SilentlyContinue)) {
+        break
+    }
+}
+
+if (! ($(Get-PSDrive -Name $nas_name -ErrorAction SilentlyContinue) -eq $null) ) {
+    Remove-PSDrive -Name $nas_name
+}
+
+
 
 function install-CMS {
-
-    # 取得vhwcmis_module.psm1的3種方式:
-    # 1.程式執行當前路徑, 放到Group police執行可能抓不到.
-    # 2.常用的路徑, d:\mis\vhwc_powershell, 不是每台都有放.
-    # 3.連到NAS上取得. 非網域的電腦會沒有NAS的權限, 須手動連上NAS.
-
-    $pspaths = @()
-    if ($PSCommandPath -contains "\") {$pspaths += "$(Split-Path $PSCommandPath)\vhwcmis_module.psm1"}
-
-
-    $nas_name = "nas122"
-    $nas_path = "\\172.20.1.122\share\software\00newpc\vhwc_powershell"
-    if (!(test-path $nas_path)) {
-        $nas_Username = "software_download"
-        $nas_Password = "Us2791072"
-        $nas_securePassword = ConvertTo-SecureString $nas_Password -AsPlainText -Force
-        $nas_credential = New-Object System.Management.Automation.PSCredential($nas_Username, $nas_securePassword)
-    
-        New-PSDrive -Name $nas_name -Root "$nas_path" -PSProvider FileSystem -Credential $nas_credential | Out-Null
-    }
-    $pspaths += "$nas_path\vhwcmis_module.psm1"
-
-    $local_path = "d:\mis\vhwc_powershell\vhwcmis_module.psm1"
-    if (Test-Path $local_path){$pspaths += $local_path}
-
-    foreach ($path in $pspaths) {
-        Import-Module $path -ErrorAction SilentlyContinue
-        if ((get-command -Name "get-installedprogramlist" -CommandType Function -ErrorAction SilentlyContinue)) {
-            break
-        }
-    }
-
-
-    $log_file = "\\172.20.1.14\update\0001-中榮系統環境設\VHWC_logs\update-cms.log"
-    
+    $log_file = "\\172.20.1.14\update\0001-中榮系統環境設定\VHWC_logs\update-cms.log"
 
     ## 安裝CMS_CGServiSignAdapter
     ### 依文件要求,安裝前應關閉防毒軟體, 所以比防毒先安裝
@@ -78,7 +78,7 @@ function install-CMS {
         }
     }
 
-    if ($software_is_installed -eq $null) {
+    if ($software_is_installed -eq $null ) {
         # 沒安裝, 直接安裝.
         Write-Output "Start to install $software_name"
 
@@ -110,9 +110,7 @@ function install-CMS {
     Write-output ("software has installed:" + $software_is_installed.DisplayName )
     Write-Output ("Version:" + $software_is_installed.DisplayVersion)
 
-    if (! ($(Get-PSDrive -Name $nas_name -ErrorAction SilentlyContinue) -eq $null) ) {
-        Remove-PSDrive -Name $nas_name
-    }
+
     
 
 }
@@ -130,9 +128,11 @@ if ($run_main -eq $null) {
         Start-Process powershell.exe -ArgumentList "-FILE `"$PSCommandPath`" -Executionpolicy bypass -NoProfile  -runadmin 1" -Verb Runas; exit
     
     }
-  
+    if ($check_admin) {
     install-CMS
-  
-    #pause
-    Start-Sleep -Seconds 5
+    } else {
+        Write-Warning "無法取得管理員權限來安裝軟體, 請以管理員帳號重試." 
+    }
+    pause
+    #Start-Sleep -Seconds 5
 }

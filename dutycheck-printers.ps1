@@ -401,6 +401,12 @@ $L5100DNs = @{
         'password_vhwc'      = 'Us2791072'
         'password_factory'   = ''
     }  
+    
+    'wnur-000-pr01'    = @{'ip' = '172.20.3.196'
+        'location'           = '護理部辦公室憶玲'
+        'password_vhwc'      = 'Us2791072'
+        'password_factory'   = ''
+    }  
 
 }
 

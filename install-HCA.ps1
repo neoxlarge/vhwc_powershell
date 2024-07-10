@@ -16,7 +16,8 @@ if (!$PSVersionTable.PSCompatibleVersions -match "^5\.1") {
 # 3.連到NAS上取得. 非網域的電腦會沒有NAS的權限, 須手動連上NAS.
 
 $pspaths = @()
-if ($PSCommandPath -contains "\") { $pspaths += "$(Split-Path $PSCommandPath)\vhwcmis_module.psm1" }
+
+if ($(Split-Path $script:MyInvocation.MyCommand.Path) -match "\\") { $pspaths += "$(Split-Path $script:MyInvocation.MyCommand.Path)\vhwcmis_module.psm1" }
 
 $nas_name = "nas122"
 $nas_path = "\\172.20.1.122\share\software\00newpc\vhwc_powershell"
@@ -64,7 +65,7 @@ function install-HCA {
             $ipv4 = Get-IPv4Address 
             Write-Log -logfile $log_file -message "Find old HCA version:$($software_is_installed.DisplayVersion),$env:COMPUTERNAME,$ipv4"
   
-            Write-Output "Find old CMS $software_name, version: $($software_is_installed.DisplayVersion)"
+            Write-Output "Find old HCA $software_name, version: $($software_is_installed.DisplayVersion)"
             Write-Output "Removing old version."
             Start-Process -FilePath $software_is_installed.UninstallString -ArgumentList "/S" -Wait
             $software_is_installed = $null
