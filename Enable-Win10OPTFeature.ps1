@@ -95,6 +95,10 @@ function Enable-SMBv1 {
 
 function Enable-NetFx3 {
     #Windows7預設己安裝.net framework 3, 不需要再裝
+    
+    #install windowsfeature on win11
+    #https://learn.microsoft.com/zh-tw/windows-hardware/manufacture/desktop/enable-net-framework-35-by-using-windows-powershell?view=windows-11
+    
     $check_win10 = (Get-WmiObject -Class Win32_OperatingSystem | Select-Object -Property Version).Version -like '10*'
 
     Write-Output "檢查.NET Framework 3.5(包括.NET2.0和3.0)是否啟用:"
