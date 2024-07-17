@@ -124,17 +124,19 @@ function install-VNC {
         #復制設定檔vltravnc.ini 到C:\Program Files\uvnc bvba\UltraVNC
         Copy-Item -Path ($env:temp + "\" + $software_path.Name + "\ultravnc.ini") -Destination ($env:ProgramFiles + "\uvnc bvba\UltraVNC") -Force
 
-        #多建立一個公用桌面的捷徑
-        $shortcutPath = "c:\Users\Public\Desktop\VNC Viewer.lnk"
-        $targetPath = "C:\Program Files\uvnc bvba\UltraVNC\vncviewer.exe"
-        New-Item -ItemType SymbolicLink -Path $shortcutPath -Target $targetPath -ErrorAction SilentlyContinue
-
         #安裝完, 再重新取得安裝資訊
         $all_installed_program = get-installedprogramlist
         $software_is_installed = $all_installed_program | Where-Object -FilterScript { $_.DisplayName -like $software_name }
     
     }
 
+    #多建立一個公用桌面的捷徑
+    $shortcutPath = "c:\Users\Public\Desktop\VNC Viewer.lnk"
+    $targetPath = "C:\Program Files\uvnc bvba\UltraVNC\vncviewer.exe"
+    if (!(Test-Path -Path $shortcutPath)) {
+        New-Item -ItemType SymbolicLink -Path $shortcutPath -Target $targetPath -ErrorAction SilentlyContinue
+    }
+    
     Write-Output ("Software has installed: " + $software_is_installed.DisplayName)
     Write-Output ("Version: " + $software_is_installed.DisplayVersion)
 
