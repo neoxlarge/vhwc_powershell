@@ -176,6 +176,6 @@ function Write-Log {
         [string]$Message,
         [string]$LogFile = "C:\Logs\MyLog.txt"
     )
-    $TimeStamp = (Get-Date).ToString("yyyy-MM-dd HH:mm:ss")
-    "$TimeStamp - $Message" | Out-File -FilePath $LogFile -Append
+    $Log_Title = "$(Get-Date), $($env:COMPUTERNAME), $(Get-IPv4Address)"
+    "$Log_Title - $Message" | Out-File -FilePath $LogFile -Append
 }
