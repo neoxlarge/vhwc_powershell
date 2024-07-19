@@ -1,6 +1,10 @@
 # 安裝VNC
 # setup.exe /? 可以顯示安裝指令
 
+# C:\ProgramData\Microsoft\Windows\Start Menu\Programs\UltraVNC\UltraVNC Server.lnk
+# C:\ProgramData\Microsoft\Windows\Start Menu\Programs\UltraVNC\UltraVNC Viewer.lnk
+
+
 param($runadmin)
 
 # import vhwcmis_module.psm1
@@ -38,6 +42,17 @@ foreach ($path in $pspaths) {
     }
 }
 
+# 定義創建捷徑的函數
+function New-Shortcut {
+    param (
+        [string]$TargetPath,
+        [string]$ShortcutPath
+    )
+    $WshShell = New-Object -ComObject WScript.Shell
+    $Shortcut = $WshShell.CreateShortcut($ShortcutPath)
+    $Shortcut.TargetPath = $TargetPath
+    $Shortcut.Save()
+}
 
 function install-VNC {
     
@@ -131,11 +146,62 @@ function install-VNC {
     }
 
     #多建立一個公用桌面的捷徑
-    $shortcutPath = "c:\Users\Public\Desktop\VNC Viewer.lnk"
-    $targetPath = "C:\Program Files\uvnc bvba\UltraVNC\vncviewer.exe"
-    if (!(Test-Path -Path $shortcutPath)) {
-        New-Item -ItemType SymbolicLink -Path $shortcutPath -Target $targetPath -ErrorAction SilentlyContinue
+
+    $shortcuts = @{
+        
+        "viewer" = @{
+            "name" = "UltraVNC Viewer.lnk"
+            "folder" = "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\UltraVNC"
+            "exe" = "C:\Program Files\uvnc bvba\UltraVNC\vncviewer.exe"
+        }
+
+        "server" = @{
+            "name" = "UltraVNC Server.lnk"
+            "folder" = "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\UltraVNC"
+            "exe" = "C:\Program Files\uvnc bvba\UltraVNC\winvnc.exe"
+        }
+    
     }
+
+    foreach ($shortcut in $shortcuts.keys) {
+
+        $folderPath = $shortcuts.$shortcut.folder
+        $shortcutPath = Join-Path $folderPath $shortcuts.$shortcut.name
+        $exePath = $shortcuts.$shortcut.exe
+
+
+        # 創建資料夾（如果不存在）
+        if (!(Test-Path -Path $folderPath)) {
+            try {
+                New-Item -Path $folderPath -ItemType Directory -Force -ErrorAction Stop | Out-Null
+            }
+            catch {
+                Write-Log -logfile $log_file -message "錯誤：無法創建資料夾 $folderPath - $_"
+                continue
+            }
+        }
+
+
+        # 創建捷徑
+
+        if (!(Test-Path -Path $shortcutPath)) {
+        try {
+            New-Shortcut -TargetPath $exePath -ShortcutPath $shortcutPath
+            Write-Log -logfile $log_file -message "成功創建捷徑：$shortcutPath"
+        }
+        catch {
+            Write-Log -logfile $log_file -message "錯誤：無法創建捷徑 $shortcutPath - $_"
+        }
+
+
+        
+         }
+    
+    }
+    
+  
+
+    
     
     Write-Output ("Software has installed: " + $software_is_installed.DisplayName)
     Write-Output ("Version: " + $software_is_installed.DisplayVersion)
