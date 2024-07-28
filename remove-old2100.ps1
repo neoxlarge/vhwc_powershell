@@ -11,10 +11,10 @@ param($runadmin)
 $log_file = "\\172.20.1.14\update\0001-中榮系統環境設定\VHWC_logs\remove-old2100.log"
 
 $pspaths = @()
-
+if ( $script:MyInvocation.MyCommand.Path -ne $null) {
 $work_path = "$(Split-Path $script:MyInvocation.MyCommand.Path)\vhwcmis_module.psm1"
 if (test-path -Path $work_path) { $pspaths += $work_path }
-
+}
 $nas_name = "nas122"
 $nas_path = "\\172.20.1.122\share\software\00newpc\vhwc_powershell"
 if (!(test-path $nas_path)) {
@@ -36,3 +36,19 @@ foreach ($path in $pspaths) {
         break
     }
 }
+
+$software_name = "電子公文系統"
+## 找出軟體是否己安裝
+
+$all_installed_program = get-installedprogramlist
+$software_is_installed = $all_installed_program | Where-Object -FilterScript { $_.DisplayName -like $software_name }
+
+if ($software_is_installed -ne $null) {
+    if ($software_is_installed.UninstallString -match "msiexec.exe") {
+        uninstall-software -name $software_is_installed.DisplayName
+    }
+}
+
+$software_name = "UniView"
+$software_name = "IPD21"
+$software_name = "HiCOS PKI Smart Card Client v2.1.9.1u(with up2date)"
