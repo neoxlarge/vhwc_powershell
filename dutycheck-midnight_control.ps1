@@ -62,7 +62,7 @@ function Send-LineNotify {
 
 
 $Username = "vhcy\73058"
-$Password = "Q1220416-"
+$Password = "Q1220416/"
 $securePassword = ConvertTo-SecureString $Password -AsPlainText -Force
 $credential = New-Object System.Management.Automation.PSCredential($Username, $securePassword)
 
@@ -76,7 +76,7 @@ $script_block = {
     write-output $output_path
     #powershell遠端登入後, 不會有\\172.20.5.185\mis的權限, 要掛上磁碟機後才有權限.  
     $Username = "vhcy\73058"
-    $Password = "Q1220416-"
+    $Password = "Q1220416/"
     $securePassword = ConvertTo-SecureString $Password -AsPlainText -Force
     $credential = New-Object System.Management.Automation.PSCredential($Username, $securePassword)
     New-PSDrive -Name Q -Root "$output_path" -Credential $credential -PSProvider FileSystem 
