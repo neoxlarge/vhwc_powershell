@@ -39,7 +39,7 @@ function Uninstall-Software {
         [string]$Name 
     )
 
-    $credential = Get-AdminCred
+    $credential = Get-Admin_Cred
 
     $allInstalledPrograms = Get-InstalledProgramList
     $softwareToUninstall = $allInstalledPrograms | Where-Object { $_.DisplayName -like $Name }
