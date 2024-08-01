@@ -29,39 +29,50 @@ function  get-admin_cred {
 
 
 
-function uninstall-software {
+function Uninstall-Software {
     <#
     .SYNOPSIS
         移除指定名字的軟體
-    
     #>
     param(
-    [Parameter(Mandatory = $true)]
-    [string]$name 
+        [Parameter(Mandatory = $true)]
+        [string]$Name 
     )
-    
 
-    #$mymodule_path = Split-Path $PSCommandPath + "\"
-    #Import-Module $mymodule_path + "get-installedprogramlist.psm1"
-    #Import-Module $mymodule_path + "get-admin_cred.psm1"
+    $credential = Get-AdminCred
 
-    $credential = get-admin_cred
+    $allInstalledPrograms = Get-InstalledProgramList
+    $softwareToUninstall = $allInstalledPrograms | Where-Object { $_.DisplayName -like $Name }
 
-    $all_installed_program = get-installedprogramlist
-    $software_is_installed = $all_installed_program | Where-Object -FilterScript { $_.DisplayName -like $name }
+    if ($null -eq $softwareToUninstall) {
+        return "找不到軟體: $Name"
+    }
 
-    
-    if ($software_is_installed -ne $null) {
+    foreach ($software in $softwareToUninstall) {
+        if ($software.UninstallString -like "msiexec*") {
+            # MSI 卸載
+            $uninstallString = $software.UninstallString.Split(" ")[1].replace("I", "X")
+            $process = Start-Process -FilePath "msiexec.exe" -ArgumentList "$uninstallString /passive" -Credential $credential -PassThru
+        }
+        elseif ($software.QuietUninstallString) {
+            # 使用安靜卸載字符串
+            $process = Start-Process -FilePath "cmd.exe" -ArgumentList "/c $($software.QuietUninstallString)" -Credential $credential -PassThru
+        }
+        else {
+            # 使用一般卸載字符串
+            $process = Start-Process -FilePath "cmd.exe" -ArgumentList "/c $($software.UninstallString)" -Credential $credential -PassThru
+        }
+
+        $process.WaitForExit()
         
-        $uninstallstring = $software_is_installed.uninstallString.Split(" ")[1].replace("I", "X")
-
-        $running_proc = Start-Process -FilePath "msiexec.exe" -ArgumentList "$uninstallstring /passive" -Credential $credential -PassThru
-        $running_proc.WaitForExit()     
+        # 檢查卸載結果
+        if ($process.ExitCode -eq 0) {
+            Write-Output "成功移除 $($software.DisplayName)"
+        }
+        else {
+            Write-Output "移除 $($software.DisplayName) 失敗，退出碼: $($process.ExitCode)"
+        }
     }
-    else {
-        return "找不到軟體: $name"
-    }
-
 }
 
 
