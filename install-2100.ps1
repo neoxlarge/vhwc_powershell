@@ -150,12 +150,8 @@ if ($run_main -eq $null) {
         Start-Process powershell.exe -ArgumentList "-FILE `"$PSCommandPath`" -Executionpolicy bypass -NoProfile  -runadmin 1" -Verb Runas; exit
     }
 
-    if ($check_admin) { 
-        install-2100_chrome    
-    }
-    else {
-        Write-Warning "無法取得管理員權限來安裝軟體, 請以管理員帳號重試."
-    }
+    install-2100_chrome    
+
     #pause
     Start-Sleep -Seconds 10
 }
