@@ -11,9 +11,10 @@ $log_file = "\\172.20.1.14\update\0001-中榮系統環境設定\VHWC_logs\install-2100(c
 
 $pspaths = @()
 
-$work_path = "$(Split-Path $script:MyInvocation.MyCommand.Path)\vhwcmis_module.psm1"
-if (test-path -Path $work_path) { $pspaths += $work_path }
-
+if ($script:MyInvocation.MyCommand.Path -ne $null) {
+    $work_path = "$(Split-Path $script:MyInvocation.MyCommand.Path)\vhwcmis_module.psm1"
+    if (test-path -Path $work_path) { $pspaths += $work_path }
+}
 $nas_name = "nas122"
 $nas_path = "\\172.20.1.122\share\software\00newpc\vhwc_powershell"
 if (!(test-path $nas_path)) {
