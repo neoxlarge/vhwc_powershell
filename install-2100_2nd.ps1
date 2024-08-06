@@ -172,7 +172,7 @@ if ($run_main -eq $null) {
         Start-Process powershell.exe -ArgumentList "-FILE `"$PSCommandPath`" -Executionpolicy bypass -NoProfile  -runadmin 1" -Verb Runas; exit
     }
 
-    install-2100_chrome    
+    install-2100_2nd    
 
     #pause
     Start-Sleep -Seconds 10

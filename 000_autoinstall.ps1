@@ -86,7 +86,7 @@ set-Java_env
 
 #¦w¸Ë2100
 Import-Module ((Split-Path $PSCommandPath) + "\install-2100.ps1")
-install-2100_chrome
+install-2100_2nd
 #set-2100_env
 
 #install-IE11
