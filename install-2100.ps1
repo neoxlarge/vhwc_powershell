@@ -7,7 +7,7 @@
 
 param($runadmin)
 
-$log_file = "\\172.20.1.14\update\0001-中榮系統環境設定\VHWC_logs\install-2100(chrome).log"
+$log_file = "\\172.20.1.14\update\0001-中榮系統環境設定\VHWC_logs\install-2100_2nd.log"
 
 $pspaths = @()
 
@@ -58,26 +58,42 @@ function Get-ChromePath {
 }
 
 function Update-RegistryKey($keyPath, $valueName, $desiredValue) {
-    # 創建一個新的 PSDrive 來訪問 HKLM
-    New-PSDrive -Name HKLM -PSProvider Registry -Root HKEY_LOCAL_MACHINE -ErrorAction SilentlyContinue | Out-Null
-
-    $fullPath = "HKLM:\$keyPath"
-    if (-not (Test-Path $fullPath)) {
-        New-Item -Path $fullPath -Force | Out-Null
-        Write-Output "建立新的註冊表項: $fullPath"
+    $credential = Get-Admin_Cred
+        
+    # 檢查並創建註冊表項（如果不存在）
+    if (-not (Test-Path $keypath)) {
+        $createItemCode = {
+            param($path)
+            New-Item -Path $path -Force
+        }
+        Invoke-Command -ComputerName localhost -ScriptBlock $createItemCode -ArgumentList $keypath -Credential $credential
+        Write-Output "建立新的註冊表項: $keypath"
     }
 
-    $currentValue = Get-ItemProperty -Path $fullPath -Name $valueName -ErrorAction SilentlyContinue
-    if ($currentValue -eq $null -or $currentValue.$valueName -ne $desiredValue) {
-        New-ItemProperty -Path $fullPath -Name $valueName -Value $desiredValue -PropertyType String -Force | Out-Null
-        Write-Output "更新註冊表項: $fullPath\$valueName"
+    # 檢查註冊表值是否存在且正確
+    $checkValueCode = {
+        param($path, $name, $desiredValue)
+        $currentValue = Get-ItemProperty -Path $path -Name $name -ErrorAction SilentlyContinue
+        if ($currentValue -eq $null -or $currentValue.$name -ne $desiredValue) {
+            return $false
+        }
+        return $true
     }
-    else {
-        Write-Output "註冊表項已存在且正確: $fullPath\$valueName"
-    }
+    
+    $needsUpdate = -not (Invoke-Command -ComputerName localhost -ScriptBlock $checkValueCode -ArgumentList $keypath, $valueName, $desiredValue -Credential $credential)
 
-    # 移除 PSDrive
-    Remove-PSDrive -Name HKLM -ErrorAction SilentlyContinue
+    if ($needsUpdate) {
+        # 更新註冊表值
+        $updatePropertyCode = {
+            param($path, $name, $value)
+            New-ItemProperty -Path $path -Name $name -Value $value -PropertyType String -Force
+        }
+        Invoke-Command -ComputerName localhost -ScriptBlock $updatePropertyCode -ArgumentList $keypath, $valueName, $desiredValue -Credential $credential
+        Write-Output "二代公文系統更新註冊表項: $keypath\$valueName"
+        Write-Log -LogFile $log_file -Message "二代公文系統更新註冊表項: $keypath\$valueName"
+    } else {
+        Write-Output "二代公文系統註冊表項已存在且正確: $keypath\$valueName"
+    }
 }
 
 
@@ -101,38 +117,43 @@ function install-2100_chrome() {
         $shortcut = $shell.CreateShortcut($shortcutPath)
     
         if ($shortcut.TargetPath -ne $chromePath) {
-            Write-Output "捷徑已存在，但 Chrome 路徑不正確。正在更新..."
+            Write-Output "二代公文系統捷徑已存在，但 Chrome 路徑不正確。正在更新..."
             $shortcut.TargetPath = $chromePath
             $shortcut.Arguments = "https://edap.doc.vghtc.gov.tw/ms/SSO.html"
             $shortcut.Save()
-            Write-Output "捷徑已更新。"
+            Write-Output "二代公文系統捷徑已更新。"
+            Write-log -LogFile $log_file -Message "原有二代公文系統捷徑內容有誤,捷徑已更新。  "
         }
         else {
-            Write-Output "捷徑已存在且 Chrome 路徑正確。無需更改。"
+            Write-Output "二代公文系統捷徑已存在且 Chrome 路徑正確。無需更改。"
         }
     }
     else {
         # 建立新捷徑
+        $shortcutPath_temp = Join-Path $env:temp "二代公文系統(Chrome).lnk"
+
         $WshShell = New-Object -comObject WScript.Shell
-        $Shortcut = $WshShell.CreateShortcut($shortcutPath)
+        $Shortcut = $WshShell.CreateShortcut($shortcutPath_temp)
         $Shortcut.TargetPath = $chromePath
         $Shortcut.Arguments = "https://edap.doc.vghtc.gov.tw/ms/SSO.html"
         $Shortcut.Save()
 
+        $credential = get-admin_cred
+        Start-Process -FilePath robocopy.exe -ArgumentList "$($env:temp) C:\Users\Public\Desktop 二代公文系統(Chrome).lnk" -Credential $credential
         Write-Output "新捷徑 '二代公文系統(Chrome).lnk' 已建立完成。"
+        Write-log -LogFile $log_file -Message "新捷徑 '二代公文系統(Chrome).lnk' 已建立完成。"
     }
 
     # 檢查和更新註冊表項
-    $chromeKeyPath = "SOFTWARE\Policies\Google\Chrome\PopupsAllowedForUrls"
-    $edgeKeyPath = "SOFTWARE\Policies\Microsoft\Edge\PopupsAllowedForUrls"
+    $chromeKeyPath = "HKLM:\SOFTWARE\Policies\Google\Chrome\PopupsAllowedForUrls"
+    $edgeKeyPath = "HKLM:\SOFTWARE\Policies\Microsoft\Edge\PopupsAllowedForUrls"
     $desiredValue = "edap.doc.vghtc.gov.tw"
-
 
 
     Update-RegistryKey $chromeKeyPath "99999" $desiredValue
     Update-RegistryKey $edgeKeyPath "99999" $desiredValue
 
-    Write-Output "註冊表檢查和更新完成。"
+    Write-Output "二代公文系統註冊表檢查和更新完成。"
 
 }
 
