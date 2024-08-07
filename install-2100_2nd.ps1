@@ -98,7 +98,7 @@ function Update-RegistryKey($keyPath, $valueName, $desiredValue) {
 
 
 
-function install-2100_chrome() {
+function install-2100_2nd() {
 
     $credential = get-admin_cred
 
