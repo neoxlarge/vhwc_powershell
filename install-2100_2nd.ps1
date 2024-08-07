@@ -102,7 +102,11 @@ function Update-RegistryKey($keyPath, $valueName, $desiredValue) {
             param($path, $name, $value)
             New-ItemProperty -Path $path -Name $name -Value $value -PropertyType String -Force
         }
-        Invoke-Command -ComputerName localhost -ScriptBlock $updatePropertyCode -ArgumentList $keypath, $valueName, $desiredValue -Credential $credential
+
+        $scriptString = $updatePropertyCode.ToString()
+        $argumentList = "-ExecutionPolicy Bypass -Command `"& {$scriptString} -path '$keypath' -name '$valueName' -value '$desiredValue'`""
+        Start-Process powershell.exe -ArgumentList $argumentList -Credential $credential -WorkingDirectory "C:\" -Wait
+       
         Write-Output "二代公文系統更新註冊表項: $keypath\$valueName"
         Write-Log -LogFile $log_file -Message "二代公文系統更新註冊表項: $keypath\$valueName"
     }
