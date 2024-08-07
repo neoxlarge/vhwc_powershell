@@ -9,33 +9,42 @@ param($runadmin)
 
 $log_file = "\\172.20.1.14\update\0001-中榮系統環境設定\VHWC_logs\install-2100_2nd.log"
 
-$pspaths = @()
+function import-vhwcmis_module {
+    # import vhwcmis_module.psm1
+    # 取得vhwcmis_module.psm1的3種方式:
+    # 1.程式執行當前路徑, 放到AD上用Group police執行,不會有當前路徑.
+    # 2.常用的路徑, d:\mis\vhwc_powershell, 不是每台都有放.
+    # 3.連到NAS上取得. 非網域的電腦會沒有NAS的權限, 須手動連上NAS.
 
-if ($script:MyInvocation.MyCommand.Path -ne $null) {
-    $work_path = "$(Split-Path $script:MyInvocation.MyCommand.Path)\vhwcmis_module.psm1"
-    if (test-path -Path $work_path) { $pspaths += $work_path }
-}
-$nas_name = "nas122"
-$nas_path = "\\172.20.1.122\share\software\00newpc\vhwc_powershell"
-if (!(test-path $nas_path)) {
-    $nas_Username = "software_download"
-    $nas_Password = "Us2791072"
-    $nas_securePassword = ConvertTo-SecureString $nas_Password -AsPlainText -Force
-    $nas_credential = New-Object System.Management.Automation.PSCredential($nas_Username, $nas_securePassword)
-    
-    New-PSDrive -Name $nas_name -Root "$nas_path" -PSProvider FileSystem -Credential $nas_credential | Out-Null
-}
-$pspaths += "$nas_path\vhwcmis_module.psm1"
+    $pspaths = @()
 
-$local_path = "d:\mis\vhwc_powershell\vhwcmis_module.psm1"
-if (Test-Path $local_path) { $pspaths += $local_path }
+    if ($script:MyInvocation.MyCommand.Path -ne $null) {
+        $work_path = "$(Split-Path $script:MyInvocation.MyCommand.Path)\vhwcmis_module.psm1"
+        if (test-path -Path $work_path) { $pspaths += $work_path }
+    }
+    $nas_name = "nas122"
+    $nas_path = "\\172.20.1.122\share\software\00newpc\vhwc_powershell"
+    if (!(test-path $nas_path)) {
+        $nas_Username = "software_download"
+        $nas_Password = "Us2791072"
+        $nas_securePassword = ConvertTo-SecureString $nas_Password -AsPlainText -Force
+        $nas_credential = New-Object System.Management.Automation.PSCredential($nas_Username, $nas_securePassword)
+        
+        New-PSDrive -Name $nas_name -Root "$nas_path" -PSProvider FileSystem -Credential $nas_credential | Out-Null
+    }
+    $pspaths += "$nas_path\vhwcmis_module.psm1"
 
-foreach ($path in $pspaths) {
-    Import-Module $path -ErrorAction SilentlyContinue
-    if ((get-command -Name "get-installedprogramlist" -CommandType Function -ErrorAction SilentlyContinue)) {
-        break
+    $local_path = "d:\mis\vhwc_powershell\vhwcmis_module.psm1"
+    if (Test-Path $local_path) { $pspaths += $local_path }
+
+    foreach ($path in $pspaths) {
+        Import-Module $path -ErrorAction SilentlyContinue
+        if ((get-command -Name "get-installedprogramlist" -CommandType Function -ErrorAction SilentlyContinue)) {
+            break
+        }
     }
 }
+import-vhwcmis_module
 
 
 
@@ -91,7 +100,8 @@ function Update-RegistryKey($keyPath, $valueName, $desiredValue) {
         Invoke-Command -ComputerName localhost -ScriptBlock $updatePropertyCode -ArgumentList $keypath, $valueName, $desiredValue -Credential $credential
         Write-Output "二代公文系統更新註冊表項: $keypath\$valueName"
         Write-Log -LogFile $log_file -Message "二代公文系統更新註冊表項: $keypath\$valueName"
-    } else {
+    }
+    else {
         Write-Output "二代公文系統註冊表項已存在且正確: $keypath\$valueName"
     }
 }
@@ -117,10 +127,23 @@ function install-2100_2nd() {
         $shortcut = $shell.CreateShortcut($shortcutPath)
     
         if ($shortcut.TargetPath -ne $chromePath) {
-            Write-Output "二代公文系統捷徑已存在，但 Chrome 路徑不正確。正在更新..."
-            $shortcut.TargetPath = $chromePath
-            $shortcut.Arguments = "https://edap.doc.vghtc.gov.tw/ms/SSO.html"
-            $shortcut.Save()
+            #Write-Output "二代公文系統捷徑已存在，但 Chrome 路徑不正確。正在更新..."
+            #$shortcut.TargetPath = $chromePath
+            #$shortcut.Arguments = "https://edap.doc.vghtc.gov.tw/ms/SSO.html"
+            #$shortcut.Save()
+            
+            $shortcutPath_temp = Join-Path $env:temp "二代公文系統(Chrome).lnk"
+
+            $WshShell = New-Object -comObject WScript.Shell
+            $Shortcut = $WshShell.CreateShortcut($shortcutPath_temp)
+            $Shortcut.TargetPath = $chromePath
+            $Shortcut.Arguments = "https://edap.doc.vghtc.gov.tw/ms/SSO.html"
+            $Shortcut.Save()
+
+            $credential = get-admin_cred
+            Start-Process -FilePath robocopy.exe -ArgumentList "$($env:temp) C:\Users\Public\Desktop 二代公文系統(Chrome).lnk" -Credential $credential
+            
+            
             Write-Output "二代公文系統捷徑已更新。"
             Write-log -LogFile $log_file -Message "原有二代公文系統捷徑內容有誤,捷徑已更新。  "
         }
