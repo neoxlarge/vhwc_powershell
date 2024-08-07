@@ -75,7 +75,12 @@ function Update-RegistryKey($keyPath, $valueName, $desiredValue) {
             param($path)
             New-Item -Path $path -Force
         }
-        Invoke-Command -ComputerName localhost -ScriptBlock $createItemCode -ArgumentList $keypath -Credential $credential
+
+        $scriptString = $createItemCode.ToString()
+
+        $argumentList = "-ExecutionPolicy Bypass -Command `"& {$scriptString} -path '$keypath'`""
+
+        Start-Process powershell.exe -ArgumentList $argumentList -Credential $credential -WorkingDirectory "C:\" -Wait
         Write-Output "建立新的註冊表項: $keypath"
     }
 
