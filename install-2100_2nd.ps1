@@ -67,8 +67,7 @@ function Get-ChromePath {
 }
 
 function Update-RegistryKey($keyPath, $valueName, $desiredValue) {
-    $credential = Get-Admin_Cred
-        
+            
     # 檢查並創建註冊表項（如果不存在）
     if (-not (Test-Path $keypath)) {
         $createItemCode = {
@@ -77,25 +76,22 @@ function Update-RegistryKey($keyPath, $valueName, $desiredValue) {
         }
 
         $scriptString = $createItemCode.ToString()
-
         $argumentList = "-ExecutionPolicy Bypass -Command `"& {$scriptString} -path '$keypath'`""
 
-        Start-Process powershell.exe -ArgumentList $argumentList -Credential $credential -WorkingDirectory "C:\" -Wait
+        $proc =Start-Process powershell.exe -ArgumentList $argumentList -Credential $credential -PassThru
+        $proc.WaitForExit()
         Write-Output "建立新的註冊表項: $keypath"
     }
 
     # 檢查註冊表值是否存在且正確
-    $checkValueCode = {
-        param($path, $name, $desiredValue)
-        $currentValue = Get-ItemProperty -Path $path -Name $name -ErrorAction SilentlyContinue
-        if ($currentValue -eq $null -or $currentValue.$name -ne $desiredValue) {
-            return $false
+        $currentValue = Get-ItemProperty -Path $keypath -Name $valuename -ErrorAction SilentlyContinue
+        if ($currentValue -eq $null -or $currentValue.$valuename -ne $desiredValue) {
+            $needsUpdate = $true
+        } else {
+            $needsUpdate = $false
         }
-        return $true
-    }
-    
-    $needsUpdate = -not (Invoke-Command -ComputerName localhost -ScriptBlock $checkValueCode -ArgumentList $keypath, $valueName, $desiredValue -Credential $credential)
-
+   
+   
     if ($needsUpdate) {
         # 更新註冊表值
         $updatePropertyCode = {
@@ -105,7 +101,8 @@ function Update-RegistryKey($keyPath, $valueName, $desiredValue) {
 
         $scriptString = $updatePropertyCode.ToString()
         $argumentList = "-ExecutionPolicy Bypass -Command `"& {$scriptString} -path '$keypath' -name '$valueName' -value '$desiredValue'`""
-        Start-Process powershell.exe -ArgumentList $argumentList -Credential $credential -WorkingDirectory "C:\" -Wait
+        $proc = Start-Process powershell.exe -ArgumentList $argumentList -Credential $credential -PassThru
+        $proc.WaitForExit()
        
         Write-Output "二代公文系統更新註冊表項: $keypath\$valueName"
         Write-Log -LogFile $log_file -Message "二代公文系統更新註冊表項: $keypath\$valueName"
