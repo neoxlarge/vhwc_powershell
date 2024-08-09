@@ -86,7 +86,7 @@ set-Java_env
 
 #¦w¸Ë2100
 Import-Module ((Split-Path $PSCommandPath) + "\install-2100_2nd.ps1")
-install-2100_2nc
+install-2100_2nd
 
 
 #install-IE11
