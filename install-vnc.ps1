@@ -7,40 +7,45 @@
 
 param($runadmin)
 
-# import vhwcmis_module.psm1
-# 取得vhwcmis_module.psm1的3種方式:
-# 1.程式執行當前路徑, 放到AD上用Group police執行,不會有當前路徑.
-# 2.常用的路徑, d:\mis\vhwc_powershell, 不是每台都有放.
-# 3.連到NAS上取得. 非網域的電腦會沒有NAS的權限, 須手動連上NAS.
-
 $log_file = "\\172.20.1.14\update\0001-中榮系統環境設定\VHWC_logs\update-VNC.log"
 
-$pspaths = @()
+function import-vhwcmis_module {
+    # import vhwcmis_module.psm1
+    # 取得vhwcmis_module.psm1的3種方式:
+    # 1.程式執行當前路徑, 放到AD上用Group police執行,不會有當前路徑.
+    # 2.常用的路徑, d:\mis\vhwc_powershell, 不是每台都有放.
+    # 3.連到NAS上取得. 非網域的電腦會沒有NAS的權限, 須手動連上NAS.
 
-$work_path = "$(Split-Path $script:MyInvocation.MyCommand.Path)\vhwcmis_module.psm1"
-if (test-path -Path $work_path) { $pspaths += $work_path }
+    $pspaths = @()
 
-$nas_name = "nas122"
-$nas_path = "\\172.20.1.122\share\software\00newpc\vhwc_powershell"
-if (!(test-path $nas_path)) {
-    $nas_Username = "software_download"
-    $nas_Password = "Us2791072"
-    $nas_securePassword = ConvertTo-SecureString $nas_Password -AsPlainText -Force
-    $nas_credential = New-Object System.Management.Automation.PSCredential($nas_Username, $nas_securePassword)
-    
-    New-PSDrive -Name $nas_name -Root "$nas_path" -PSProvider FileSystem -Credential $nas_credential | Out-Null
-}
-$pspaths += "$nas_path\vhwcmis_module.psm1"
+    if ($script:MyInvocation.MyCommand.Path -ne $null) {
+        $work_path = "$(Split-Path $script:MyInvocation.MyCommand.Path)\vhwcmis_module.psm1"
+        if (test-path -Path $work_path) { $pspaths += $work_path }
+    }
+    $nas_name = "nas122"
+    $nas_path = "\\172.20.1.122\share\software\00newpc\vhwc_powershell"
+    if (!(test-path $nas_path)) {
+        $nas_Username = "software_download"
+        $nas_Password = "Us2791072"
+        $nas_securePassword = ConvertTo-SecureString $nas_Password -AsPlainText -Force
+        $nas_credential = New-Object System.Management.Automation.PSCredential($nas_Username, $nas_securePassword)
+        
+        New-PSDrive -Name $nas_name -Root "$nas_path" -PSProvider FileSystem -Credential $nas_credential | Out-Null
+    }
+    $pspaths += "$nas_path\vhwcmis_module.psm1"
 
-$local_path = "d:\mis\vhwc_powershell\vhwcmis_module.psm1"
-if (Test-Path $local_path) { $pspaths += $local_path }
+    $local_path = "d:\mis\vhwc_powershell\vhwcmis_module.psm1"
+    if (Test-Path $local_path) { $pspaths += $local_path }
 
-foreach ($path in $pspaths) {
-    Import-Module $path -ErrorAction SilentlyContinue
-    if ((get-command -Name "get-installedprogramlist" -CommandType Function -ErrorAction SilentlyContinue)) {
-        break
+    foreach ($path in $pspaths) {
+        Import-Module $path -ErrorAction SilentlyContinue
+        if ((get-command -Name "get-installedprogramlist" -CommandType Function -ErrorAction SilentlyContinue)) {
+            break
+        }
     }
 }
+import-vhwcmis_module
+
 
 # 定義創建捷徑的函數
 function New-Shortcut {
@@ -83,7 +88,6 @@ function install-VNC {
         if ($result) {
             $ipv4 = Get-IPv4Address 
             Write-Log -logfile $log_file -message "Find old VNC version:$($software_is_installed.DisplayVersion)"
-  
             Write-Output "Find old VNC $software_name, version: $($software_is_installed.DisplayVersion)"
             Write-Output "Removing old version."
             Start-Process -FilePath $software_is_installed.UninstallString -ArgumentList "/SILENT" -Wait
@@ -91,7 +95,7 @@ function install-VNC {
 
         } else {
             $msg = "Installed VNC: $($software_is_installed.DisplayVersion)"
-            Write-Log -logfile $log_file -message $msg
+            #Write-Log -logfile $log_file -message $msg
         
         }
     }
@@ -118,16 +122,12 @@ function install-VNC {
         UltraVNC_1436_X86.msi  SERVERVIEWER=3 SERVICE=1 PASSWORD="sysc0012"
         #>
 
-
         if ($null -ne $software_exec) {
             #Start-Process -FilePath $($env:temp + "\" + $software_path.Name + "\" + $software_exec) -ArgumentList "/silent /loadinf=$($env:temp + "\" + $software_path.Name + "\installvnc.inf")" -Wait
             $install_filepath = "$($env:temp)\$($software_path.Name)\$software_exec"
-
             $install_arrg = "/i $install_filepath /passive /norestart PASSWORD=""sysc0012"" SERVERVIEWER=3 SERVICE=1"
-            
             Start-Process -FilePath "msiexec.exe" -ArgumentList $install_arrg -Wait
-
-            
+          
             Write-Log -logfile $log_file -message "Start to install VNC: $install_filepath"
 
             Start-Sleep -Seconds 5
@@ -145,7 +145,7 @@ function install-VNC {
     
     }
 
-    #多建立一個公用桌面的捷徑
+    #因為這版用MSI安裝的, 會出現沒有建立程式捷徑的情, 所以手動多建立一個公用桌面的捷徑
 
     $shortcuts = @{
         
@@ -185,31 +185,21 @@ function install-VNC {
         # 創建捷徑
 
         if (!(Test-Path -Path $shortcutPath)) {
-        try {
-            New-Shortcut -TargetPath $exePath -ShortcutPath $shortcutPath
-            Write-Log -logfile $log_file -message "成功創建捷徑：$shortcutPath"
-        }
-        catch {
-            Write-Log -logfile $log_file -message "錯誤：無法創建捷徑 $shortcutPath - $_"
-        }
-
-
-        
+            try {
+                New-Shortcut -TargetPath $exePath -ShortcutPath $shortcutPath
+                Write-Log -logfile $log_file -message "成功創建捷徑：$shortcutPath"
+            }
+            catch {
+                Write-Log -logfile $log_file -message "錯誤：無法創建捷徑 $shortcutPath - $_"
+            }
          }
-    
     }
     
   
-
-    
-    
     Write-Output ("Software has installed: " + $software_is_installed.DisplayName)
     Write-Output ("Version: " + $software_is_installed.DisplayVersion)
 
 }
-
-
-
 
 
 #檔案獨立執行時會執行函式, 如果是被載入時不會執行函式.
