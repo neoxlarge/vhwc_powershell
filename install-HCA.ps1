@@ -43,7 +43,7 @@ foreach ($path in $pspaths) {
 
 
 function install-HCA {
-
+    
     $log_file = "\\172.20.1.14\update\0001-中榮系統環境設定\VHWC_logs\update-HCA.log"
 
     ## 安裝 HCAServiSign
@@ -62,8 +62,8 @@ function install-HCA {
         $result = Compare-Version -Version1 $exe_version -Version2 $software_is_installed.DisplayVersion
 
         if ($result) {
-            $ipv4 = Get-IPv4Address 
-            Write-Log -logfile $log_file -message "Find old HCA version:$($software_is_installed.DisplayVersion),$env:COMPUTERNAME,$ipv4"
+            
+            Write-Log -logfile $log_file -message "Find old HCA version:$($software_is_installed.DisplayVersion)"
   
             Write-Output "Find old HCA $software_name, version: $($software_is_installed.DisplayVersion)"
             Write-Output "Removing old version."
