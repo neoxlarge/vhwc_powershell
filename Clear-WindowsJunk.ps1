@@ -27,6 +27,29 @@ function Clear-WindowsJunk {
   
   
   
+  
+  # 清除Google Chrome暫存檔和Cookies
+  try {
+      Remove-Item -Path "$env:LOCALAPPDATA\Google\Chrome\User Data\Default\Cache\*" -Recurse -Force -ErrorAction  Stop
+      Remove-Item -Path "$env:LOCALAPPDATA\Google\Chrome\User Data\Default\Network\cookies" -Recurse -Force -ErrorAction Stop 
+  }
+  catch [System.Management.Automation.ItemNotFoundException] {
+      Write-Warning "清除暫存檔可能失敗:"
+      Write-Warning $Error[0].Exception.Message
+  }
+
+    
+    # 清除Microsoft Edge暫存檔和Cookies
+  try {
+    Remove-Item -Path "$env:LOCALAPPDATA\Packages\Microsoft.MicrosoftEdge_8wekyb3d8bbwe\AC\MicrosoftEdge\Cache\*" -Recurse -Force -ErrorAction Stop
+    Remove-Item -Path "$env:LOCALAPPDATA\Packages\Microsoft.MicrosoftEdge_8wekyb3d8bbwe\AC\MicrosoftEdge\Cookies\*" -Recurse -Force -ErrorAction Stop
+  }
+    catch [System.Management.Automation.ItemNotFoundException]{
+      Write-Warning "清除暫存檔可能失敗:"
+      Write-Warning $Error[0].Exception.Message
+  }
+  }
+
 
   # 清空回收桶 , 
   # 20240403, 不要清空回收桶, 可能有使用者暫留的資料.
@@ -38,6 +61,8 @@ function Clear-WindowsJunk {
   #WEVTUtil.exe cl System
   #WEVTUtil.exe cl Security
 }
+
+
 
   
 #檔案獨立執行時會執行函式, 如果是被匯入時不會執行函式.
