@@ -43,6 +43,10 @@ function import-vhwcmis_module {
             break
         }
     }
+
+    if (! ($(Get-PSDrive -Name $nas_name -ErrorAction SilentlyContinue) -eq $null) ) {
+        Remove-PSDrive -Name $nas_name
+    }
 }
 import-vhwcmis_module
 

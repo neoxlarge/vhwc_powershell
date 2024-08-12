@@ -43,6 +43,10 @@ function import-vhwcmis_module {
             break
         }
     }
+
+    if (! ($(Get-PSDrive -Name $nas_name -ErrorAction SilentlyContinue) -eq $null) ) {
+        Remove-PSDrive -Name $nas_name
+    }
 }
 import-vhwcmis_module
 
@@ -109,9 +113,7 @@ function install-HCA {
     Write-output ("software has installed:" + $software_is_installed.DisplayName )
     Write-Output ("Version:" + $software_is_installed.DisplayVersion)
 
-    if (! ($(Get-PSDrive -Name $nas_name -ErrorAction SilentlyContinue) -eq $null) ) {
-        Remove-PSDrive -Name $nas_name
-    }
+
 }
 
 
