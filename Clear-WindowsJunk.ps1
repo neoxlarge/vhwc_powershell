@@ -48,7 +48,7 @@ function Clear-WindowsJunk {
       Write-Warning "清除暫存檔可能失敗:"
       Write-Warning $Error[0].Exception.Message
   }
-  }
+  
 
 
   # 清空回收桶 , 
