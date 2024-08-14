@@ -46,7 +46,8 @@ function install-PowerBIRS {
         #安裝完, 再重新取得安裝資訊
         $all_installed_program = get-installedprogramlist
         $software_is_installed = $all_installed_program | Where-Object -FilterScript { $_.DisplayName -like "$software_name*" }
-    } else {
+        
+    } elseif ($(Get-OSVersion) -notin @("Windows 10","Windows 11")) {
         Write-Output "$(Get-OSVersion)不會安裝PowerBI."
     }
 
