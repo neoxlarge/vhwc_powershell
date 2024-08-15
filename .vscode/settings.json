@@ -1,4 +1,5 @@
 {
     "files.encoding": "cp950",
-    "files.enableTrash": false
+    "files.enableTrash": false,
+    "workbench.externalBrowser": "chrome"
 }
