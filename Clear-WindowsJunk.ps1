@@ -30,8 +30,8 @@ function Clear-WindowsJunk {
   
   # 清除Google Chrome暫存檔和Cookies
   try {
-      Remove-Item -Path "$env:LOCALAPPDATA\Google\Chrome\User Data\Default\Cache\*" -Recurse -Force -ErrorAction  Stop
-      Remove-Item -Path "$env:LOCALAPPDATA\Google\Chrome\User Data\Default\Network\cookies" -Recurse -Force -ErrorAction Stop 
+      Remove-Item -Path "$env:LOCALAPPDATA\Google\Chrome\User Data\Default\Cache\*" -Recurse -Force -ErrorAction  SilentlyContinue
+      Remove-Item -Path "$env:LOCALAPPDATA\Google\Chrome\User Data\Default\Network\cookies" -Recurse -Force -ErrorAction SilentlyContinue 
   }
   catch [System.Management.Automation.ItemNotFoundException] {
       Write-Warning "清除暫存檔可能失敗:"
@@ -41,8 +41,8 @@ function Clear-WindowsJunk {
     
     # 清除Microsoft Edge暫存檔和Cookies
   try {
-    Remove-Item -Path "$env:LOCALAPPDATA\Packages\Microsoft.MicrosoftEdge_8wekyb3d8bbwe\AC\MicrosoftEdge\Cache\*" -Recurse -Force -ErrorAction Stop
-    Remove-Item -Path "$env:LOCALAPPDATA\Packages\Microsoft.MicrosoftEdge_8wekyb3d8bbwe\AC\MicrosoftEdge\Cookies\*" -Recurse -Force -ErrorAction Stop
+    Remove-Item -Path "$env:LOCALAPPDATA\Packages\Microsoft.MicrosoftEdge_8wekyb3d8bbwe\AC\MicrosoftEdge\Cache\*" -Recurse -Force -ErrorAction SilentlyContinue
+    Remove-Item -Path "$env:LOCALAPPDATA\Packages\Microsoft.MicrosoftEdge_8wekyb3d8bbwe\AC\MicrosoftEdge\Cookies\*" -Recurse -Force -ErrorAction SilentlyContinue
   }
     catch [System.Management.Automation.ItemNotFoundException]{
       Write-Warning "清除暫存檔可能失敗:"

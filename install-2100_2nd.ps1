@@ -150,10 +150,15 @@ function install-2100_2nd() {
             $Shortcut.Arguments = "https://edap.doc.vghtc.gov.tw/ms/SSO.html"
             $Shortcut.Save()
 
-            $credential = get-admin_cred
-            Start-Process -FilePath robocopy.exe -ArgumentList "$($env:temp) C:\Users\Public\Desktop そゅ╰参(Chrome).lnk" -Credential $credential
-            
-            
+            try {
+                Start-Process -FilePath robocopy.exe -ArgumentList "$($env:temp)\ C:\Users\Public\Desktop\ ""そゅ╰参(Chrome).lnk""" -Credential $credential
+            }
+            catch {
+                Copy-Item -Path $shortcutPath_temp -Destination "C:\Users\Public\Desktop\そゅ╰参(Chrome).lnk"
+            }
+
+            #Start-Process -FilePath robocopy.exe -ArgumentList "$($env:temp)\ C:\Users\Public\Desktop\ ""そゅ╰参(Chrome).lnk""" -Credential $credential
+                        
             Write-Output "そゅ╰参倍畖穝"
             Write-log -LogFile $log_file -Message "Τそゅ╰参倍畖ず甧Τ粇,倍畖穝  "
         }
