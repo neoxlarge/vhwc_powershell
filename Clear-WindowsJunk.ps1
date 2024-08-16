@@ -50,6 +50,32 @@ function Clear-WindowsJunk {
   }
   
 
+  <# 清除Internet Explorer暫存檔和Cookies
+      Delete Temporary Internet Files:
+      RunDll32.exe InetCpl.cpl,ClearMyTracksByProcess 8
+
+      Delete Cookies:
+      RunDll32.exe InetCpl.cpl,ClearMyTracksByProcess 2
+
+      Delete History:
+      RunDll32.exe InetCpl.cpl,ClearMyTracksByProcess 1
+
+      Delete Form Data:
+      RunDll32.exe InetCpl.cpl,ClearMyTracksByProcess 16
+
+      Delete Passwords:
+      RunDll32.exe InetCpl.cpl,ClearMyTracksByProcess 32
+
+      Delete All:
+      RunDll32.exe InetCpl.cpl,ClearMyTracksByProcess 255
+
+      Delete All + files and settings stored by Add-ons:
+      RunDll32.exe InetCpl.cpl,ClearMyTracksByProcess 4351
+  #>
+
+
+  Start-Process -FilePath "RunDll32.exe" -ArgumentList "InetCpl.cpl,ClearMyTracksByProcess 8" -Wait
+  Start-Process -FilePath "RunDll32.exe" -ArgumentList "InetCpl.cpl,ClearMyTracksByProcess 2" -Wait
 
   # 清空回收桶 , 
   # 20240403, 不要清空回收桶, 可能有使用者暫留的資料.
