@@ -187,6 +187,6 @@ function Write-Log {
         [string]$Message,
         [string]$LogFile = "C:\Logs\MyLog.txt"
     )
-    $Log_Title = "$(Get-Date), $($env:COMPUTERNAME), $(Get-IPv4Address)"
+    $Log_Title = "$(Get-Date), $($env:COMPUTERNAME), $(Get-IPv4Address), $(Get-OSVersion)_$($env:PROCESSOR_ARCHITECTURE)"
     "$Log_Title - $Message" | Out-File -FilePath $LogFile -Append
 }
