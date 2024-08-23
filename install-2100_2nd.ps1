@@ -81,8 +81,12 @@ function Update-RegistryKey($keyPath, $valueName, $desiredValue) {
 
         $scriptString = $createItemCode.ToString()
         $argumentList = "-ExecutionPolicy Bypass -Command `"& {$scriptString} -path '$keypath'`""
-
-        $proc =Start-Process powershell.exe -ArgumentList $argumentList -Credential $credential -PassThru
+        if ($check_admin) {
+            $proc =Start-Process powershell.exe -ArgumentList $argumentList -PassThru
+        } else {
+            $proc =Start-Process powershell.exe -ArgumentList $argumentList -Credential $credential -PassThru
+        }
+        
         $proc.WaitForExit()
         Write-Output "ミ穝爹兜: $keypath"
     }
@@ -105,7 +109,11 @@ function Update-RegistryKey($keyPath, $valueName, $desiredValue) {
 
         $scriptString = $updatePropertyCode.ToString()
         $argumentList = "-ExecutionPolicy Bypass -Command `"& {$scriptString} -path '$keypath' -name '$valueName' -value '$desiredValue'`""
-        $proc = Start-Process powershell.exe -ArgumentList $argumentList -Credential $credential -PassThru
+        if ($check_admin) {
+            $proc = Start-Process powershell.exe -ArgumentList $argumentList -PassThru  
+        } else {
+            $proc = Start-Process powershell.exe -ArgumentList $argumentList -Credential $credential -PassThru
+        }
         $proc.WaitForExit()
        
         Write-Output "そゅ╰参穝爹兜: $keypath\$valueName"
@@ -176,8 +184,13 @@ function install-2100_2nd() {
         $Shortcut.Arguments = "https://edap.doc.vghtc.gov.tw/ms/SSO.html"
         $Shortcut.Save()
 
-        $credential = get-admin_cred
-        Start-Process -FilePath robocopy.exe -ArgumentList "$($env:temp) C:\Users\Public\Desktop そゅ╰参(Chrome).lnk" -Credential $credential
+        if ($check_admin) {
+            Start-Process -FilePath robocopy.exe -ArgumentList "$($env:temp) C:\Users\Public\Desktop そゅ╰参(Chrome).lnk"
+        } else {
+            $credential = get-admin_cred
+            Start-Process -FilePath robocopy.exe -ArgumentList "$($env:temp) C:\Users\Public\Desktop そゅ╰参(Chrome).lnk" -Credential $credential
+        }
+        
         Write-Output "穝倍畖 'そゅ╰参(Chrome).lnk' ミЧΘ"
         Write-log -LogFile $log_file -Message "穝倍畖 'そゅ╰参(Chrome).lnk' ミЧΘ"
     }
