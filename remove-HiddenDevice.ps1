@@ -6,6 +6,7 @@
 #win32_pnpentity中不會列出隱藏的設備, 無法用win32_pnpentity來作.
 #
 #主要以pnputil.exe來執行,所以win7不能用, Win10某些pnptuil版本過舊沒有/remove-device參數, 也不能執行.
+# FIXME: can not run on remore mode.
 
 
 #改主控台的QuickEdit關掉可以防使用者不小心按到powershell console, 迼成暫停.
