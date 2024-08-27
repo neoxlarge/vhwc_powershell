@@ -4,31 +4,33 @@ param($runadmin)
 
 function Clear-WindowsJunk {
   # 清除用戶暫存檔 
-  Write-Output "清除用戶暫存檔$env:LOCALAPPDATA\Temp\*"
+  Write-Output "清除用戶暫存檔:"
   
   $user_folders = Get-ChildItem "C:\Users"
   foreach ($user in $user_folders) {
+
+    Write-OutPut "Users\$user"
     Remove-Item -Path "c:\Users\$user\AppData\Local\Temp\*" -Recurse -Force -ErrorAction SilentlyContinue
     Remove-Item -Path "c:\Users\$user\AppData\Local\Microsoft\Windows\INetCache\*" -Recurse -Force -ErrorAction SilentlyContinue
     Remove-Item -Path "c:\Users\$user\AppData\Local\Microsoft\Windows\INetCookies\*" -Recurse -Force -ErrorAction SilentlyContinue
     
   }
 
-  Write-Output "清除系統暫存檔env:windir\Temp\*"
-  # 清除系統暫存檔 
-  Remove-Item -Path "$env:windir\Temp\*" -Recurse -Force -ErrorAction SilentlyContinue
+ 
+  Write-Output "清除系統暫存檔$($env:windir)\Temp\*"
+   Remove-Item -Path "$env:windir\Temp\*" -Recurse -Force -ErrorAction SilentlyContinue
 
-  #清除Windows 更新期間生成的暫存檔
+ 
+   Write-Output "清除Windows 更新期間生成的暫存檔"
   Remove-Item -Path "$env:windir\SoftwareDistribution\Download\*" -Recurse -Force -ErrorAction SilentlyContinue
 
-  #清除windows 快取資料夾
+  
+  Write-Output "清除windows 快取資料夾"
   Remove-Item -Path "C:\Windows\Prefetch\*" -Recurse -Force -ErrorAction SilentlyContinue
   Remove-Item -Path "C:\Windows\SystemTemp\*" -Recurse -Force -ErrorAction SilentlyContinue
   
-  
-  
-  
-  # 清除Google Chrome暫存檔和Cookies
+    
+  Write-OutPut " 清除Google Chrome暫存檔和Cookies"
   try {
       Remove-Item -Path "$env:LOCALAPPDATA\Google\Chrome\User Data\Default\Cache\*" -Recurse -Force -ErrorAction  SilentlyContinue
       Remove-Item -Path "$env:LOCALAPPDATA\Google\Chrome\User Data\Default\Network\cookies" -Recurse -Force -ErrorAction SilentlyContinue 
@@ -39,7 +41,7 @@ function Clear-WindowsJunk {
   }
 
     
-    # 清除Microsoft Edge暫存檔和Cookies
+    Write-OutPut " 清除Microsoft Edge暫存檔和Cookies"
   try {
     Remove-Item -Path "$env:LOCALAPPDATA\Packages\Microsoft.MicrosoftEdge_8wekyb3d8bbwe\AC\MicrosoftEdge\Cache\*" -Recurse -Force -ErrorAction SilentlyContinue
     Remove-Item -Path "$env:LOCALAPPDATA\Packages\Microsoft.MicrosoftEdge_8wekyb3d8bbwe\AC\MicrosoftEdge\Cookies\*" -Recurse -Force -ErrorAction SilentlyContinue
@@ -73,7 +75,7 @@ function Clear-WindowsJunk {
       RunDll32.exe InetCpl.cpl,ClearMyTracksByProcess 4351
   #>
 
-
+Write-OutPut "清除Internet Explorer暫存檔和Cookies"
   Start-Process -FilePath "RunDll32.exe" -ArgumentList "InetCpl.cpl,ClearMyTracksByProcess 8" -Wait
   Start-Process -FilePath "RunDll32.exe" -ArgumentList "InetCpl.cpl,ClearMyTracksByProcess 2" -Wait
 
