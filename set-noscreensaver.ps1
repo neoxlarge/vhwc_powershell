@@ -14,5 +14,5 @@ function  alwayson-screen {
 
 
 Set-ScreenSaver -off
-3
+
 alwayson-screen
