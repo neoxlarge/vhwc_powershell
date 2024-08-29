@@ -15,7 +15,8 @@ function Set-RegistryDWORD {
     if ($currentValue -eq $null -or $currentValue.$Name -ne $Value) {
         Set-ItemProperty -Path $Path -Name $Name -Value $Value -Type DWord
         Write-Output "已設置 $Path\$Name 為 $Value"
-    } else {
+    }
+    else {
         Write-Output "$Path\$Name 已存在且值正確"
     }
 }
@@ -34,42 +35,74 @@ function Set-RegistryString {
     if ($currentValue -eq $null -or $currentValue.$Name -ne $Value) {
         Set-ItemProperty -Path $Path -Name $Name -Value $Value
         Write-Output "已設置 $Path\$Name 為 $Value"
-    } else {
+    }
+    else {
+        Write-Output "$Path\$Name 已存在且值正確"
+    }
+}
+
+
+# 函數：檢查並設置註冊表值
+function Set-RegistryValue {
+    param (
+        [string]$Path,
+        [string]$Name,
+        $Value,
+        [string]$Type
+    )
+
+    $params = @{
+        Path  = $Path
+        Name  = $Name
+        Value = $Value
+    }
+
+    if (!(Test-Path $Path)) {
+        New-Item -Path $Path -Force | Out-Null
+    }
+
+    $currentValue = Get-ItemProperty -Path $Path -Name $Name -ErrorAction SilentlyContinue
+    
+    if ($null -eq $currentValue -or $currentValue.$Name -ne $Value) {
+        Set-ItemProperty @params -Type $Type
+        Write-Output "已設置 $Path\$Name 為 $Value"
+    }
+    else {
         Write-Output "$Path\$Name 已存在且值正確"
     }
 }
 
 function enable-iemode {
 
-# 主要的註冊表路徑
+    # 主要的註冊表路徑
 
-$edgePolicyPath = "HKLM:\SOFTWARE\Policies\Microsoft\Edge"
-$popupsAllowedPath = "HKLM:\SOFTWARE\Policies\Microsoft\Edge\PopupsAllowedForUrls"
+    $edgePolicyPath = "HKLM:\SOFTWARE\Policies\Microsoft\Edge"
+    $popupsAllowedPath = "HKLM:\SOFTWARE\Policies\Microsoft\Edge\PopupsAllowedForUrls"
 
-# 設置 Edge 策略
-Set-RegistryDWORD -Path $edgePolicyPath -Name "EnterpriseModeSiteListManagerAllowed" -Value 0
-Set-RegistryDWORD -Path $edgePolicyPath -Name "InternetExplorerIntegrationLevel" -Value 1
-Set-RegistryDWORD -Path $edgePolicyPath -Name "InternetExplorerIntegrationReloadInIEModeAllowed" -Value 1
-Set-RegistryString -Path $edgePolicyPath -Name "InternetExplorerIntegrationSiteList" -Value "\\172.20.1.14\update\0001-中榮系統環境設定\vhwc_win11_IEmode\SiteList.xml"
+    # 設置 Edge 策略
+    Set-RegistryDWORD -Path $edgePolicyPath -Name "EnterpriseModeSiteListManagerAllowed" -Value 0
+    Set-RegistryDWORD -Path $edgePolicyPath -Name "InternetExplorerIntegrationLevel" -Value 1
+    Set-RegistryDWORD -Path $edgePolicyPath -Name "InternetExplorerIntegrationReloadInIEModeAllowed" -Value 1
+    Set-RegistryString -Path $edgePolicyPath -Name "InternetExplorerIntegrationSiteList" -Value "\\172.20.1.14\update\0001-中榮系統環境設定\vhwc_win11_IEmode\SiteList.xml"
 
-# 設置彈出窗口允許列表
-$popupUrls = @(
-    "[*.]vhcy.gov.tw",
-    "[*.]vhwc.gov.tw",
-    "172.19.[.*][.*]",
-    "172.20.[.*][.*]",
-    "[*.]vghtc.gov.tw",
-    "172.19.[.*][.*]:9090",
-    "172.19.[.*][.*]:8000",
-    "172.20.[.*][.*]:9090",
-    "172.20.[.*][.*]:8000"
-)
+    # 設置彈出窗口允許列表
+    $popupUrls = @(
+        "[*.]vhcy.gov.tw",
+        "[*.]vhwc.gov.tw",
+        "172.19.[.*][.*]",
+        "172.20.[.*][.*]",
+        "[*.]vghtc.gov.tw",
+        "172.19.[.*][.*]:9090",
+        "172.19.[.*][.*]:8000",
+        "172.20.[.*][.*]:9090",
+        "172.20.[.*][.*]:8000"
+    )
 
-for ($i = 0; $i -lt $popupUrls.Length; $i++) {
-    Set-RegistryString -Path $popupsAllowedPath -Name ($i + 1).ToString() -Value $popupUrls[$i]
-}
+    for ($i = 0; $i -lt $popupUrls.Length; $i++) {
+        Set-RegistryString -Path $popupsAllowedPath -Name ($i + 1).ToString() -Value $popupUrls[$i]
+    }
 
-Write-Output "註冊表設置完成"
+    Write-Output "註冊表設置完成"
 }
 
 
