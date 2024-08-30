@@ -1,46 +1,6 @@
+# 設定Win11 IE mode 企業清單模式, 無時間限制.
+
 param($runadmin)
-
-
-# 函數：檢查並設置 DWORD 值
-function Set-RegistryDWORD {
-    param (
-        [string]$Path,
-        [string]$Name,
-        [int]$Value
-    )
-    if (!(Test-Path $Path)) {
-        New-Item -Path $Path -Force | Out-Null
-    }
-    $currentValue = Get-ItemProperty -Path $Path -Name $Name -ErrorAction SilentlyContinue
-    if ($currentValue -eq $null -or $currentValue.$Name -ne $Value) {
-        Set-ItemProperty -Path $Path -Name $Name -Value $Value -Type DWord
-        Write-Output "已設置 $Path\$Name 為 $Value"
-    }
-    else {
-        Write-Output "$Path\$Name 已存在且值正確"
-    }
-}
-
-# 函數：檢查並設置字符串值
-function Set-RegistryString {
-    param (
-        [string]$Path,
-        [string]$Name,
-        [string]$Value
-    )
-    if (!(Test-Path $Path)) {
-        New-Item -Path $Path -Force | Out-Null
-    }
-    $currentValue = Get-ItemProperty -Path $Path -Name $Name -ErrorAction SilentlyContinue
-    if ($currentValue -eq $null -or $currentValue.$Name -ne $Value) {
-        Set-ItemProperty -Path $Path -Name $Name -Value $Value
-        Write-Output "已設置 $Path\$Name 為 $Value"
-    }
-    else {
-        Write-Output "$Path\$Name 已存在且值正確"
-    }
-}
-
 
 # 函數：檢查並設置註冊表值
 function Set-RegistryValue {
@@ -55,24 +15,37 @@ function Set-RegistryValue {
         Path  = $Path
         Name  = $Name
         Value = $Value
+        Type  = $Type
     }
 
-    if (!(Test-Path $Path)) {
-        New-Item -Path $Path -Force | Out-Null
-    }
+    if (!(Test-Path $Path) ) {
+        if ($check_admin) {
+            New-Item -Path $Path -Force | Out-Null
+        }
+        else {
+            Write-Output "註冊表路徑不存在: $path, 無管理員權限新增."
+        }
+    } 
 
     $currentValue = Get-ItemProperty -Path $Path -Name $Name -ErrorAction SilentlyContinue
     
     if ($null -eq $currentValue -or $currentValue.$Name -ne $Value) {
-        Set-ItemProperty @params -Type $Type
-        Write-Output "已設置 $Path\$Name 為 $Value"
+        if ($check_admin) {
+            Set-ItemProperty @params
+            Write-Output "註冊表機碼已設置 $Path\$Name 為 $Value"
+        }
+        else {
+            Write-Output "機碼不正確 $path \ $Name : $($currentValue.Value)"
+        }
     }
     else {
-        Write-Output "$Path\$Name 已存在且值正確"
+        Write-Output "機碼正確 $Path\$Name : $Value"
     }
 }
 
 function enable-iemode {
+
+    Write-Output "設定Edge啟用IE模式(企業清單模式):"
 
     # 主要的註冊表路徑
 
@@ -80,10 +53,10 @@ function enable-iemode {
     $popupsAllowedPath = "HKLM:\SOFTWARE\Policies\Microsoft\Edge\PopupsAllowedForUrls"
 
     # 設置 Edge 策略
-    Set-RegistryDWORD -Path $edgePolicyPath -Name "EnterpriseModeSiteListManagerAllowed" -Value 0
-    Set-RegistryDWORD -Path $edgePolicyPath -Name "InternetExplorerIntegrationLevel" -Value 1
-    Set-RegistryDWORD -Path $edgePolicyPath -Name "InternetExplorerIntegrationReloadInIEModeAllowed" -Value 1
-    Set-RegistryString -Path $edgePolicyPath -Name "InternetExplorerIntegrationSiteList" -Value "\\172.20.1.14\update\0001-中榮系統環境設定\vhwc_win11_IEmode\SiteList.xml"
+    Set-RegistryValue -Path $edgePolicyPath -Name "EnterpriseModeSiteListManagerAllowed" -Value 0 -Type DWord
+    Set-RegistryValue -Path $edgePolicyPath -Name "InternetExplorerIntegrationLevel" -Value 1 -Type DWord
+    Set-RegistryValue -Path $edgePolicyPath -Name "InternetExplorerIntegrationReloadInIEModeAllowed" -Value 1 -Type DWord
+    Set-RegistryValue -Path $edgePolicyPath -Name "InternetExplorerIntegrationSiteList" -Value "\\172.20.1.14\update\0001-中榮系統環境設定\vhwc_win11_IEmode\SiteList.xml" -Type String
 
     # 設置彈出窗口允許列表
     $popupUrls = @(
@@ -99,7 +72,7 @@ function enable-iemode {
     )
 
     for ($i = 0; $i -lt $popupUrls.Length; $i++) {
-        Set-RegistryString -Path $popupsAllowedPath -Name ($i + 1).ToString() -Value $popupUrls[$i]
+        Set-RegistryValue -Path $popupsAllowedPath -Name ($i + 1).ToString() -Value $popupUrls[$i] -Type String
     }
 
     Write-Output "註冊表設置完成"
