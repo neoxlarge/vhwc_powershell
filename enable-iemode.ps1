@@ -45,37 +45,42 @@ function Set-RegistryValue {
 
 function enable-iemode {
 
-    Write-Output "設定Edge啟用IE模式(企業清單模式):"
+    if ((Get-CimInstance -ClassName Win32_OperatingSystem).Caption -match "Windows 11") {
+    
+        Write-Output "設定Edge啟用IE模式(企業清單模式):"
 
-    # 主要的註冊表路徑
+        # 主要的註冊表路徑
 
-    $edgePolicyPath = "HKLM:\SOFTWARE\Policies\Microsoft\Edge"
-    $popupsAllowedPath = "HKLM:\SOFTWARE\Policies\Microsoft\Edge\PopupsAllowedForUrls"
+        $edgePolicyPath = "HKLM:\SOFTWARE\Policies\Microsoft\Edge"
+        $popupsAllowedPath = "HKLM:\SOFTWARE\Policies\Microsoft\Edge\PopupsAllowedForUrls"
 
-    # 設置 Edge 策略
-    Set-RegistryValue -Path $edgePolicyPath -Name "EnterpriseModeSiteListManagerAllowed" -Value 0 -Type DWord
-    Set-RegistryValue -Path $edgePolicyPath -Name "InternetExplorerIntegrationLevel" -Value 1 -Type DWord
-    Set-RegistryValue -Path $edgePolicyPath -Name "InternetExplorerIntegrationReloadInIEModeAllowed" -Value 1 -Type DWord
-    Set-RegistryValue -Path $edgePolicyPath -Name "InternetExplorerIntegrationSiteList" -Value "\\172.20.1.14\update\0001-中榮系統環境設定\vhwc_win11_IEmode\SiteList.xml" -Type String
+        # 設置 Edge 策略
+        Set-RegistryValue -Path $edgePolicyPath -Name "EnterpriseModeSiteListManagerAllowed" -Value 0 -Type DWord
+        Set-RegistryValue -Path $edgePolicyPath -Name "InternetExplorerIntegrationLevel" -Value 1 -Type DWord
+        Set-RegistryValue -Path $edgePolicyPath -Name "InternetExplorerIntegrationReloadInIEModeAllowed" -Value 1 -Type DWord
+        Set-RegistryValue -Path $edgePolicyPath -Name "InternetExplorerIntegrationSiteList" -Value "\\172.20.1.14\update\0001-中榮系統環境設定\vhwc_win11_IEmode\SiteList.xml" -Type String
 
-    # 設置彈出窗口允許列表
-    $popupUrls = @(
-        "[*.]vhcy.gov.tw",
-        "[*.]vhwc.gov.tw",
-        "172.19.[.*][.*]",
-        "172.20.[.*][.*]",
-        "[*.]vghtc.gov.tw",
-        "172.19.[.*][.*]:9090",
-        "172.19.[.*][.*]:8000",
-        "172.20.[.*][.*]:9090",
-        "172.20.[.*][.*]:8000"
-    )
+        # 設置彈出窗口允許列表
+        $popupUrls = @(
+            "[*.]vhcy.gov.tw",
+            "[*.]vhwc.gov.tw",
+            "172.19.[.*][.*]",
+            "172.20.[.*][.*]",
+            "[*.]vghtc.gov.tw",
+            "172.19.[.*][.*]:9090",
+            "172.19.[.*][.*]:8000",
+            "172.20.[.*][.*]:9090",
+            "172.20.[.*][.*]:8000"
+        )
 
-    for ($i = 0; $i -lt $popupUrls.Length; $i++) {
-        Set-RegistryValue -Path $popupsAllowedPath -Name ($i + 1).ToString() -Value $popupUrls[$i] -Type String
+        for ($i = 0; $i -lt $popupUrls.Length; $i++) {
+            Set-RegistryValue -Path $popupsAllowedPath -Name ($i + 1).ToString() -Value $popupUrls[$i] -Type String
+        }
+
+        Write-Output "註冊表設置完成"
+    } else {
+        Write-Output "系統不是win11, 不使用EDGE IE MODE 企業清單模式."
     }
-
-    Write-Output "註冊表設置完成"
 }
 
 

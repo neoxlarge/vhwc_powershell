@@ -84,11 +84,6 @@ Import-Module ((Split-Path $PSCommandPath) + "\install-Java.ps1")
 install-java
 set-Java_env
 
-#安裝2100
-Import-Module ((Split-Path $PSCommandPath) + "\install-2100_2nd.ps1")
-install-2100_2nd
-#set-2100_env
-
 #install-IE11
 Import-Module ((Split-Path $PSCommandPath) + "\install-IE11.ps1")
 #install-IE11
@@ -101,6 +96,10 @@ install-chrome
 Import-Module ((Split-Path $PSCommandPath) + "\install-Edge.ps1")
 #Install-Edge
 #install-EdgeWebview
+
+#安裝2100
+Import-Module ((Split-Path $PSCommandPath) + "\install-2100_2nd.ps1")
+install-2100_2nd
 
 #install smartiris
 Import-Module ((Split-Path $PSCommandPath) + "\install-smartiris.ps1")
@@ -224,6 +223,10 @@ Import-Module ((Split-Path $PSCommandPath) + "\set-IEtoEdageNever.ps1")
 #設定IE,Edage,Chrome 預設開啟首頁為 "https://eip.vghtc.gov.tw"
 Import-Module ((Split-Path $PSCommandPath) + "\set-HomePage.ps1")
 set-HomePage
+
+#啟用IE MODE (Win11 only)
+Import-Module ((Split-Path $PSCommandPath) + "\Enable-IEmode.ps1")
+enable-iemode
 
 #檢查雲端藥歷的設定
 Import-Module ((Split-Path $PSCommandPath) + "\check-cloudMED.ps1")
