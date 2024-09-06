@@ -248,7 +248,6 @@ Import-Module ((Split-Path $PSCommandPath) + "\Clear-WindowsJunk.ps1")
 Clear-WindowsJunk
 
 
-
 #µ²§ô, µ²§ô°O¿ý
 Stop-Transcript
 

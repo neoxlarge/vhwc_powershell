@@ -48,6 +48,7 @@ function Uninstall-Software {
         return "找不到軟體: $Name"
     }
 
+    Write-Output "hahaha"
     foreach ($software in $softwareToUninstall) {
         if ($software.UninstallString -like "msiexec*") {
             # MSI 卸載
@@ -60,7 +61,8 @@ function Uninstall-Software {
         }
         else {
             # 使用一般卸載字符串
-            $process = Start-Process -FilePath "cmd.exe" -ArgumentList "/c $($software.UninstallString)" -Credential $credential -PassThru
+            $sss = "/c $($software.UninstallString)"
+            $process = Start-Process -FilePath "cmd.exe" -ArgumentList "/k ""$($software.UninstallString)"" /S" -Credential $credential -PassThru
         }
 
         $process.WaitForExit()
