@@ -6,8 +6,8 @@ Import-Module ((Split-Path $PSCommandPath) + "\get-installedprogramlist.psm1")
 function install-WinNexus {
     # ¦w¸ËWinnexus
     $software_name = "WinNexus"
-    #$software_path = "\\172.20.5.187\mis\13-Winnexus\Winnexus_1.2.4.7\13-Winnexus"
-    $software_path = "\\172.20.1.122\share\software\00newpc\13-Winnexus\Winnexus_1.2.4.7"
+    $software_path = "\\172.20.5.187\mis\13-Winnexus\Winnexus_1.2.4.7\13-Winnexus"
+    # FIXME: $software_path = "\\172.20.1.122\share\software\00newpc\13-Winnexus\Winnexus_1.2.4.7"
     $software_exec = "Install_Desktop.1.2.4.7.exe"
 
     $Username = "vhcy\vhwcmis"

@@ -1,22 +1,37 @@
 #移除軟體用(Win10)
 param($runadmin)
 
-Import-Module ((Split-Path $PSCommandPath) + "\get-installedprogramlist.psm1")
+function import-vhwcmis_module {
+    $moudle_paths = @(
+        if ($script:MyInvocation.MyCommand.Path) {"$(Split-Path $script:MyInvocation.MyCommand.Path -ErrorAction SilentlyContinue)"},
+        "d:\mis\vhwcmis",
+        "c:\mis\vhwcmis",
+        "\\172.20.5.185\powershell\vhwc_powershell",
+        "\\172.20.1.14\share\00新電腦安裝\vhwc_powershell",
+        "\\172.20.1.122\share\software\00newpc\vhwc_powershell",
+        "\\172.19.1.229\cch-share\h040_張義明\vhwc_powershell"
+    )
 
-#取得OS的版本
-function Get-OSVersion {
-    $os = (Get-WmiObject -Class Win32_OperatingSystem).Caption
+    $filename = "vhwcmis_module.psm1"
 
-    if ($os -like "*Windows 7*") {
-        return "Windows 7"
+    foreach ($path in $moudle_paths) {
+        
+        if (Test-Path "$path\$filename") {
+            write-output "$path\$filename"
+            Import-Module "$path\$filename" -ErrorVariable $err_import_module
+            if ($err_import_module -eq $null) {
+                Write-Output "Imported module path successed: $path\$filename"
+                break
+            }
+        }
     }
-    elseif ($os -like "*Windows 10*") {
-        return "Windows 10"
-    }
-    else {
-        return "Unknown OS"
+
+    $result = get-command -Name "get-installedprogramlist" -CommandType Function -ErrorAction SilentlyContinue
+    if ($result -eq $null) {
+        throw "無法載入vhwcmis_module模組, 程式無法正常執行. "
     }
 }
+import-vhwcmis_module
 
 
 function Remove-AppsinWin10 {
@@ -52,8 +67,48 @@ function Remove-AppsinWin10 {
 }
 
 
+function update-apps {
+
+    # 設定 $DebugPreference 為 "Continue" 顯示訊息.
+    $DebugPreference = "Continue"
+    $apps = @{
+
+        "StickyNotes" = @{
+            "name" = "Microsoft.MicrosoftStickyNotes"
+            "version" = "6.1.2.0"
+            "path" = "\\172.20.1.122\share\software\00newpc\40-Microsoft_Store"
+            "filename" = "microsoft-sticky-notes-6-1-2-0.msixbundle"
+        }
+        #　Photos有OS版本要求.
+        "Photos" = @{
+            "name" = "Microsoft.Windows.Photos"
+            "version" = "2024.11070.31001.0"
+            "path" = "\\172.20.1.122\share\software\00newpc\40-Microsoft_Store"
+            "filename" = "microsoft-photos-2024-11070-31001-0.msixbundle"
+        }
+    }
+
+    foreach ($app in $apps.Keys) {
+        Write-Debug "Check appx software (msixbundle): $($apps.$app.name) version: $($apps.$app.version)"
+        $installed_version = (Get-AppxPackage -Name $apps.$app.name).Version
+        Write-Debug "Installed version: $installed_version"
+        $result = Compare-Version -Version1 $apps.$app.version -Version2 $installed_version
+
+        if ($result) {
+            Write-Output "更新Appx: $($apps.$app.name)"
+            $app_fullpath = "$($apps.$app.path)\$($apps.$app.filename)"
+            Write-Debug "App fullpath = $($app_fullpath)"
+            Add-AppxPackage -Path $app_fullpath -Update
+        } else {
+            Write-Output "Appx: $($apps.$app.name) 不更新."
+        }
+    }
+
+}
+
+
 function remove-apps {
-    if ($(Get-OSVersion) -eq "Windows 10") {
+    if ($(Get-OSVersion) -in "Windows 10","Windows 11") {
         Remove-AppsinWin10
     }
 }
@@ -71,30 +126,7 @@ if ($run_main -eq $null) {
     }
 
     remove-apps
+    update-apps
     pause
 }
 
-
-<########################################################################################################
-
-$uninstall_list = @{ name = "onedrive"; version = "0" },
-#@{ name = "hicos"; version = "3.0.2" },
-@{ name = "skype"; version = "0" }
-
-$all_installed_program = get-installedprogramlist
-
-
-foreach ($i in $uninstall_list) {
-
-    $app = $all_installed_program | Where-Object -FilterScript { $_.DisplayName -like "*$($i.name)*" }
-
-    if ($app -ne $null) {
-    write-output $app.displayname
-    $uninstall_string = $app.UninstallString.Split(" ")
-    Write-Output $uninstall_string[2]
-    Start-Process -FilePath $uninstall_string[0] -ArgumentList $uninstall_string[2] -wait
-    }
-   }
-
-
-#>

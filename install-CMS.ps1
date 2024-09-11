@@ -12,42 +12,33 @@ if (!$PSVersionTable.PSCompatibleVersions -match "^5\.1") {
 }
 
 function import-vhwcmis_module {
-    # import vhwcmis_module.psm1
-    # 取得vhwcmis_module.psm1的3種方式:
-    # 1.程式執行當前路徑, 放到AD上用Group police執行,不會有當前路徑.
-    # 2.常用的路徑, d:\mis\vhwc_powershell, 不是每台都有放.
-    # 3.連到NAS上取得. 非網域的電腦會沒有NAS的權限, 須手動連上NAS.
+    $moudle_paths = @(
+        if ($script:MyInvocation.MyCommand.Path) {"$(Split-Path $script:MyInvocation.MyCommand.Path -ErrorAction SilentlyContinue)"},
+        "d:\mis\vhwcmis",
+        "c:\mis\vhwcmis",
+        "\\172.20.5.185\powershell\vhwc_powershell",
+        "\\172.20.1.14\share\00新電腦安裝\vhwc_powershell",
+        "\\172.20.1.122\share\software\00newpc\vhwc_powershell",
+        "\\172.19.1.229\cch-share\h040_張義明\vhwc_powershell"
+    )
 
-    $pspaths = @()
+    $filename = "vhwcmis_module.psm1"
 
-    if ($script:MyInvocation.MyCommand.Path -ne $null) {
-        $work_path = "$(Split-Path $script:MyInvocation.MyCommand.Path)\vhwcmis_module.psm1"
-        if (test-path -Path $work_path) { $pspaths += $work_path }
-    }
-    $nas_name = "nas122"
-    $nas_path = "\\172.20.1.122\share\software\00newpc\vhwc_powershell"
-    if (!(test-path $nas_path)) {
-        $nas_Username = "software_download"
-        $nas_Password = "Us2791072"
-        $nas_securePassword = ConvertTo-SecureString $nas_Password -AsPlainText -Force
-        $nas_credential = New-Object System.Management.Automation.PSCredential($nas_Username, $nas_securePassword)
+    foreach ($path in $moudle_paths) {
         
-        New-PSDrive -Name $nas_name -Root "$nas_path" -PSProvider FileSystem -Credential $nas_credential | Out-Null
-    }
-    $pspaths += "$nas_path\vhwcmis_module.psm1"
-
-    $local_path = "d:\mis\vhwc_powershell\vhwcmis_module.psm1"
-    if (Test-Path $local_path) { $pspaths += $local_path }
-
-    foreach ($path in $pspaths) {
-        Import-Module $path -ErrorAction SilentlyContinue
-        if ((get-command -Name "get-installedprogramlist" -CommandType Function -ErrorAction SilentlyContinue)) {
-            break
+        if (Test-Path "$path\$filename") {
+            write-output "$path\$filename"
+            Import-Module "$path\$filename" -ErrorVariable $err_import_module
+            if ($err_import_module -eq $null) {
+                Write-Output "Imported module path successed: $path\$filename"
+                break
+            }
         }
     }
 
-    if (! ($(Get-PSDrive -Name $nas_name -ErrorAction SilentlyContinue) -eq $null) ) {
-        Remove-PSDrive -Name $nas_name
+    $result = get-command -Name "get-installedprogramlist" -CommandType Function -ErrorAction SilentlyContinue
+    if ($result -eq $null) {
+        throw "無法載入vhwcmis_module模組, 程式無法正常執行. "
     }
 }
 import-vhwcmis_module

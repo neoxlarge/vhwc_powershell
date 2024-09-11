@@ -5,7 +5,7 @@ param($runadmin)
 
 function import-vhwcmis_module {
     $moudle_paths = @(
-        "$(Split-Path $script:MyInvocation.MyCommand.Path)",
+        if ($script:MyInvocation.MyCommand.Path) {"$(Split-Path $script:MyInvocation.MyCommand.Path -ErrorAction SilentlyContinue)"},
         "d:\mis\vhwcmis",
         "c:\mis\vhwcmis",
         "\\172.20.5.185\powershell\vhwc_powershell",
@@ -22,7 +22,7 @@ function import-vhwcmis_module {
             write-output "$path\$filename"
             Import-Module "$path\$filename" -ErrorVariable $err_import_module
             if ($err_import_module -eq $null) {
-                Write-Output "Imported module path successed: $path"
+                Write-Output "Imported module path successed: $path\$filename"
                 break
             }
         }

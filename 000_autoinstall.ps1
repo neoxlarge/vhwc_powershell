@@ -149,7 +149,7 @@ install-antivir
 # 移除不必要的win10 程式
 Import-Module ((Split-Path $PSCommandPath) + "\remove-apps.ps1")
 remove-apps
-
+update-apps 
 
 ####系統設定存######################################################################################
 
