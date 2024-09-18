@@ -7,7 +7,7 @@
 
 param($runadmin)
 
-Import-Module "\\172.20.5.185\powershell\vhwc_powershell\get-installedprogramlist.psm1"
+Import-Module "d:\mis\vhwc_powershell\vhwcmis_module.psm1"
 
 
 function Get-IPv4Address {
