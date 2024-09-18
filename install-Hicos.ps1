@@ -6,7 +6,38 @@
 
 param($runadmin)
 
-Import-Module ((Split-Path $PSCommandPath) + "\get-installedprogramlist.psm1")
+function import-vhwcmis_module {
+    $moudle_paths = @(
+        if ($script:MyInvocation.MyCommand.Path) {"$(Split-Path $script:MyInvocation.MyCommand.Path -ErrorAction SilentlyContinue)"},
+        "d:\mis\vhwcmis",
+        "c:\mis\vhwcmis",
+        #從網路上import的,可能會被擋下.
+        "\\172.20.5.185\powershell\vhwc_powershell",
+        "\\172.20.1.14\share\00新電腦安裝\vhwc_powershell",
+        "\\172.20.1.122\share\software\00newpc\vhwc_powershell",
+        "\\172.19.1.229\cch-share\h040_張義明\vhwc_powershell"
+    )
+
+    $filename = "vhwcmis_module.psm1"
+
+    foreach ($path in $moudle_paths) {
+        
+        if (Test-Path "$path\$filename") {
+            write-output "$path\$filename"
+            Import-Module "$path\$filename" -ErrorVariable $err_import_module
+            if ($err_import_module -eq $null) {
+                Write-Output "Imported module path successed: $path\$filename"
+                break
+            }
+        }
+    }
+
+    $result = get-command -Name "get-installedprogramlist" -CommandType Function -ErrorAction SilentlyContinue
+    if ($result -eq $null) {
+        throw "無法載入vhwcmis_module模組, 程式無法正常執行. "
+    }
+}
+import-vhwcmis_module
 
 function install-HiCOS {
 
@@ -14,7 +45,9 @@ function install-HiCOS {
     $software_name = "HiCOS*"
     $software_path = "\\172.20.5.187\mis\04-自然人憑證-新版HiCOS\HiCOS_Client-3.1.0.22133-20220624"
     $software_exec = "HiCOS_Client.exe"
-    
+    $software_version = get-itemproperty -Path "$software_path\$software_exec" -Name VersionInfo -ErrorAction SilentlyContinue
+    $software_version = $software_version.VersionInfo.ProductVersion
+
     ## 找出軟體是否己安裝
 
     $all_installed_program = get-installedprogramlist
@@ -23,11 +56,11 @@ function install-HiCOS {
     ## 公文系統會安裝2.1.9.1, 移掉這版
 
     foreach ($software in $software_is_installed) {
-        if ($software.DisplayVersion -eq "2.1.9.1") {
+        if (Compare-Version -Version1 $software_version  -Version2 $software.DisplayVersion) {
             $uninstallstring = $software.uninstallString.Split(" ")[1].replace("/I", "/x")
             Start-Process -FilePath "msiexec.exe" -ArgumentList "$uninstallstring /passive" -Wait
             Start-Sleep -Seconds 5
-            $software_is_installed = $software_is_installed | Where-Object { $_.DisplayVersion -ne "2.1.9.1" } #從陣列中移除
+            $software_is_installed = $software_is_installed | Where-Object { $_.DisplayVersion -ne $software.DisplayVersion } #從陣列中移除
         }
     }
 
