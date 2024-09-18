@@ -8,6 +8,7 @@ function import-vhwcmis_module {
         if ($script:MyInvocation.MyCommand.Path) {"$(Split-Path $script:MyInvocation.MyCommand.Path -ErrorAction SilentlyContinue)"},
         "d:\mis\vhwcmis",
         "c:\mis\vhwcmis",
+        #從網路上import的,可能會被擋下.
         "\\172.20.5.185\powershell\vhwc_powershell",
         "\\172.20.1.14\share\00新電腦安裝\vhwc_powershell",
         "\\172.20.1.122\share\software\00newpc\vhwc_powershell",
