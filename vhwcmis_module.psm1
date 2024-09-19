@@ -48,20 +48,22 @@ function Uninstall-Software {
         return "тぃ硁砰: $Name"
     }
 
-    Write-Output "hahaha"
+    
     foreach ($software in $softwareToUninstall) {
         if ($software.UninstallString -like "msiexec*") {
             # MSI 更
+            write-output "misexec簿埃: $($software.DisplayName)"
             $uninstallString = $software.UninstallString.Split(" ")[1].replace("I", "X")
             $process = Start-Process -FilePath "msiexec.exe" -ArgumentList "$uninstallString /passive" -Credential $credential -PassThru
         }
         elseif ($software.QuietUninstallString) {
             # ㄏノ繰更才﹃
+            write-output "繰更: $($software.DisplayName)"
             $process = Start-Process -FilePath "cmd.exe" -ArgumentList "/c $($software.QuietUninstallString)" -Credential $credential -PassThru
         }
         else {
             # ㄏノ更才﹃
-            $sss = "/c $($software.UninstallString)"
+            write-output "更: $($software.DisplayName)"
             $process = Start-Process -FilePath "cmd.exe" -ArgumentList "/k ""$($software.UninstallString)"" /S" -Credential $credential -PassThru
         }
 

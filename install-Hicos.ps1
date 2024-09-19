@@ -4,8 +4,9 @@
 # /passive /quiet
 # /norestart /log log.txt
 
-param($runadmin)
 
+param($runadmin)
+$DebugPreference = "Continue"
 function import-vhwcmis_module {
     $moudle_paths = @(
         if ($script:MyInvocation.MyCommand.Path) {"$(Split-Path $script:MyInvocation.MyCommand.Path -ErrorAction SilentlyContinue)"},
@@ -57,9 +58,14 @@ function install-HiCOS {
 
     foreach ($software in $software_is_installed) {
         if (Compare-Version -Version1 $software_version  -Version2 $software.DisplayVersion) {
-            $uninstallstring = $software.uninstallString.Split(" ")[1].replace("/I", "/x")
-            Start-Process -FilePath "msiexec.exe" -ArgumentList "$uninstallstring /passive" -Wait
-            Start-Sleep -Seconds 5
+            Write-Debug "Found old $software_name version: $software_version, uninstall it."
+            
+            #$uninstallstring = $software.uninstallString.Split(" ")[1].replace("/I", "/x")
+            #Start-Process -FilePath "msiexec.exe" -ArgumentList "$uninstallstring /passive" -Wait
+            #Start-Sleep -Seconds 5
+            
+            Uninstall-Software -Name $software.DisplayName
+            
             $software_is_installed = $software_is_installed | Where-Object { $_.DisplayVersion -ne $software.DisplayVersion } #±q°}¦C¤¤²¾°£
         }
     }
