@@ -5,8 +5,11 @@
 # /norestart /log log.txt
 
 
-param($runadmin)
+param($runadmin,[switch]$gpo)
+
 $DebugPreference = "Continue"
+$log_file = "\\172.20.1.14\update\0001-中榮系統環境設定\VHWC_logs\install-Hicos.log"
+
 function import-vhwcmis_module {
     $moudle_paths = @(
         if ($script:MyInvocation.MyCommand.Path) {"$(Split-Path $script:MyInvocation.MyCommand.Path -ErrorAction SilentlyContinue)"},
@@ -58,7 +61,8 @@ function install-HiCOS {
 
     foreach ($software in $software_is_installed) {
         if (Compare-Version -Version1 $software_version  -Version2 $software.DisplayVersion) {
-            Write-Debug "Found old $software_name version: $software_version, uninstall it."
+            Write-Output "Find old $software_name version: $software_version, uninstall it."
+            if ($gpo) {Write-Log -LogFile $log_file -Message "Find old $software_name version: $software_version, uninstall it."}
             
             #$uninstallstring = $software.uninstallString.Split(" ")[1].replace("/I", "/x")
             #Start-Process -FilePath "msiexec.exe" -ArgumentList "$uninstallstring /passive" -Wait
