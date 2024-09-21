@@ -85,7 +85,8 @@ function install-HiCOS {
 
         $pid_ = Start-Process -FilePath $($env:temp + "\" + $software_path.Name + "\" + $software_exec) -ArgumentList "/install /passive" -PassThru #不知為什麼-wait會停不下來.
         while (!($pid_.HasExited)) { Start-Sleep -Seconds 5}
-                    
+        
+        if ($gpo) {Write-Log -logfile $log_file -message "Install $software_name  version: $software_version"}
         
         #安裝完, 再重新取得安裝資訊
         $all_installed_program = get-installedprogramlist

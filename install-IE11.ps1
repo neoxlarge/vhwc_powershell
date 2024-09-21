@@ -2,9 +2,16 @@
 
 param($runadmin)
 
-Import-Module ((Split-Path $PSCommandPath) + "\get-installedprogramlist.psm1")
+Import-Module ((Split-Path $PSCommandPath) + "\vhwcmis_module.psm1")
 
 function install-IE11 {
+
+    # Win11不用再安裝IE11了.
+    $os =  Get-OSVersion
+    if ($os -eq "Windows 11") {
+        Write-Output "Windows 11 does not need to install IE11."
+        return
+    }
 
     $software_name = "IE11"
     $software_path = "\\172.20.5.187\mis\20-IE"
