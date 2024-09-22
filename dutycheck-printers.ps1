@@ -16,7 +16,7 @@ write-host "灣橋印表機檢查通知Line notify"
 # 4. 重點印表機, 必須在線, 網路連不上也會通知.
 
 # 設定值
-# log的資訊, Continue會顯示, SilentContinue不會顯示.
+# debug log的資訊, Continue會顯示, SilentContinue不會顯示.
 $DebugPreference = "Continue"
 
 # line notify token
