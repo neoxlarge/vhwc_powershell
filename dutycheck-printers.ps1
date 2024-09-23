@@ -1,9 +1,10 @@
 ﻿$mutexName = "Global\dutycheck-printers"
 $mutex = New-Object System.Threading.Mutex($false, $mutexName)
 
-if ($mutex.WaitOne(0,$false) -eq $false) { 
+if ($mutex.WaitOne(0, $false) -eq $false) { 
     Write-Host "印表機檢查通知己在執行中,結束."
-    exit }
+    exit 
+}
 
 write-host "灣橋印表機檢查通知Line notify"
 
@@ -413,8 +414,8 @@ $L5100DNs = @{
 $tc200s = @{
 
     'wnur-opd-pdb6' = @{
-        'ip'        = '172.20.9.41'
-        'location'  = '診間106'
+        'ip'       = '172.20.9.41'
+        'location' = '診間106'
     }
 
     'wnur-erx-prb1' = @{
@@ -424,8 +425,8 @@ $tc200s = @{
     }
 
     'wmis-000-prb1' = @{
-        'ip'        = '172.20.5.177'
-        'location'  = '6F資訊室'
+        'ip'       = '172.20.5.177'
+        'location' = '6F資訊室'
         
     }
 
@@ -448,8 +449,8 @@ $tc200s = @{
     }
 
     'wnur-m3w-prb1' = @{
-        'ip'        = '172.20.5.43'
-        'location'  = 'M3'
+        'ip'       = '172.20.5.43'
+        'location' = 'M3'
     }
 
     'wnur-a1w-ba01' = @{
@@ -500,6 +501,207 @@ $tc200s = @{
         'always_on' = $true
     }
 }
+
+
+# 分散式列印的客戶端
+# firewall裡有些開9080是錯的, 實際上是2788
+$idsm_clients = @{
+    'wmis-000-pc05'     = @{
+        'ip'       = '172.20.5.185'
+        'port'     = '2788' 
+        'location' = '資訊室測試'
+    }
+
+    'wpha-pha-pc08'     = @{
+        'ip'        = '172.20.9.78'
+        'port'      = '2788'
+        'location'  = '藥劑科 藥袋列印'
+        'always_on' = $true
+    }
+
+    'wnur-a1w-pc04'     = @{
+        'ip'        = '172.20.17.14'
+        'port'      = '2788'
+        'location'  = 'A1'
+        'always_on' = $true
+    }
+
+    'wnur-a2w-pc04'     = @{
+        'ip'        = '172.20.17.24'
+        'port'      = '2788'
+        'location'  = 'A2'
+        'always_on' = $true
+    }
+
+    'wnur-a3w-pc05'     = @{
+        'ip'        = '172.20.17.35'
+        'port'      = '2788'
+        'location'  = 'A3'
+        'always_on' = $true
+    }
+
+    'wnur-a5w-pc02'     = @{
+        'ip'        = '172.20.17.52'
+        'port'      = '2788'
+        'location'  = 'A5'
+        'always_on' = $true
+    }
+
+    'wnur-b1w-pc04'     = @{
+        'ip'        = '172.20.2.93'
+        'port'      = '2788'
+        'location'  = 'B1'
+        'always_on' = $true
+    }
+
+    'wnur-b2w-pc05'     = @{
+        'ip'        = '172.20.2.94'
+        'port'      = '2788'
+        'location'  = 'B2'
+        'always_on' = $true
+    }
+
+    'wnur-b3w-pc04'     = @{
+        'ip'        = '172.20.2.97'
+        'port'      = '2788'
+        'location'  = 'B3'
+        'always_on' = $true
+    }
+
+    'wnur-b5w-pc05'     = @{
+        'ip'        = '172.20.2.77'
+        'port'      = '2788'
+        'location'  = 'B5'
+        'always_on' = $true
+    }
+
+    'wadm-mrr-pc02'     = @{
+        'ip'       = '172.20.2.207'
+        'port'     = '2788'
+        'location' = '病歷室'
+    }
+
+    'wnur-erx-pc02'     = @{
+        'ip'        = '172.20.3.3'
+        'port'      = '2788'
+        'location'  = '急診室'
+        'always_on' = $true
+    }
+
+    'wnur-icu-pc01'     = @{
+        'ip'        = '172.20.5.2'
+        'port'      = '2788'
+        'location'  = 'ICU'
+        'always_on' = $true
+    }
+
+    'wnur-m3w-pc05'     = @{
+        'ip'        = '172.20.5.31'
+        'port'      = '2788'
+        'location'  = 'M3'
+        'always_on' = $true
+    }
+
+    'wnur-m5a-pc06'     = @{
+        'ip'        = '172.20.5.26'
+        'port'      = '2788'
+        'location'  = 'M5A'
+        'always_on' = $true
+    }
+
+    'wnur-m5b-pc06'     = @{
+        'ip'        = '172.20.5.15'
+        'port'      = '2788'
+        'location'  = 'M5B'
+        'always_on' = $true
+    }
+
+    'wlab-000-pc03'     = @{
+        'ip'        = '172.20.7.18'
+        'port'      = '2788'
+        'location'  = '檢驗科血庫'
+        'always_on' = $true
+    }
+
+    'wlab-000-pc06a'    = @{
+        'ip'        = '172.20.3.211'
+        'port'      = '2788'
+        'location'  = '檢驗科'
+        'always_on' = $true
+    }
+
+    <# 儀器連線用電腦, 目前應該沒有用到分散式列印, 暫時拿掉
+    'wlab-000-pc09' = @{
+        'ip'   = '172.20.3.149'
+        'port' = '2788'
+        'location' = '檢驗科 收信儀器連線'
+    }
+    #>
+    
+    'wadm-reg-pc04'     = @{
+        'ip'       = '172.20.3.29'
+        'port'     = '2788'
+        'location' = '掛號室 代收嘉榮費用'
+    }
+
+    'wpsy-pnp-pc01'     = @{
+        'ip'       = '172.20.3.158'
+        'port'     = '2788'
+        'location' = '精神科'
+    }
+
+    'wadm-reg-pc01'     = @{
+        'ip'       = '172.20.3.77'
+        'port'     = '2788'
+        'location' = '掛號室 曉婷'
+    }
+    
+    'wadm-reg-pc02'     = @{
+        'ip'       = '172.20.3.1'
+        'port'     = '2788'
+        'location' = '掛號室 玉尊'
+    }
+
+    'wadm-reg-pc03'     = @{
+        'ip'       = '172.20.3.13'
+        'port'     = '2788'
+        'location' = '掛號室 舒璇'
+    }
+
+    'wadm-reg-pc04xxxx' = @{
+        'ip'       = '172.20.3.120'
+        'port'     = '2788'
+        'location' = '掛號室 第4櫃台'
+    }
+
+    'wpha-pha-pc06'     = @{
+        'ip'        = '172.20.9.76'
+        'port'      = '2788'
+        'location'  = '藥劑科 藥局發藥櫃台'
+        'always_on' = $true
+    }
+
+    'wreh-000-pc03'     = @{
+        'ip'       = '172.20.17.63'
+        'port'     = '2788'
+        'location' = '復建科 櫃台'
+    }
+    
+    'wdie-out-pc01'     = @{
+        'ip'        = '172.20.2.138'
+        'port'      = '2788'
+        'location'  = '營養室外包商'
+        'always_on' = $true
+    }
+    
+    'wreh-000-pc02'     = @{
+        'ip'        = '172.20.2.150'
+        'port'      = '2788'
+        'location'  = '營養室 餐卡, 出餐單'
+        'always_on' = $true
+    }
+}    
+
 
 function Send-LineNotifyMessage {
     [CmdletBinding()]
@@ -562,7 +764,7 @@ function Schedulecheck-L5100DN {
     # https://support.brother.com/g/s/id/htmldoc/printer/cv_hll5000d/use/manual/index.html#GUID-D508418E-CC5B-42EE-8001-EFFA0AFD6A51_168                
 
     # 為了避免漏抓, 不在以下正常的狀態就算異常.
-    $normal_status = @("Sleep", "Deep Sleep", "Ready","No Paper T1", "No Paper T2", "Printing", "Please Wait","No Paper","No Paper MP")
+    $normal_status = @("Sleep", "Deep Sleep", "Ready", "No Paper T1", "No Paper T2", "Printing", "Please Wait", "No Paper", "No Paper MP")
 
 
     # 定義要登入的網址
@@ -645,6 +847,8 @@ function Schedulecheck-L5100DN {
 }
 
 
+
+
 function schedulecheck-tc200 {
     param(
         $printers
@@ -653,7 +857,7 @@ function schedulecheck-tc200 {
     # status page
     $url_status = "/cgi-bin/status.cgi"
 
-    $normal_status = @('Ready','Printing')
+    $normal_status = @('Ready', 'Printing')
 
 
     foreach ($printer in $printers.keys) {
@@ -683,7 +887,8 @@ function schedulecheck-tc200 {
                 Send-LineNotifyMessage -Token $line_apikey -Message $msg
             }
 
-        } else {
+        }
+        else {
             #network fail
             if ($printers.$printer.always_on -eq $true) {
                 $msg = "🚨TSC Barcode `nName: $printer `n"
@@ -694,6 +899,65 @@ function schedulecheck-tc200 {
                 Send-LineNotifyMessage -Token $line_apikey -Message $msg
 
             }
+        }
+    }
+}
+
+
+function schedulecheck-idmsclients {
+
+    param (
+        $idms_clients
+    )
+
+    # 迴圈檢查每個客戶端
+    foreach ($clientName in $idms_clients.Keys) {
+        $clientInfo = $idsm_clients[$clientName]
+        $ipAddress = $clientInfo.ip
+        $portNumber = $clientInfo.port
+        $location = $clientInfo.location
+        $always_on = $clientInfo.always_on
+
+        # 檢查IP是否可Ping通
+        if (Test-Connection -ComputerName $ipAddress -Count 2 -Quiet) {
+            Write-Debug "Ping $clientName ($ipAddress) 正常."
+            
+            # 檢查Port服務是否有回應
+            $connectionTestResult = Test-NetConnection -ComputerName $ipAddress -Port $portNumber 
+            if ($connectionTestResult.TcpTestSucceeded) {
+                Write-Debug "  - Port $portNumber 回應正常."
+            }
+            else {
+                Write-Debug "  - Port $portNumber 無回應.發送 Line 通知"
+                
+                # 發送 Line 通知
+                $msg = "🚨分散式client `nName: $clientName `n"
+                $msg += "IP Status: $($ipaddress) ping正常 `n"
+                if ($always_on -eq $true) {
+                    $msg += "Port Status: $portNumber 無回應, 注意此機須在線! `n"
+                }
+                else {
+                    $msg += "Port Status: $portNumber 無回應 `n" 
+                }
+                $msg += "Location: $location"
+
+                Send-LineNotifyMessage -Token $line_token -Message $msg
+            }
+        }
+        else {
+            Write-Debug "$clientName ($ipAddress) Ping不到,發送 Line 通知 "
+       
+            # 發送 Line 通知
+            $msg = "🚨分散式client `nName: $clientName `n"
+            if ($always_on -eq $true) {
+                $msg += "IP Status: $($ipaddress) Ping不到, 注意此機須在線! `n"
+            }
+            else {
+                $msg += "IP Status: $($ipaddress) Ping不到 `n"
+            }
+            $msg += "Location: $location"
+
+            Send-LineNotifyMessage -Token $line_token -Message $msg
         }
     }
 }
@@ -716,6 +980,13 @@ foreach ($printer in $tc200s.keys) {
 }
 
 
+$idsm_clientswithAlwaysOn = @{}
+foreach ($client in $idsm_clients.keys) {
+    if ($idsm_clients.$client.always_on -eq $true) {
+        $idsm_clientswithAlwaysOn.$client = $idsm_clients.$client
+    }
+}
+
 while ($true) {
     $now = Get-Date
     if ($now.Hour -in (8, 14) -and $now.Minute -in (0)) {
@@ -734,6 +1005,15 @@ while ($true) {
     elseif ($now.Hour -in $timer_hours -and $now.minute -in $timer_minutes) {
         write-debug "$now : Check TSC Barcode always on"
         schedulecheck-tc200 -printers $tc200sWithAlwaysOn
+    }
+
+    if ($now.Hour -in (8, 14) -and $now.Minute -in (0)) {
+        Write-debug "$now : Daily check IDMS clients all"
+        schedulecheck-idmsclients -idms_clients $idsm_clients
+    }
+    elseif ($now.Hour -in $timer_hours -and $now.minute -in $timer_minutes) {
+        write-debug "$now : Check IDMS clients always on"
+        schedulecheck-idmsclients -idms_clients $idsm_clientswithAlwaysOn
     }
 
     start-sleep -Seconds 60
