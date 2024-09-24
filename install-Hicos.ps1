@@ -62,7 +62,7 @@ function install-HiCOS {
     foreach ($software in $software_is_installed) {
         if (Compare-Version -Version1 $software_version  -Version2 $software.DisplayVersion) {
             Write-Output "Find old $software_name version: $software_version, uninstall it."
-            if ($gpo) {Write-Log -LogFile $log_file -Message "Find old $software_name version: $software_version, uninstall it."}
+            if ($gpo) {Write-Log -LogFile $log_file -Message "Find old $software_name version: $($software.DisplayVersion), uninstall it."}
             
             #$uninstallstring = $software.uninstallString.Split(" ")[1].replace("/I", "/x")
             #Start-Process -FilePath "msiexec.exe" -ArgumentList "$uninstallstring /passive" -Wait

@@ -934,14 +934,14 @@ function schedulecheck-idmsclients {
                 $msg = "🚨分散式client `nName: $clientName `n"
                 $msg += "IP Status: $($ipaddress) ping正常 `n"
                 if ($always_on -eq $true) {
-                    $msg += "Port Status: $portNumber 無回應, 注意此機須在線! `n"
+                    $msg += "Port Status: $portNumber 無回應, 可以未登入或程式末執行. !注意此機須在線! `n"
                 }
                 else {
                     $msg += "Port Status: $portNumber 無回應 `n" 
                 }
                 $msg += "Location: $location"
-
-                Send-LineNotifyMessage -Token $line_token -Message $msg
+                
+                Send-LineNotifyMessage -Token $line_apikey -Message $msg
             }
         }
         else {
@@ -957,7 +957,7 @@ function schedulecheck-idmsclients {
             }
             $msg += "Location: $location"
 
-            Send-LineNotifyMessage -Token $line_token -Message $msg
+            Send-LineNotifyMessage -Token $line_apikey -Message $msg
         }
     }
 }
