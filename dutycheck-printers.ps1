@@ -569,7 +569,7 @@ $idsm_clients = @{
     }
 
     'wnur-b5w-pc05'     = @{
-        'ip'        = '172.20.2.109'
+        'ip'        = '172.20.2.77' #109
         'port'      = '2788'
         'location'  = 'B5'
         'always_on' = $true

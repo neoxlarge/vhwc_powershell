@@ -10,45 +10,81 @@ https://www.zenrows.com/blog/selenium-powershell#interaction-automation
 
 Import-Module selenium
 
-$check_cpoe = @{
+$check_oe = @{
     'vhwc_cpoe' = @{
+        'check_item' = 'cpoe'
         'branch' = "vhwc"
         'url' = 'http://172.20.200.71/cpoe/m2/batch'
-        'account' = 'vhwcmis'
-        'password' = 'Mis20190610'
-    }
+        'account' = 'CC4F'
+        'password' = 'acervghtc'
+    };
     'vhcy_cpoe' = @{
+        'check_item' = 'cpoe'
         'branch' = "vhcy"
         'url' = 'http://172.19.200.71/cpoe/m2/batch'
-        'account' = 'vhwcmis'
-        'password' = 'Mis20190610'
-    }
+        'account' = 'CC4F'
+        'password' = 'acervghtc'
+    };
+
+    'vhwc_eroe' = @{
+        'check_item' = 'eroe'
+        'branch' = "vhwc"
+        'url' = 'http://172.20.200.71/eroe/m2/batch'
+        'account' = 'CC4F'
+        'password' = 'acervghtc'
+    };
+    'vhcy_eroe' = @{
+        'check_item' = 'eroe'
+        'branch' = "vhcy"
+        'url' = 'http://172.19.200.71/eroe/m2/batch'
+        'account' = 'CC4F'
+        'password' = 'acervghtc'
+    }  
 }
 
 
-function check-oe( $branch, $url, $account, $password ) {
+function check-oe( $check_item, $branch, $url, $account, $password, $save_path ) {
+    # 取得日期, 以便命名檔案
+    $date = (get-date).ToString('yyyyMMddhhmm')
 
-
+    # 開啟瀏覽器, headless 模式
     $driver = Start-SeChrome -WebDriverDirectory ".\" -headless
-
+    # 開啟網址
     Enter-SeUrl -Url $url -Driver $Driver
 
-    $driver.GetScreenshot( ).SaveAsFile( "screenshotxxx.png", "png" )
+    # 填入帳號密碼,按登入
+    $driver.FindElementByXPath("//input[@name='login']").SendKeys($account)
+    $driver.FindElementByXPath("//input[@name='pass']").SendKeys($password)
+    $driver.FindElementByXPath("//input[@name='m2Login_submit']").Click()
 
+    # 取得登入後的頁面的大小
+    $width = $driver.ExecuteScript("return document.documentElement.scrollWidth")
+    $height = $driver.ExecuteScript("return document.documentElement.scrollHeight")
+    
+    # 調整視窗大小, 用以全螢幕截圖
+    $driver.Manage().Window.Size = New-Object System.Drawing.Size(($width + 120), ($height+200))
+    
+    # 儲存頁面和截圖
+    $driver.PageSource | Out-File -FilePath "$($save_path)\$($check_item)_$($branch)_$($date).html"
+    $driver.GetScreenshot( ).SaveAsFile( "$($save_path)\$($check_item)_$($branch)_$($date).png", "png" )
+
+    # 關閉瀏覽器 
     Stop-SeDriver -Driver $Driver
+
+    # 回傳結果
+    $result = @{"check_item" = $check_item; 
+                "branch" = $branch; 
+                "date" = $date; 
+                "png_filepath" = "$($save_path)\$($check_item)_$($branch)_$($date).png";
+                "html_filepath" = "$($save_path)\$($check_item)_$($branch)_$($date).html"
+            }
+
+    return $result        
 
 }
 
-$driver = Start-SeChrome -WebDriverDirectory ".\" -headless 
+#check-oe -check_item 'cpoe' -branch 'vhwc' -url 'http://172.20.200.71/cpoe/m2/batch' -account 'CC4F' -password 'acervghtc' -save_path 'd:\mis'
 
-
-
-Enter-SeUrl 'https://www.google.com.tw/' -Driver $Driver
-
-$driver
-#$Html = $Driver.PageSource
-#$Html
-
-$driver.GetScreenshot( ).SaveAsFile( "screenshotxxx.png", "png" )
-# close the browser and release its resources
-Stop-SeDriver -Driver $Driver
+foreach ($key in $check_oe.keys) {
+    check-oe -check_item $key -branch $check_cpoe[$key]['branch'] -url $check_cpoe[$key]['url'] -account $check_cpoe[$key]['account'] -password $check_cpoe[$key]['password'] -save_path 'd:\mis' 
+}
