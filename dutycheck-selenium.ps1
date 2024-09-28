@@ -19,7 +19,7 @@ $chromedriver_path = "d:\mis\vhwc_powershell\"
 
 # selenium module path
 # 遠端桌面主機未安裝selenium powershell 模組, 用匯入的方式載入模組.
-Import-Module "d:\mis\vhwc_powershell\selenium\3.15.0\selenium.psd1"
+Import-Module "d:\mis\vhwc_powershell\selenium\3.0.1\selenium.psd1"
 
 
 
