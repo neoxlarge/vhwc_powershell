@@ -6,6 +6,10 @@ https://www.zenrows.com/blog/selenium-powershell#interaction-automation
 chromedrive.exe 下載位置
 https://googlechromelabs.github.io/chrome-for-testing/#stable
 
+# line token(灣橋檢查群組): HdkeCg1k4nehNa8tEIrJKYrNOeNZMrs89LQTKbf1tbz
+# line token(測試1): CclWwNgG6qbD5qx8eO3Oi4ii9azHfolj17SCzIE9UyI
+# line token(測試2): AVt3SxMcHhatY2fuG2j6HzKGdb5BOTmrfAlEiBolQOO
+# 定時每天晚上11:20分, 和早上0點20分執行.
 
 #>
 
@@ -232,18 +236,201 @@ function check-cyp2001 ($check_item, $branch, $url_login, $url_query, $account, 
 }
 
 
+
+function Convert-Html2Table ($htmlFilePath) {
+    # 將html檔案中的table轉換成hash table
+    # 參數: $htmlFilePath: html檔案的路徑
+    # 回傳: hash table
+
+    # 讀取HTML檔案內容
+    $html = Get-Content -Path $htmlFilePath -Raw -Encoding UTF8
+
+    # 使用正則表達式匹配表格內容
+    $tablePattern = "(?s)<table[^>]*>.*?</table>"
+    $rowPattern = "(?s)<tr[^>]*>(.*?)</tr>"
+    $cellPattern = "(?s)<t[hd][^>]*>(.*?)</t[hd]>"
+
+    # 函數：清理HTML內容
+    function Clean-HtmlContent($content) {
+        # 處理特殊情況，如 <a> 標籤
+        $content = [regex]::Replace($content, '<a[^>]*>(.*?)</a>', '$1')
+        
+        # 移除其他HTML標籤
+        $content = $content -replace '<[^>]+>', ''
+        
+        # 替換HTML實體和清理空白
+        $content = $content -replace '&nbsp;', ' ' `
+                            -replace '&lt;', '<' `
+                            -replace '&gt;', '>' `
+                            -replace '&amp;', '&' `
+                            -replace '^\s+|\s+$', '' `
+                            -replace '\s+', ' '
+        return $content
+    }
+
+    $result = @{}
+    $tableMatches = [regex]::Matches($html, $tablePattern)
+
+    for ($i = 0; $i -lt $tableMatches.Count; $i++) {
+        $tableContent = $tableMatches[$i].Value
+        $rows = [regex]::Matches($tableContent, $rowPattern)
+
+        $headers = @()
+        $tableData = @()
+
+        for ($j = 0; $j -lt $rows.Count; $j++) {
+            $rowContent = $rows[$j].Groups[1].Value
+            $cells = [regex]::Matches($rowContent, $cellPattern)
+            
+            if ($j -eq 0) {
+                # 假設第一行是表頭
+                $headers = $cells | ForEach-Object { 
+                    Clean-HtmlContent $_.Groups[1].Value
+                }
+            } else {
+                $rowData = @{}
+                for ($k = 0; $k -lt $headers.Count; $k++) {
+                    if ($k -lt $cells.Count) {
+                        $cellValue = Clean-HtmlContent $cells[$k].Groups[1].Value
+                        $rowData[$headers[$k]] = $cellValue
+                    } else {
+                        $rowData[$headers[$k]] = $null
+                    }
+                }
+                $tableData += $rowData
+            }
+        }
+
+        $result["Table$($i+1)"] = $tableData
+    }
+
+    return $result
+}
+
+
+function Send-LineNotify {
+    param (
+        [string]$token = "CclWwNgG6qbD5qx8eO3Oi4ii9azHfolj17SCzIE9UyI",
+        [string]$message,
+        [string]$imagePath,
+        [bool]$notificationDisabled = $true  # 設置通知是否禁用的參數，預設為禁用
+    )
+
+    Add-Type -AssemblyName System.Net.Http
+
+    $uri = "https://notify-api.line.me/api/notify"
+
+    # 準備訊息內容
+    $body = @{
+        message = $message
+        notificationDisabled = $notificationDisabled  # 將 notificationDisabled 參數添加到訊息內容中
+    }
+
+    # 準備multipart/form-data 格式的內容
+    $multipartContent = [System.Net.Http.MultipartFormDataContent]::new()
+    foreach ($key in $body.Keys) {
+        $content = [System.Net.Http.StringContent]::new($body[$key])
+        $multipartContent.Add($content, $key)
+    }
+
+    # 加入圖片
+    if ($imagePath -ne "") {
+        $imageStream = [System.IO.File]::OpenRead($imagePath)
+        $imageContent = [System.Net.Http.StreamContent]::new($imageStream)
+        $imageContent.Headers.ContentType = [System.Net.Http.Headers.MediaTypeHeaderValue]::new("image/png")  # 可根据???片?型?整
+        $multipartContent.Add($imageContent, "imageFile", (Split-Path $imagePath -Leaf))
+    }
+
+    # 準備HTTP請求
+    $request = [System.Net.Http.HttpRequestMessage]::new([System.Net.Http.HttpMethod]::Post, $uri)
+    $request.Headers.Authorization = "Bearer $token"
+    $request.Content = $multipartContent
+
+    # 發送請求
+    $httpClient = [System.Net.Http.HttpClient]::new()
+    $response = $httpClient.SendAsync($request).Result
+
+    # 處理回應
+    if ($response.IsSuccessStatusCode) {
+        Write-Host "訊息發送成功。"
+    }
+    else {
+        Write-Host "無法發送訊息。StatusCode: $($response.StatusCode)，原因: $($response.ReasonPhrase)"
+    }
+
+    start-sleep -second 2
+}
+
+
+
 # 取得日期, 以便命名檔案
 $date = (get-date).ToString('yyyyMMddhhmm')
 
 
 foreach ($key in $check_oe.keys) {
-    check-oe -check_item $key -branch $check_oe[$key]['branch'] -url $check_oe[$key]['url'] -account $check_oe[$key]['account'] -password $check_oe[$key]['password'] -capture_area $check_oe[$key]['capture_area']
-}
+    $result = check-oe -check_item $key -branch $check_oe[$key]['branch'] -url $check_oe[$key]['url'] -account $check_oe[$key]['account'] -password $check_oe[$key]['password'] -capture_area $check_oe[$key]['capture_area']
+    
+    # 發送LINE截圖
+    Send-LineNotify -message $result['check_item'] -imagePath $result['png_filepath']
+    
+    # 檢查錯誤
+    $result_table = (convent-html2table -htmlFilePath $result['html_filepath']).Table1
+    
+    # 把有錯誤,有誤,失敗字串的記錄選出來
+    $error_talbe = @()
+    foreach ($table_item in $result_table) {
+        
+        if ( $table_item['執行狀態'] -match '錯誤|失敗|有誤') {
+            $table_item['執行狀態'] = $table_item['執行狀態'] -replace '<[^>]+>', ''  # 移除所有 HTML 標籤
+            $table_item['執行狀態'] = $table_item['執行狀態'].Trim()  # 移除首尾空白
+            $error_talbe += $table_item
+        }
+    
+    }
+    # 有錯誤才發送LINE訊息
+    if ($error_talbe.Count -gt 0) { 
+        foreach ($error_item in $error_talbe) {
+            $error_message = "? Fail: $($result['check_item']) `n 工作ID: $($error_item['批次工作ID']) `n執行狀態: $($error_item['執行狀態']) `n開始時間: $($error_item['開始時間']) `n說明: $($error_item['說明'])"
+            Send-LineNotify -message $error_message 
+        }
+    }
+
+} 
 
 foreach ($key in $check_showjob.keys) {
-    check-showjob -check_item $key -branch $check_showjob[$key]['branch'] -url $check_showjob[$key]['url']  -capture_area $check_showjob[$key]['capture_area']
+    $result = check-showjob -check_item $key -branch $check_showjob[$key]['branch'] -url $check_showjob[$key]['url']  -capture_area $check_showjob[$key]['capture_area']
+
+    # 發送LINE截圖
+    Send-LineNotify -message $result['check_item'] -imagePath $result['png_filepath']
+
+    # 檢查錯誤
+    $result_table = (convent-html2table -htmlFilePath $result['html_filepath']).Table1
+
+    # 把有錯誤,有誤,失敗字串的記錄選出來
+    $error_talbe = @()
+    foreach ($table_item in $result_table) {
+        
+        if ( $table_item['結束時間'] -match '錯誤|失敗|有誤') {
+            #$table_item['結束時間'] = $table_item['執行狀態'] -replace '<[^>]+>', ''  # 移除所有 HTML 標籤
+            #$table_item['執行狀態'] = $table_item['執行狀態'].Trim()  # 移除首尾空白
+            $error_talbe += $table_item
+        }
+    
+    }
+
+    if ($error_talbe.Count -gt 0) { 
+        foreach ($error_item in $error_talbe) {
+            $error_message = "? Fail: $($result['check_item']) `n 程式代碼: $($error_item['程式代碼']) `n狀態: $($error_item['結束時間']) `n執行時間: $($error_item['執行時間']) `n說明: $($error_item['執行狀況'])"
+            Send-LineNotify -message $error_message 
+        }
+    }
+
 }
 
 foreach ($key in $check_cyp2001.keys) {
-    check-cyp2001 -check_item $key -branch $check_cyp2001[$key]['branch'] -account $check_cyp2001[$key]['account'] -password $check_cyp2001[$key]['password'] -url_login $check_cyp2001[$key]['url_login'] -url_query $check_cyp2001[$key]['url_query'] 
+    $result = check-cyp2001 -check_item $key -branch $check_cyp2001[$key]['branch'] -account $check_cyp2001[$key]['account'] -password $check_cyp2001[$key]['password'] -url_login $check_cyp2001[$key]['url_login'] -url_query $check_cyp2001[$key]['url_query'] 
+
+     # 發送LINE截圖
+     Send-LineNotify -message $result['check_item'] -imagePath $result['png_filepath']
 }
+
