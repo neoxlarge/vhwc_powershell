@@ -374,7 +374,7 @@ foreach ($key in $check_oe.keys) {
     Send-LineNotify -message $result['check_item'] -imagePath $result['png_filepath']
     
     # 檢查錯誤
-    $result_table = (convent-html2table -htmlFilePath $result['html_filepath']).Table1
+    $result_table = (convert-html2table -htmlFilePath $result['html_filepath']).Table1
     
     # 把有錯誤,有誤,失敗字串的記錄選出來
     $error_talbe = @()
@@ -404,7 +404,7 @@ foreach ($key in $check_showjob.keys) {
     Send-LineNotify -message $result['check_item'] -imagePath $result['png_filepath']
 
     # 檢查錯誤
-    $result_table = (convent-html2table -htmlFilePath $result['html_filepath']).Table1
+    $result_table = (convert-html2table -htmlFilePath $result['html_filepath']).Table1
 
     # 把有錯誤,有誤,失敗字串的記錄選出來
     $error_talbe = @()
