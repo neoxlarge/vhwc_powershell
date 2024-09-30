@@ -26,6 +26,9 @@ $chromedriver_path = "d:\mis\vhwc_powershell"
 Import-Module "d:\mis\vhwc_powershell\selenium\3.0.1\selenium.psd1"
 
 
+# 較舊的系統可能使用舊版本的 TLS，而 LINE API 可能要求更新的 TLS 版本。
+# 遠端桌面主機上的系統是 Windows Server 2012 R2 Standard，所以要設定 TLS 版本為 TLS 1.2
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
 $check_oe = @{
     'vhwc_cpoe' = @{
