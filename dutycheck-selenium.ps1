@@ -15,11 +15,11 @@ https://googlechromelabs.github.io/chrome-for-testing/#stable
 
 
 # 儲存截圖和網頁檔的路徑
-$result_path = "\\172.20.5.185\mis\dutycheck_result"
+$result_path = "d:\mis\dutycheck_result"
 
 # chromedrive 路徑, 此powershell預計會到遠端桌面主機上執行, 所以要確認遠端主機上的路徑.
 # 預計是放在 d:\mis\vhwc_powershell\chromedriver.exe
-$chromedriver_path = "d:\mis\vhwc_powershell\"
+$chromedriver_path = "d:\mis\vhwc_powershell"
 
 # selenium module path
 # 遠端桌面主機未安裝selenium powershell 模組, 用匯入的方式載入模組.
@@ -65,13 +65,13 @@ $check_oe = @{
 
 
 
-function check-oe( $check_item, $branch, $url, $account, $password,  $capture_area) {
+function check-oe( $check_item, $branch, $url, $account, $password, $capture_area) {
 
     # 開啟瀏覽器, headless 模式
-    $driver = Start-SeChrome -WebDriverDirectory $chromedriver_path -headless
+    $driver = Start-SeChrome -WebDriverDirectory $chromedriver_path -headless 
     # 開啟網址
     Enter-SeUrl -Url $url -Driver $Driver
-
+    write-debug "check oe: $check_item $branch"
     # 填入帳號密碼,按登入
     $driver.FindElementByXPath("//input[@name='login']").SendKeys($account)
     $driver.FindElementByXPath("//input[@name='pass']").SendKeys($password)
@@ -368,7 +368,7 @@ $date = (get-date).ToString('yyyyMMddhhmm')
 
 
 foreach ($key in $check_oe.keys) {
-    $result = check-oe -check_item $key -branch $check_oe[$key]['branch'] -url $check_oe[$key]['url'] -account $check_oe[$key]['account'] -password $check_oe[$key]['password'] -capture_area $check_oe[$key]['capture_area']
+    $result = check-oe -check_item $check_oe[$key]['check_item'] -branch $check_oe[$key]['branch'] -url $check_oe[$key]['url'] -account $check_oe[$key]['account'] -password $check_oe[$key]['password'] -capture_area $check_oe[$key]['capture_area']
     
     # 發送LINE截圖
     Send-LineNotify -message $result['check_item'] -imagePath $result['png_filepath']
@@ -398,7 +398,7 @@ foreach ($key in $check_oe.keys) {
 } 
 
 foreach ($key in $check_showjob.keys) {
-    $result = check-showjob -check_item $key -branch $check_showjob[$key]['branch'] -url $check_showjob[$key]['url']  -capture_area $check_showjob[$key]['capture_area']
+    $result = check-showjob -check_item $check_showjob[$key]['check_item'] -branch $check_showjob[$key]['branch'] -url $check_showjob[$key]['url']  -capture_area $check_showjob[$key]['capture_area']
 
     # 發送LINE截圖
     Send-LineNotify -message $result['check_item'] -imagePath $result['png_filepath']
@@ -428,7 +428,7 @@ foreach ($key in $check_showjob.keys) {
 }
 
 foreach ($key in $check_cyp2001.keys) {
-    $result = check-cyp2001 -check_item $key -branch $check_cyp2001[$key]['branch'] -account $check_cyp2001[$key]['account'] -password $check_cyp2001[$key]['password'] -url_login $check_cyp2001[$key]['url_login'] -url_query $check_cyp2001[$key]['url_query'] 
+    $result = check-cyp2001 -check_item $check_cyp2001[$key]['check_item'] -branch $check_cyp2001[$key]['branch'] -account $check_cyp2001[$key]['account'] -password $check_cyp2001[$key]['password'] -url_login $check_cyp2001[$key]['url_login'] -url_query $check_cyp2001[$key]['url_query'] 
 
      # 發送LINE截圖
      Send-LineNotify -message $result['check_item'] -imagePath $result['png_filepath']
