@@ -151,8 +151,8 @@ function check-showjob ($check_item, $branch, $url) {
     # 回傳結果
     $result = @{"check_item" = $check_item; 
         "branch"             = $branch; 
-        "png_filepath"       = "$($result_path)\$($check_item)_$($branch)_showjob.png";
-        "html_filepath"      = "$($result_path)\$($check_item)_$($branch)_showjob.html"
+        "png_filepath"       = "$($result_path)\$($check_item)_$($branch)_$($date).png";
+        "html_filepath"      = "$($result_path)\$($check_item)_$($branch)_$($date).html"
     }
     return $result        
 }
