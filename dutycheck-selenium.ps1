@@ -13,12 +13,13 @@ https://googlechromelabs.github.io/chrome-for-testing/#stable
 
 #>
 
+$DebugPreference = "Continue"
 
 # 儲存截圖和網頁檔的路徑,如果沒有就新增.
 $result_path = "d:\mis\dutycheck_result"
 if (!(test-path -Path $result_path)) {
     New-Item -ItemType Directory -Force -Path $result_path -ErrorVariable error_path
-    if ($error_path) {throw "無法建立資料夾: $result_path"}
+    if ($error_path) { throw "無法建立資料夾: $result_path" }
 }
 # 為避免資料夾太大, 只保留10天內的資料, 其他的刪
 $days_to_keep = 10
@@ -79,11 +80,13 @@ $check_oe = @{
 
 function check-oe( $check_item, $branch, $url, $account, $password, $capture_area) {
 
+    write-debug "Check oe: $check_item $branch"
+
     # 開啟瀏覽器, headless 模式
     $driver = Start-SeChrome -WebDriverDirectory $chromedriver_path -headless 
     # 開啟網址
     Enter-SeUrl -Url $url -Driver $Driver
-    write-debug "check oe: $check_item $branch"
+    
     # 填入帳號密碼,按登入
     $driver.FindElementByXPath("//input[@name='login']").SendKeys($account)
     $driver.FindElementByXPath("//input[@name='pass']").SendKeys($password)
@@ -114,6 +117,7 @@ function check-oe( $check_item, $branch, $url, $account, $password, $capture_are
         "html_filepath"      = "$($result_path)\$($check_item)_$($branch)_$($date).html"
     }
 
+    Write-Debug $result
     return $result        
 
 }
@@ -136,6 +140,8 @@ $check_showjob = @{
 }
 
 function check-showjob ($check_item, $branch, $url) {
+
+    write-debug "Check showjob: $check_item $branch"
 
     # 開啟瀏覽器, headless 模式
     $driver = Start-SeChrome -WebDriverDirectory $chromedriver_path -headless
@@ -166,6 +172,7 @@ function check-showjob ($check_item, $branch, $url) {
         "png_filepath"       = "$($result_path)\$($check_item)_$($branch)_$($date).png";
         "html_filepath"      = "$($result_path)\$($check_item)_$($branch)_$($date).html"
     }
+    write-debug $result
     return $result        
 }
 
@@ -191,6 +198,8 @@ $check_cyp2001 = @{
 }
 
 function check-cyp2001 ($check_item, $branch, $url_login, $url_query, $account, $password) {
+
+    write-debug "Check cyp2001: $check_item $branch"
 
     # 報表系統要先登入,才能查詢
     # 開啟瀏覽器, headless 模式
@@ -244,6 +253,7 @@ function check-cyp2001 ($check_item, $branch, $url_login, $url_query, $account, 
         "png_filepath"       = "$($result_path)\$($check_item)_$($branch)_$($date).png";
         "html_filepath"      = "$($result_path)\$($check_item)_$($branch)_$($date).html"
     }
+    Write-Debug $result
     return $result
 }
 
@@ -272,11 +282,11 @@ function Convert-Html2Table ($htmlFilePath) {
         
         # 替換HTML實體和清理空白
         $content = $content -replace '&nbsp;', ' ' `
-                            -replace '&lt;', '<' `
-                            -replace '&gt;', '>' `
-                            -replace '&amp;', '&' `
-                            -replace '^\s+|\s+$', '' `
-                            -replace '\s+', ' '
+            -replace '&lt;', '<' `
+            -replace '&gt;', '>' `
+            -replace '&amp;', '&' `
+            -replace '^\s+|\s+$', '' `
+            -replace '\s+', ' '
         return $content
     }
 
@@ -299,13 +309,15 @@ function Convert-Html2Table ($htmlFilePath) {
                 $headers = $cells | ForEach-Object { 
                     Clean-HtmlContent $_.Groups[1].Value
                 }
-            } else {
+            }
+            else {
                 $rowData = @{}
                 for ($k = 0; $k -lt $headers.Count; $k++) {
                     if ($k -lt $cells.Count) {
                         $cellValue = Clean-HtmlContent $cells[$k].Groups[1].Value
                         $rowData[$headers[$k]] = $cellValue
-                    } else {
+                    }
+                    else {
                         $rowData[$headers[$k]] = $null
                     }
                 }
@@ -334,7 +346,7 @@ function Send-LineNotify {
 
     # 準備訊息內容
     $body = @{
-        message = $message
+        message              = $message
         notificationDisabled = $notificationDisabled  # 將 notificationDisabled 參數添加到訊息內容中
     }
 
@@ -364,10 +376,10 @@ function Send-LineNotify {
 
     # 處理回應
     if ($response.IsSuccessStatusCode) {
-        Write-Host "訊息發送成功。"
+        Write-Host "Line Notify 訊息發送成功。"
     }
     else {
-        Write-Host "無法發送訊息。StatusCode: $($response.StatusCode)，原因: $($response.ReasonPhrase)"
+        Write-Host "Line Notiry 無法發送訊息。StatusCode: $($response.StatusCode)，原因: $($response.ReasonPhrase)"
     }
 
     start-sleep -second 2
@@ -383,7 +395,7 @@ foreach ($key in $check_oe.keys) {
     $result = check-oe -check_item $check_oe[$key]['check_item'] -branch $check_oe[$key]['branch'] -url $check_oe[$key]['url'] -account $check_oe[$key]['account'] -password $check_oe[$key]['password'] -capture_area $check_oe[$key]['capture_area']
     
     # 發送LINE截圖
-    Send-LineNotify -message $result['check_item'] -imagePath $result['png_filepath']
+    Send-LineNotify -message "$($result['check_item']) $($result['branch'])" -imagePath $result['png_filepath']
     
     # 檢查錯誤
     $result_table = (convert-html2table -htmlFilePath $result['html_filepath']).Table1
@@ -402,7 +414,7 @@ foreach ($key in $check_oe.keys) {
     # 有錯誤才發送LINE訊息
     if ($error_talbe.Count -gt 0) { 
         foreach ($error_item in $error_talbe) {
-            $error_message = "🚨 Fail: $($result['check_item']) `n 工作ID: $($error_item['批次工作ID']) `n執行狀態: $($error_item['執行狀態']) `n開始時間: $($error_item['開始時間']) `n說明: $($error_item['說明'])"
+            $error_message = "🚨 Fail: $($result['check_item']) $($result['branch']) `n 工作ID: $($error_item['批次工作ID']) `n執行狀態: $($error_item['執行狀態']) `n開始時間: $($error_item['開始時間']) `n說明: $($error_item['說明'])"
             Send-LineNotify -message $error_message 
         }
     }
@@ -413,7 +425,7 @@ foreach ($key in $check_showjob.keys) {
     $result = check-showjob -check_item $check_showjob[$key]['check_item'] -branch $check_showjob[$key]['branch'] -url $check_showjob[$key]['url']  -capture_area $check_showjob[$key]['capture_area']
 
     # 發送LINE截圖
-    Send-LineNotify -message $result['check_item'] -imagePath $result['png_filepath']
+    Send-LineNotify -message "$($result['check_item']) $($result['branch'])" -imagePath $result['png_filepath']
 
     # 檢查錯誤
     $result_table = (convert-html2table -htmlFilePath $result['html_filepath']).Table1
@@ -430,17 +442,20 @@ foreach ($key in $check_showjob.keys) {
 
     if ($error_talbe.Count -gt 0) { 
         foreach ($error_item in $error_talbe) {
-            $error_message = "🚨 Fail: $($result['check_item']) `n 程式代碼: $($error_item['程式代碼']) `n狀態: $($error_item['結束時間']) `n執行時間: $($error_item['執行時間']) `n說明: $($error_item['執行狀況'])"
+            $error_message = "🚨 Fail: $($result['check_item']) $($result['branch']) `n 程式代碼: $($error_item['程式代碼']) `n狀態: $($error_item['結束時間']) `n執行時間: $($error_item['執行時間']) `n說明: $($error_item['執行狀況'])"
             Send-LineNotify -message $error_message 
         }
     }
 
 }
+# 限定時間執行, 零晨0時才需執行
+$currentTime = Get-Date -Format "HH"
+$currentTime = "00"
+if ( $currentTime -eq '00' ) {
+    foreach ($key in $check_cyp2001.keys) {
+        $result = check-cyp2001 -check_item $check_cyp2001[$key]['check_item'] -branch $check_cyp2001[$key]['branch'] -account $check_cyp2001[$key]['account'] -password $check_cyp2001[$key]['password'] -url_login $check_cyp2001[$key]['url_login'] -url_query $check_cyp2001[$key]['url_query'] 
 
-foreach ($key in $check_cyp2001.keys) {
-    $result = check-cyp2001 -check_item $check_cyp2001[$key]['check_item'] -branch $check_cyp2001[$key]['branch'] -account $check_cyp2001[$key]['account'] -password $check_cyp2001[$key]['password'] -url_login $check_cyp2001[$key]['url_login'] -url_query $check_cyp2001[$key]['url_query'] 
-
-     # 發送LINE截圖
-     Send-LineNotify -message $result['check_item'] -imagePath $result['png_filepath']
+        # 發送LINE截圖
+        Send-LineNotify -message "$($result['check_item']) $($result['branch'])" -imagePath $result['png_filepath']
+    }
 }
-
