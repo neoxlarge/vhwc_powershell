@@ -1,33 +1,42 @@
-<#
-selenium ¨Ï¥Î¤èªk
+ï»¿<#
+selenium ä½¿ç”¨æ–¹æ³•
 https://github.com/adamdriscoll/selenium-powershell
 https://www.zenrows.com/blog/selenium-powershell#interaction-automation
 
-chromedrive.exe ¤U¸ü¦ì¸m
+chromedrive.exe ä¸‹è¼‰ä½ç½®
 https://googlechromelabs.github.io/chrome-for-testing/#stable
 
-# line token(ÆW¾ôÀË¬d¸s²Õ): HdkeCg1k4nehNa8tEIrJKYrNOeNZMrs89LQTKbf1tbz
-# line token(´ú¸Õ1): CclWwNgG6qbD5qx8eO3Oi4ii9azHfolj17SCzIE9UyI
-# line token(´ú¸Õ2): AVt3SxMcHhatY2fuG2j6HzKGdb5BOTmrfAlEiBolQOO
-# ©w®É¨C¤Ñ±ß¤W11:20¤À, ©M¦­¤W0ÂI20¤À°õ¦æ.
+# line token(ç£æ©‹æª¢æŸ¥ç¾¤çµ„): HdkeCg1k4nehNa8tEIrJKYrNOeNZMrs89LQTKbf1tbz
+# line token(æ¸¬è©¦1): CclWwNgG6qbD5qx8eO3Oi4ii9azHfolj17SCzIE9UyI
+# line token(æ¸¬è©¦2): AVt3SxMcHhatY2fuG2j6HzKGdb5BOTmrfAlEiBolQOO
+# å®šæ™‚æ¯å¤©æ™šä¸Š11:20åˆ†, å’Œæ—©ä¸Š0é»20åˆ†åŸ·è¡Œ.
 
 #>
 
 
-# Àx¦sºI¹Ï©Mºô­¶ÀÉªº¸ô®|
+# å„²å­˜æˆªåœ–å’Œç¶²é æª”çš„è·¯å¾‘,å¦‚æœæ²’æœ‰å°±æ–°å¢.
 $result_path = "d:\mis\dutycheck_result"
+if (!(test-path -Path $result_path)) {
+    New-Item -ItemType Directory -Force -Path $result_path -ErrorVariable error_path
+    if ($error_path) {throw "ç„¡æ³•å»ºç«‹è³‡æ–™å¤¾: $result_path"}
+}
+# ç‚ºé¿å…è³‡æ–™å¤¾å¤ªå¤§, åªä¿ç•™10å¤©å…§çš„è³‡æ–™, å…¶ä»–çš„åˆª
+$days_to_keep = 10
+$cutoff_date = (Get-Date).AddDays(-$days_to_keep)
+Get-ChildItem -Path $result_path -Recurse | Where-Object { $_.LastWriteTime -lt $cutoff_date } | Remove-Item -Force -Recurse
 
-# chromedrive ¸ô®|, ¦¹powershell¹w­p·|¨ì»·ºİ®à­±¥D¾÷¤W°õ¦æ, ©Ò¥H­n½T»{»·ºİ¥D¾÷¤Wªº¸ô®|.
-# ¹w­p¬O©ñ¦b d:\mis\vhwc_powershell\chromedriver.exe
+
+# chromedrive è·¯å¾‘, æ­¤powershellé è¨ˆæœƒåˆ°é ç«¯æ¡Œé¢ä¸»æ©Ÿä¸ŠåŸ·è¡Œ, æ‰€ä»¥è¦ç¢ºèªé ç«¯ä¸»æ©Ÿä¸Šçš„è·¯å¾‘.
+# é è¨ˆæ˜¯æ”¾åœ¨ d:\mis\vhwc_powershell\chromedriver.exe
 $chromedriver_path = "d:\mis\vhwc_powershell"
 
 # selenium module path
-# »·ºİ®à­±¥D¾÷¥¼¦w¸Ëselenium powershell ¼Ò²Õ, ¥Î¶×¤Jªº¤è¦¡¸ü¤J¼Ò²Õ.
+# é ç«¯æ¡Œé¢ä¸»æ©Ÿæœªå®‰è£selenium powershell æ¨¡çµ„, ç”¨åŒ¯å…¥çš„æ–¹å¼è¼‰å…¥æ¨¡çµ„.
 Import-Module "d:\mis\vhwc_powershell\selenium\3.0.1\selenium.psd1"
 
 
-# ¸ûÂÂªº¨t²Î¥i¯à¨Ï¥ÎÂÂª©¥»ªº TLS¡A¦Ó LINE API ¥i¯à­n¨D§ó·sªº TLS ª©¥»¡C
-# »·ºİ®à­±¥D¾÷¤Wªº¨t²Î¬O Windows Server 2012 R2 Standard¡A©Ò¥H­n³]©w TLS ª©¥»¬° TLS 1.2
+# è¼ƒèˆŠçš„ç³»çµ±å¯èƒ½ä½¿ç”¨èˆŠç‰ˆæœ¬çš„ TLSï¼Œè€Œ LINE API å¯èƒ½è¦æ±‚æ›´æ–°çš„ TLS ç‰ˆæœ¬ã€‚
+# é ç«¯æ¡Œé¢ä¸»æ©Ÿä¸Šçš„ç³»çµ±æ˜¯ Windows Server 2016ï¼Œæ‰€ä»¥è¦è¨­å®š TLS ç‰ˆæœ¬ç‚º TLS 1.2
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
 $check_oe = @{
@@ -70,34 +79,34 @@ $check_oe = @{
 
 function check-oe( $check_item, $branch, $url, $account, $password, $capture_area) {
 
-    # ¶}±ÒÂsÄı¾¹, headless ¼Ò¦¡
+    # é–‹å•Ÿç€è¦½å™¨, headless æ¨¡å¼
     $driver = Start-SeChrome -WebDriverDirectory $chromedriver_path -headless 
-    # ¶}±Òºô§}
+    # é–‹å•Ÿç¶²å€
     Enter-SeUrl -Url $url -Driver $Driver
     write-debug "check oe: $check_item $branch"
-    # ¶ñ¤J±b¸¹±K½X,«öµn¤J
+    # å¡«å…¥å¸³è™Ÿå¯†ç¢¼,æŒ‰ç™»å…¥
     $driver.FindElementByXPath("//input[@name='login']").SendKeys($account)
     $driver.FindElementByXPath("//input[@name='pass']").SendKeys($password)
     $driver.FindElementByXPath("//input[@name='m2Login_submit']").Click()
     Start-Sleep -Seconds 3
 
-    # ½Õ¾ãµøµ¡¤j¤p, ¥Î¥H¥ş¿Ã¹õºI¹Ï
+    # èª¿æ•´è¦–çª—å¤§å°, ç”¨ä»¥å…¨è¢å¹•æˆªåœ–
     $driver.Manage().Window.Size = New-Object System.Drawing.Size(1920, 1080)
 
-    # ±qcapture_area §PÂ_,ºô­¶­n±²°Ê¨ìªº¦ì¸m, ¥Hsendkey home, end ¹ê§@
+    # å¾capture_area åˆ¤æ–·,ç¶²é è¦æ²å‹•åˆ°çš„ä½ç½®, ä»¥sendkey home, end å¯¦ä½œ
     $body = $driver.FindElementByTagName("body")
     $body.SendKeys([OpenQA.Selenium.Keys]::Control + [OpenQA.Selenium.Keys]::$capture_area) 
    
     Start-Sleep -Seconds 1
     
-    # Àx¦s­¶­±©MºI¹Ï
+    # å„²å­˜é é¢å’Œæˆªåœ–
     $driver.PageSource | Out-File -FilePath "$($result_path)\$($check_item)_$($branch)_$($date).html"
     $driver.GetScreenshot( ).SaveAsFile("$($result_path)\$($check_item)_$($branch)_$($date).png", "png")
 
-    # Ãö³¬ÂsÄı¾¹ 
-    Stop-SeDriver -Driver $Driver
+    # é—œé–‰ç€è¦½å™¨ 
+    Stop-SeDriver -Driver $driver
 
-    # ¦^¶Çµ²ªG
+    # å›å‚³çµæœ
     $result = @{"check_item" = $check_item; 
         "branch"             = $branch; 
         "date"               = $date; 
@@ -128,30 +137,30 @@ $check_showjob = @{
 
 function check-showjob ($check_item, $branch, $url) {
 
-    # ¶}±ÒÂsÄı¾¹, headless ¼Ò¦¡
+    # é–‹å•Ÿç€è¦½å™¨, headless æ¨¡å¼
     $driver = Start-SeChrome -WebDriverDirectory $chromedriver_path -headless
-    # ¶}±Òºô§}
+    # é–‹å•Ÿç¶²å€
     Enter-SeUrl -Url $url -Driver $Driver
 
     $driver.FindElementByXPath("//input[@id='btnExec']").Click()
     start-sleep -second 2
 
-    # ½Õ¾ãµøµ¡¤j¤p, ¥Î¥H¥ş¿Ã¹õºI¹Ï
+    # èª¿æ•´è¦–çª—å¤§å°, ç”¨ä»¥å…¨è¢å¹•æˆªåœ–
     $driver.Manage().Window.Size = New-Object System.Drawing.Size(1920, 1080)
     
-    # ±qcapture_area §PÂ_,ºô­¶­n±²°Ê¨ìªº¦ì¸m, ¥Hsendkey home, end ¹ê§@
+    # å¾capture_area åˆ¤æ–·,ç¶²é è¦æ²å‹•åˆ°çš„ä½ç½®, ä»¥sendkey home, end å¯¦ä½œ
     $body = $driver.FindElementByTagName("body")
     $body.SendKeys([OpenQA.Selenium.Keys]::Control + [OpenQA.Selenium.Keys]::$capture_area) 
     start-sleep -second 1
     
-    # Àx¦s­¶­±©MºI¹Ï
+    # å„²å­˜é é¢å’Œæˆªåœ–
     $driver.PageSource | Out-File -FilePath "$($result_path)\$($check_item)_$($branch)_$($date).html"
     $driver.GetScreenshot( ).SaveAsFile( "$($result_path)\$($check_item)_$($branch)_$($date).png", "png" )
 
-    # Ãö³¬ÂsÄı¾¹ 
+    # é—œé–‰ç€è¦½å™¨ 
     Stop-SeDriver -Driver $driver
 
-    # ¦^¶Çµ²ªG
+    # å›å‚³çµæœ
     $result = @{"check_item" = $check_item; 
         "branch"             = $branch; 
         "png_filepath"       = "$($result_path)\$($check_item)_$($branch)_$($date).png";
@@ -183,53 +192,53 @@ $check_cyp2001 = @{
 
 function check-cyp2001 ($check_item, $branch, $url_login, $url_query, $account, $password) {
 
-    # ³øªí¨t²Î­n¥ıµn¤J,¤~¯à¬d¸ß
-    # ¶}±ÒÂsÄı¾¹, headless ¼Ò¦¡
+    # å ±è¡¨ç³»çµ±è¦å…ˆç™»å…¥,æ‰èƒ½æŸ¥è©¢
+    # é–‹å•Ÿç€è¦½å™¨, headless æ¨¡å¼
     $driver = Start-SeChrome -WebDriverDirectory $chromedriver_path -headless
-    # ¶}±Òºô§}
+    # é–‹å•Ÿç¶²å€
     Enter-SeUrl -Url $url_login -Driver $Driver
 
-    # ¶ñ¤J±b¸¹±K½X,«öµn¤J
+    # å¡«å…¥å¸³è™Ÿå¯†ç¢¼,æŒ‰ç™»å…¥
     $driver.FindElementByXPath("//input[@name='cn']").SendKeys($account)
     $driver.FindElementByXPath("//input[@name='pw']").SendKeys($password)
     $driver.FindElementByXPath("//input[@type='submit']").Click()
     
     
-    # ¤é´ÁÂà´«¬°¥Á°ê¦~/¤ë/¤é, ¨Ò¦p113/09/26
-    # ¨ú±o¤µ¤Ñªº¤é´Á
+    # æ—¥æœŸè½‰æ›ç‚ºæ°‘åœ‹å¹´/æœˆ/æ—¥, ä¾‹å¦‚113/09/26
+    # å–å¾—ä»Šå¤©çš„æ—¥æœŸ
     $Today = Get-Date
-    # ­pºâ¥Á°ê¦~
+    # è¨ˆç®—æ°‘åœ‹å¹´
     $TaiwanYear = $Today.Year - 1911
-    # ²Õ¦X¥Á°ê¦~¡B¤ë¡B¤é
+    # çµ„åˆæ°‘åœ‹å¹´ã€æœˆã€æ—¥
     $TaiwanDate = "{0:D3}/{1:D2}/{2:D2}" -f $TaiwanYear, $Today.Month, $Today.Day
    
-    # µn¤J§¹, ¥Îpowershellµo¥Xrequests ¼ÒÀÀpost ¬d¸ß³øªí
+    # ç™»å…¥å®Œ, ç”¨powershellç™¼å‡ºrequests æ¨¡æ“¬post æŸ¥è©¢å ±è¡¨
     $body = @{
         'g_yyymmdd_s' = $TaiwanDate
         'from'        = $branch
     }
     
-    # ³øªí¬d¸ß·|ªá¤@¨Ç®É¶¡¶]
+    # å ±è¡¨æŸ¥è©¢æœƒèŠ±ä¸€äº›æ™‚é–“è·‘
     $result = Invoke-WebRequest -uri $url_query -Method POST -Body $body
     Start-Sleep -Seconds 2
 
-    # ºô­¶¦sÀÉ«á¦AÅª¨ú
+    # ç¶²é å­˜æª”å¾Œå†è®€å–
     $result.Content | Out-File -FilePath "$($result_path)\$($check_item)_$($branch)_$($date).html"
     Enter-SeUrl -Url "$($result_path)\$($check_item)_$($branch)_$($date).html" -Driver $driver
 
-    # ¨ú±oµøµ¡¤j¤p, ¹Å¸qªº¤ñ¸ûªø, ©ÈºI¨ìªí®æ.
+    # å–å¾—è¦–çª—å¤§å°, å˜‰ç¾©çš„æ¯”è¼ƒé•·, æ€•æˆªåˆ°è¡¨æ ¼.
     $width = $driver.ExecuteScript("return document.documentElement.scrollWidth")
     $height = $driver.ExecuteScript("return document.documentElement.scrollHeight")
     
-    # ½Õ¾ãµøµ¡¤j¤p, ¥Î¥H¥ş¿Ã¹õºI¹Ï
-    $driver.Manage().Window.Size = New-Object System.Drawing.Size(($width), ($height))
-    # ºI¹Ï¦sÀÉ
+    # èª¿æ•´è¦–çª—å¤§å°, ç”¨ä»¥å…¨è¢å¹•æˆªåœ–
+    $driver.Manage().Window.Size = New-Object System.Drawing.Size(($width - 200), ($height + 200) )
+    # æˆªåœ–å­˜æª”
     $driver.GetScreenshot( ).SaveAsFile( "$($result_path)\$($check_item)_$($branch)_$($date).png", "png" )
 
-    # Ãö³¬ÂsÄı¾¹ 
+    # é—œé–‰ç€è¦½å™¨ 
     Stop-SeDriver -Driver $driver
 
-    # ¦^¶Çµ²ªG
+    # å›å‚³çµæœ
     $result = @{"check_item" = $check_item;
         "branch"             = $branch;
         "png_filepath"       = "$($result_path)\$($check_item)_$($branch)_$($date).png";
@@ -241,27 +250,27 @@ function check-cyp2001 ($check_item, $branch, $url_login, $url_query, $account, 
 
 
 function Convert-Html2Table ($htmlFilePath) {
-    # ±NhtmlÀÉ®×¤¤ªºtableÂà´«¦¨hash table
-    # °Ñ¼Æ: $htmlFilePath: htmlÀÉ®×ªº¸ô®|
-    # ¦^¶Ç: hash table
+    # å°‡htmlæª”æ¡ˆä¸­çš„tableè½‰æ›æˆhash table
+    # åƒæ•¸: $htmlFilePath: htmlæª”æ¡ˆçš„è·¯å¾‘
+    # å›å‚³: hash table
 
-    # Åª¨úHTMLÀÉ®×¤º®e
+    # è®€å–HTMLæª”æ¡ˆå…§å®¹
     $html = Get-Content -Path $htmlFilePath -Raw -Encoding UTF8
 
-    # ¨Ï¥Î¥¿«hªí¹F¦¡¤Ç°tªí®æ¤º®e
+    # ä½¿ç”¨æ­£å‰‡è¡¨é”å¼åŒ¹é…è¡¨æ ¼å…§å®¹
     $tablePattern = "(?s)<table[^>]*>.*?</table>"
     $rowPattern = "(?s)<tr[^>]*>(.*?)</tr>"
     $cellPattern = "(?s)<t[hd][^>]*>(.*?)</t[hd]>"
 
-    # ¨ç¼Æ¡G²M²zHTML¤º®e
+    # å‡½æ•¸ï¼šæ¸…ç†HTMLå…§å®¹
     function Clean-HtmlContent($content) {
-        # ³B²z¯S®í±¡ªp¡A¦p <a> ¼ĞÅÒ
+        # è™•ç†ç‰¹æ®Šæƒ…æ³ï¼Œå¦‚ <a> æ¨™ç±¤
         $content = [regex]::Replace($content, '<a[^>]*>(.*?)</a>', '$1')
         
-        # ²¾°£¨ä¥LHTML¼ĞÅÒ
+        # ç§»é™¤å…¶ä»–HTMLæ¨™ç±¤
         $content = $content -replace '<[^>]+>', ''
         
-        # ´À´«HTML¹êÅé©M²M²zªÅ¥Õ
+        # æ›¿æ›HTMLå¯¦é«”å’Œæ¸…ç†ç©ºç™½
         $content = $content -replace '&nbsp;', ' ' `
                             -replace '&lt;', '<' `
                             -replace '&gt;', '>' `
@@ -286,7 +295,7 @@ function Convert-Html2Table ($htmlFilePath) {
             $cells = [regex]::Matches($rowContent, $cellPattern)
             
             if ($j -eq 0) {
-                # °²³]²Ä¤@¦æ¬OªíÀY
+                # å‡è¨­ç¬¬ä¸€è¡Œæ˜¯è¡¨é ­
                 $headers = $cells | ForEach-Object { 
                     Clean-HtmlContent $_.Groups[1].Value
                 }
@@ -316,49 +325,49 @@ function Send-LineNotify {
         [string]$token = "CclWwNgG6qbD5qx8eO3Oi4ii9azHfolj17SCzIE9UyI",
         [string]$message,
         [string]$imagePath,
-        [bool]$notificationDisabled = $true  # ³]¸m³qª¾¬O§_¸T¥Îªº°Ñ¼Æ¡A¹w³]¬°¸T¥Î
+        [bool]$notificationDisabled = $true  # è¨­ç½®é€šçŸ¥æ˜¯å¦ç¦ç”¨çš„åƒæ•¸ï¼Œé è¨­ç‚ºç¦ç”¨
     )
 
     Add-Type -AssemblyName System.Net.Http
 
     $uri = "https://notify-api.line.me/api/notify"
 
-    # ·Ç³Æ°T®§¤º®e
+    # æº–å‚™è¨Šæ¯å…§å®¹
     $body = @{
         message = $message
-        notificationDisabled = $notificationDisabled  # ±N notificationDisabled °Ñ¼Æ²K¥[¨ì°T®§¤º®e¤¤
+        notificationDisabled = $notificationDisabled  # å°‡ notificationDisabled åƒæ•¸æ·»åŠ åˆ°è¨Šæ¯å…§å®¹ä¸­
     }
 
-    # ·Ç³Æmultipart/form-data ®æ¦¡ªº¤º®e
+    # æº–å‚™multipart/form-data æ ¼å¼çš„å…§å®¹
     $multipartContent = [System.Net.Http.MultipartFormDataContent]::new()
     foreach ($key in $body.Keys) {
         $content = [System.Net.Http.StringContent]::new($body[$key])
         $multipartContent.Add($content, $key)
     }
 
-    # ¥[¤J¹Ï¤ù
+    # åŠ å…¥åœ–ç‰‡
     if ($imagePath -ne "") {
         $imageStream = [System.IO.File]::OpenRead($imagePath)
         $imageContent = [System.Net.Http.StreamContent]::new($imageStream)
-        $imageContent.Headers.ContentType = [System.Net.Http.Headers.MediaTypeHeaderValue]::new("image/png")  # ¥i®ÚÕu???¤ù?«¬?¾ã
+        $imageContent.Headers.ContentType = [System.Net.Http.Headers.MediaTypeHeaderValue]::new("image/png")  # å¯æ ¹æ®???ç‰‡?å‹?æ•´
         $multipartContent.Add($imageContent, "imageFile", (Split-Path $imagePath -Leaf))
     }
 
-    # ·Ç³ÆHTTP½Ğ¨D
+    # æº–å‚™HTTPè«‹æ±‚
     $request = [System.Net.Http.HttpRequestMessage]::new([System.Net.Http.HttpMethod]::Post, $uri)
     $request.Headers.Authorization = "Bearer $token"
     $request.Content = $multipartContent
 
-    # µo°e½Ğ¨D
+    # ç™¼é€è«‹æ±‚
     $httpClient = [System.Net.Http.HttpClient]::new()
     $response = $httpClient.SendAsync($request).Result
 
-    # ³B²z¦^À³
+    # è™•ç†å›æ‡‰
     if ($response.IsSuccessStatusCode) {
-        Write-Host "°T®§µo°e¦¨¥\¡C"
+        Write-Host "è¨Šæ¯ç™¼é€æˆåŠŸã€‚"
     }
     else {
-        Write-Host "µLªkµo°e°T®§¡CStatusCode: $($response.StatusCode)¡A­ì¦]: $($response.ReasonPhrase)"
+        Write-Host "ç„¡æ³•ç™¼é€è¨Šæ¯ã€‚StatusCode: $($response.StatusCode)ï¼ŒåŸå› : $($response.ReasonPhrase)"
     }
 
     start-sleep -second 2
@@ -366,34 +375,34 @@ function Send-LineNotify {
 
 
 
-# ¨ú±o¤é´Á, ¥H«K©R¦WÀÉ®×
+# å–å¾—æ—¥æœŸ, ä»¥ä¾¿å‘½åæª”æ¡ˆ
 $date = (get-date).ToString('yyyyMMddhhmm')
 
-
+# é–‹å§‹æˆªåœ–åŠå„²å­˜ç¶²é æª”å’Œç™¼é€line notify
 foreach ($key in $check_oe.keys) {
     $result = check-oe -check_item $check_oe[$key]['check_item'] -branch $check_oe[$key]['branch'] -url $check_oe[$key]['url'] -account $check_oe[$key]['account'] -password $check_oe[$key]['password'] -capture_area $check_oe[$key]['capture_area']
     
-    # µo°eLINEºI¹Ï
+    # ç™¼é€LINEæˆªåœ–
     Send-LineNotify -message $result['check_item'] -imagePath $result['png_filepath']
     
-    # ÀË¬d¿ù»~
+    # æª¢æŸ¥éŒ¯èª¤
     $result_table = (convert-html2table -htmlFilePath $result['html_filepath']).Table1
     
-    # §â¦³¿ù»~,¦³»~,¥¢±Ñ¦r¦êªº°O¿ı¿ï¥X¨Ó
+    # æŠŠæœ‰éŒ¯èª¤,æœ‰èª¤,å¤±æ•—å­—ä¸²çš„è¨˜éŒ„é¸å‡ºä¾†
     $error_talbe = @()
     foreach ($table_item in $result_table) {
         
-        if ( $table_item['°õ¦æª¬ºA'] -match '¿ù»~|¥¢±Ñ|¦³»~') {
-            $table_item['°õ¦æª¬ºA'] = $table_item['°õ¦æª¬ºA'] -replace '<[^>]+>', ''  # ²¾°£©Ò¦³ HTML ¼ĞÅÒ
-            $table_item['°õ¦æª¬ºA'] = $table_item['°õ¦æª¬ºA'].Trim()  # ²¾°£­º§ÀªÅ¥Õ
+        if ( $table_item['åŸ·è¡Œç‹€æ…‹'] -match 'éŒ¯èª¤|å¤±æ•—|æœ‰èª¤') {
+            $table_item['åŸ·è¡Œç‹€æ…‹'] = $table_item['åŸ·è¡Œç‹€æ…‹'] -replace '<[^>]+>', ''  # ç§»é™¤æ‰€æœ‰ HTML æ¨™ç±¤
+            $table_item['åŸ·è¡Œç‹€æ…‹'] = $table_item['åŸ·è¡Œç‹€æ…‹'].Trim()  # ç§»é™¤é¦–å°¾ç©ºç™½
             $error_talbe += $table_item
         }
     
     }
-    # ¦³¿ù»~¤~µo°eLINE°T®§
+    # æœ‰éŒ¯èª¤æ‰ç™¼é€LINEè¨Šæ¯
     if ($error_talbe.Count -gt 0) { 
         foreach ($error_item in $error_talbe) {
-            $error_message = "? Fail: $($result['check_item']) `n ¤u§@ID: $($error_item['§å¦¸¤u§@ID']) `n°õ¦æª¬ºA: $($error_item['°õ¦æª¬ºA']) `n¶}©l®É¶¡: $($error_item['¶}©l®É¶¡']) `n»¡©ú: $($error_item['»¡©ú'])"
+            $error_message = "ğŸš¨ Fail: $($result['check_item']) `n å·¥ä½œID: $($error_item['æ‰¹æ¬¡å·¥ä½œID']) `nåŸ·è¡Œç‹€æ…‹: $($error_item['åŸ·è¡Œç‹€æ…‹']) `né–‹å§‹æ™‚é–“: $($error_item['é–‹å§‹æ™‚é–“']) `nèªªæ˜: $($error_item['èªªæ˜'])"
             Send-LineNotify -message $error_message 
         }
     }
@@ -403,19 +412,17 @@ foreach ($key in $check_oe.keys) {
 foreach ($key in $check_showjob.keys) {
     $result = check-showjob -check_item $check_showjob[$key]['check_item'] -branch $check_showjob[$key]['branch'] -url $check_showjob[$key]['url']  -capture_area $check_showjob[$key]['capture_area']
 
-    # µo°eLINEºI¹Ï
+    # ç™¼é€LINEæˆªåœ–
     Send-LineNotify -message $result['check_item'] -imagePath $result['png_filepath']
 
-    # ÀË¬d¿ù»~
+    # æª¢æŸ¥éŒ¯èª¤
     $result_table = (convert-html2table -htmlFilePath $result['html_filepath']).Table1
 
-    # §â¦³¿ù»~,¦³»~,¥¢±Ñ¦r¦êªº°O¿ı¿ï¥X¨Ó
+    # æŠŠæœ‰éŒ¯èª¤,æœ‰èª¤,å¤±æ•—å­—ä¸²çš„è¨˜éŒ„é¸å‡ºä¾†
     $error_talbe = @()
     foreach ($table_item in $result_table) {
         
-        if ( $table_item['µ²§ô®É¶¡'] -match '¿ù»~|¥¢±Ñ|¦³»~') {
-            #$table_item['µ²§ô®É¶¡'] = $table_item['°õ¦æª¬ºA'] -replace '<[^>]+>', ''  # ²¾°£©Ò¦³ HTML ¼ĞÅÒ
-            #$table_item['°õ¦æª¬ºA'] = $table_item['°õ¦æª¬ºA'].Trim()  # ²¾°£­º§ÀªÅ¥Õ
+        if ( $table_item['çµæŸæ™‚é–“'] -match 'éŒ¯èª¤|å¤±æ•—|æœ‰èª¤') {
             $error_talbe += $table_item
         }
     
@@ -423,7 +430,7 @@ foreach ($key in $check_showjob.keys) {
 
     if ($error_talbe.Count -gt 0) { 
         foreach ($error_item in $error_talbe) {
-            $error_message = "? Fail: $($result['check_item']) `n µ{¦¡¥N½X: $($error_item['µ{¦¡¥N½X']) `nª¬ºA: $($error_item['µ²§ô®É¶¡']) `n°õ¦æ®É¶¡: $($error_item['°õ¦æ®É¶¡']) `n»¡©ú: $($error_item['°õ¦æª¬ªp'])"
+            $error_message = "ğŸš¨ Fail: $($result['check_item']) `n ç¨‹å¼ä»£ç¢¼: $($error_item['ç¨‹å¼ä»£ç¢¼']) `nç‹€æ…‹: $($error_item['çµæŸæ™‚é–“']) `nåŸ·è¡Œæ™‚é–“: $($error_item['åŸ·è¡Œæ™‚é–“']) `nèªªæ˜: $($error_item['åŸ·è¡Œç‹€æ³'])"
             Send-LineNotify -message $error_message 
         }
     }
@@ -433,7 +440,7 @@ foreach ($key in $check_showjob.keys) {
 foreach ($key in $check_cyp2001.keys) {
     $result = check-cyp2001 -check_item $check_cyp2001[$key]['check_item'] -branch $check_cyp2001[$key]['branch'] -account $check_cyp2001[$key]['account'] -password $check_cyp2001[$key]['password'] -url_login $check_cyp2001[$key]['url_login'] -url_query $check_cyp2001[$key]['url_query'] 
 
-     # µo°eLINEºI¹Ï
+     # ç™¼é€LINEæˆªåœ–
      Send-LineNotify -message $result['check_item'] -imagePath $result['png_filepath']
 }
 
