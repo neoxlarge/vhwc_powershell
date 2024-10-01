@@ -40,7 +40,7 @@ Import-Module "d:\mis\vhwc_powershell\selenium\3.0.1\selenium.psd1"
 # 遠端桌面主機上的系統是 Windows Server 2016，所以要設定 TLS 版本為 TLS 1.2
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
-$check_oe = @{
+$check_oe = [ordered]@{
     'vhwc_cpoe' = @{
         'check_item'   = 'cpoe'
         'branch'       = "vhwc"
@@ -122,7 +122,7 @@ function check-oe( $check_item, $branch, $url, $account, $password, $capture_are
 
 }
 
-$check_showjob = @{
+$check_showjob = [ordered]@{
     'vhwc_showjob' = @{
         'check_item'   = 'showjob'
         'branch'       = "vhwc"
@@ -177,7 +177,7 @@ function check-showjob ($check_item, $branch, $url) {
 }
 
 
-$check_cyp2001 = @{
+$check_cyp2001 = [ordered]@{
     'vhwc_cyp2001' = @{
         'check_item' = 'cyp2001'
         'branch'     = "wc"
@@ -408,6 +408,7 @@ foreach ($key in $check_oe.keys) {
             $table_item['執行狀態'] = $table_item['執行狀態'] -replace '<[^>]+>', ''  # 移除所有 HTML 標籤
             $table_item['執行狀態'] = $table_item['執行狀態'].Trim()  # 移除首尾空白
             $error_talbe += $table_item
+            Write-Debug "執行狀態: $($table_item['執行狀態'])"
         }
     
     }
@@ -436,6 +437,7 @@ foreach ($key in $check_showjob.keys) {
         
         if ( $table_item['結束時間'] -match '錯誤|失敗|有誤') {
             $error_talbe += $table_item
+            Write-Debug "結束時間: $($table_item['結束時間'])"
         }
     
     }
