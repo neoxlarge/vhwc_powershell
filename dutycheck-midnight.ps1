@@ -352,7 +352,7 @@ function Convert-Html2Table ($htmlFilePath) {
 
 function Send-LineNotify {
     param (
-        [string]$token = "CclWwNgG6qbD5qx8eO3Oi4ii9azHfolj17SCzIE9UyI",
+        [string]$token = "HdkeCg1k4nehNa8tEIrJKYrNOeNZMrs89LQTKbf1tbz",
         [string]$message,
         [string]$imagePath,
         [bool]$notificationDisabled = $true  # 設置通知是否禁用的參數，預設為禁用
