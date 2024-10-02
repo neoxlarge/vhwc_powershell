@@ -49,6 +49,8 @@ $check_oe = [ordered]@{
         'password'          = 'acervghtc'
         'capture_area_at23' = 'end'
         'capture_area_at00' = 'home' # 時間為零晨0點20分時, 要捲到最上面, 其他時間捲到最下面.
+        'high'              = '1920'
+        'width'             = '2048'
     };
     'vhcy_cpoe' = @{
         'check_item'        = 'cpoe'
@@ -58,6 +60,8 @@ $check_oe = [ordered]@{
         'password'          = 'acervghtc'
         'capture_area_at23' = 'end'
         'capture_area_at00' = 'home'
+        'high'              = '1920'
+        'width'             = '2048'
     };
 
     'vhwc_eroe' = @{
@@ -68,6 +72,8 @@ $check_oe = [ordered]@{
         'password'          = 'acervghtc'
         'capture_area_at23' = 'end'
         'capture_area_at00' = 'end'
+        'high'              = '1920'
+        'width'             = '1100'
     };
     'vhcy_eroe' = @{
         'check_item'        = 'eroe'
@@ -77,12 +83,14 @@ $check_oe = [ordered]@{
         'password'          = 'acervghtc'
         'capture_area_at23' = 'end'
         'capture_area_at00' = 'end'
+        'high'              = '1920'
+        'width'             = '1100'
     };
 }  
 
 
 
-function check-oe( $check_item, $branch, $url, $account, $password, $capture_area) {
+function check-oe( $check_item, $branch, $url, $account, $password, $capture_area_at00, $capture_area_at23, $high, $width) {
 
     write-debug "Check oe: $check_item $branch"
 
@@ -98,7 +106,7 @@ function check-oe( $check_item, $branch, $url, $account, $password, $capture_are
     Start-Sleep -Seconds 3
 
     # 調整視窗大小, 用以全螢幕截圖
-    $driver.Manage().Window.Size = New-Object System.Drawing.Size(1920, 2040)
+    $driver.Manage().Window.Size = New-Object System.Drawing.Size($high, $width)
 
     # 從capture_area 判斷,網頁要捲動到的位置, 以sendkey home, end 實作
     $body = $driver.FindElementByTagName("body")
@@ -106,7 +114,7 @@ function check-oe( $check_item, $branch, $url, $account, $password, $capture_are
     $currentTime = Get-Date -Format "HH"
     if ($currentTime -eq '00') {
         $body.SendKeys([OpenQA.Selenium.Keys]::Control + [OpenQA.Selenium.Keys]::$capture_area_at00) 
-    } esle {
+    } else {
         $body.SendKeys([OpenQA.Selenium.Keys]::Control + [OpenQA.Selenium.Keys]::$capture_area_at23) 
     }
    
@@ -402,8 +410,15 @@ $date = (get-date).ToString('yyyyMMddhhmm')
 
 # 開始截圖及儲存網頁檔和發送line notify
 foreach ($key in $check_oe.keys) {
-    $result = check-oe -check_item $check_oe[$key]['check_item'] -branch $check_oe[$key]['branch'] -url $check_oe[$key]['url'] -account $check_oe[$key]['account'] -password $check_oe[$key]['password'] -capture_area $check_oe[$key]['capture_area']
-    
+    $result = check-oe -check_item $check_oe[$key]['check_item'] |
+    -branch $check_oe[$key]['branch'] |
+    -url $check_oe[$key]['url'] |
+    -account $check_oe[$key]['account'] |
+    -password $check_oe[$key]['password'] |
+    -capture_area_at00 $check_oe[$key]['capture_area_at00'] |
+    -capture_area_at23 $check_oe[$key]['capture_area_at23'] |
+    -high $check_oe[$key]['high'] |
+    -width $check_oe[$key]['width'] |
     # 發送LINE截圖
     Send-LineNotify -message "$($result['check_item']) $($result['branch'])" -imagePath $result['png_filepath']
     
