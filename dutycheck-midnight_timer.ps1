@@ -1,5 +1,6 @@
 ﻿# 建立session到嘉義遠端桌面主機 172.19.1.24
 # line token(灣橋檢查群組): HdkeCg1k4nehNa8tEIrJKYrNOeNZMrs89LQTKbf1tbz
+
 # line token(測試1): CclWwNgG6qbD5qx8eO3Oi4ii9azHfolj17SCzIE9UyI
 # line token(測試2): AVt3SxMcHhatY2fuG2j6HzKGdb5BOTmrfAlEiBolQOO
 # 定時每天晚上11:20分, 和早上0點20分執行.
