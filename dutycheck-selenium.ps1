@@ -127,7 +127,7 @@ function check-oe( $check_item, $branch, $url, $account, $password, $capture_are
         "html_filepath"      = "$($result_path)\$($check_item)_$($branch)_$($date).html"
     }
 
-    $result.GetEnumerator() | ForEach-Object { Write-Debug $_.Name $_.Value }
+    $result.GetEnumerator() | ForEach-Object { Write-Debug "$($_.key) : $($_.Value) "}
     return $result        
 
 }
@@ -182,7 +182,7 @@ function check-showjob ($check_item, $branch, $url) {
         "png_filepath"       = "$($result_path)\$($check_item)_$($branch)_$($date).png";
         "html_filepath"      = "$($result_path)\$($check_item)_$($branch)_$($date).html"
     }
-    $result.GetEnumerator() | ForEach-Object { Write-Debug $_.Name $_.Value }
+    $result.GetEnumerator() | ForEach-Object { Write-Debug "$($_.key) : $($_.Value) "}
     return $result        
 }
 
@@ -263,7 +263,7 @@ function check-cyp2001 ($check_item, $branch, $url_login, $url_query, $account, 
         "png_filepath"       = "$($result_path)\$($check_item)_$($branch)_$($date).png";
         "html_filepath"      = "$($result_path)\$($check_item)_$($branch)_$($date).html"
     }
-    $result.GetEnumerator() | ForEach-Object { Write-Debug $_.Name $_.Value }
+    $result.GetEnumerator() | ForEach-Object { Write-Debug "$($_.key) : $($_.Value) "}
     return $result
 }
 
