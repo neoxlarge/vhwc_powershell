@@ -73,7 +73,7 @@ $check_oe = [ordered]@{
         'capture_area_at23' = 'end'
         'capture_area_at00' = 'end'
         'high'              = '1920'
-        'width'             = '1100'
+        'width'             = '1180'
     };
     'vhcy_eroe' = @{
         'check_item'        = 'eroe'
@@ -84,7 +84,7 @@ $check_oe = [ordered]@{
         'capture_area_at23' = 'end'
         'capture_area_at00' = 'end'
         'high'              = '1920'
-        'width'             = '1100'
+        'width'             = '1180'
     };
 }  
 
@@ -410,15 +410,15 @@ $date = (get-date).ToString('yyyyMMddhhmm')
 
 # 開始截圖及儲存網頁檔和發送line notify
 foreach ($key in $check_oe.keys) {
-    $result = check-oe -check_item $check_oe[$key]['check_item'] |
-    -branch $check_oe[$key]['branch'] |
-    -url $check_oe[$key]['url'] |
-    -account $check_oe[$key]['account'] |
-    -password $check_oe[$key]['password'] |
-    -capture_area_at00 $check_oe[$key]['capture_area_at00'] |
-    -capture_area_at23 $check_oe[$key]['capture_area_at23'] |
-    -high $check_oe[$key]['high'] |
-    -width $check_oe[$key]['width'] |
+    $result = check-oe -check_item $check_oe[$key]['check_item'] `
+    -branch $check_oe[$key]['branch'] `
+    -url $check_oe[$key]['url'] `
+    -account $check_oe[$key]['account'] `
+    -password $check_oe[$key]['password'] `
+    -capture_area_at00 $check_oe[$key]['capture_area_at00'] `
+    -capture_area_at23 $check_oe[$key]['capture_area_at23'] `
+    -high $check_oe[$key]['high'] `
+    -width $check_oe[$key]['width'] 
     # 發送LINE截圖
     Send-LineNotify -message "$($result['check_item']) $($result['branch'])" -imagePath $result['png_filepath']
     
