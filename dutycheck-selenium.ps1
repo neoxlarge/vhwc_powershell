@@ -42,37 +42,41 @@ Import-Module "d:\mis\vhwc_powershell\selenium\3.0.1\selenium.psd1"
 
 $check_oe = [ordered]@{
     'vhwc_cpoe' = @{
-        'check_item'   = 'cpoe'
-        'branch'       = "vhwc"
-        'url'          = 'http://172.20.200.71/cpoe/m2/batch'
-        'account'      = 'CC4F'
-        'password'     = 'acervghtc'
-        'capture_area' = 'end'
+        'check_item'        = 'cpoe'
+        'branch'            = "vhwc"
+        'url'               = 'http://172.20.200.71/cpoe/m2/batch'
+        'account'           = 'CC4F'
+        'password'          = 'acervghtc'
+        'capture_area_at23' = 'end'
+        'capture_area_at00' = 'home' # 時間為零晨0點20分時, 要捲到最上面, 其他時間捲到最下面.
     };
     'vhcy_cpoe' = @{
-        'check_item'   = 'cpoe'
-        'branch'       = "vhcy"
-        'url'          = 'http://172.19.200.71/cpoe/m2/batch'
-        'account'      = 'CC4F'
-        'password'     = 'acervghtc'
-        'capture_area' = 'end'
+        'check_item'        = 'cpoe'
+        'branch'            = "vhcy"
+        'url'               = 'http://172.19.200.71/cpoe/m2/batch'
+        'account'           = 'CC4F'
+        'password'          = 'acervghtc'
+        'capture_area_at23' = 'end'
+        'capture_area_at00' = 'home'
     };
 
     'vhwc_eroe' = @{
-        'check_item'   = 'eroe'
-        'branch'       = "vhwc"
-        'url'          = 'http://172.20.200.71/eroe/m2/batch'
-        'account'      = 'CC4F'
-        'password'     = 'acervghtc'
-        'capture_area' = 'end'
+        'check_item'        = 'eroe'
+        'branch'            = "vhwc"
+        'url'               = 'http://172.20.200.71/eroe/m2/batch'
+        'account'           = 'CC4F'
+        'password'          = 'acervghtc'
+        'capture_area_at23' = 'end'
+        'capture_area_at00' = 'end'
     };
     'vhcy_eroe' = @{
-        'check_item'   = 'eroe'
-        'branch'       = "vhcy"
-        'url'          = 'http://172.19.200.71/eroe/m2/batch'
-        'account'      = 'CC4F'
-        'password'     = 'acervghtc'
-        'capture_area' = 'end'
+        'check_item'        = 'eroe'
+        'branch'            = "vhcy"
+        'url'               = 'http://172.19.200.71/eroe/m2/batch'
+        'account'           = 'CC4F'
+        'password'          = 'acervghtc'
+        'capture_area_at23' = 'end'
+        'capture_area_at00' = 'end'
     };
 }  
 
@@ -94,11 +98,17 @@ function check-oe( $check_item, $branch, $url, $account, $password, $capture_are
     Start-Sleep -Seconds 3
 
     # 調整視窗大小, 用以全螢幕截圖
-    $driver.Manage().Window.Size = New-Object System.Drawing.Size(1920, 1080)
+    $driver.Manage().Window.Size = New-Object System.Drawing.Size(1920, 2040)
 
     # 從capture_area 判斷,網頁要捲動到的位置, 以sendkey home, end 實作
     $body = $driver.FindElementByTagName("body")
-    $body.SendKeys([OpenQA.Selenium.Keys]::Control + [OpenQA.Selenium.Keys]::$capture_area) 
+    # 時間為零晨0點20分時, 要捲到最上面, 其他時間捲到最下面.
+    $currentTime = Get-Date -Format "HH"
+    if ($currentTime -eq '00') {
+        $body.SendKeys([OpenQA.Selenium.Keys]::Control + [OpenQA.Selenium.Keys]::$capture_area_at00) 
+    } esle {
+        $body.SendKeys([OpenQA.Selenium.Keys]::Control + [OpenQA.Selenium.Keys]::$capture_area_at23) 
+    }
    
     Start-Sleep -Seconds 1
     
@@ -117,7 +127,7 @@ function check-oe( $check_item, $branch, $url, $account, $password, $capture_are
         "html_filepath"      = "$($result_path)\$($check_item)_$($branch)_$($date).html"
     }
 
-    Write-Debug $result
+    $result.GetEnumerator() | ForEach-Object { Write-Debug $_.Name $_.Value }
     return $result        
 
 }
@@ -152,7 +162,7 @@ function check-showjob ($check_item, $branch, $url) {
     start-sleep -second 2
 
     # 調整視窗大小, 用以全螢幕截圖
-    $driver.Manage().Window.Size = New-Object System.Drawing.Size(1920, 1080)
+    $driver.Manage().Window.Size = New-Object System.Drawing.Size(1920, 1180)
     
     # 從capture_area 判斷,網頁要捲動到的位置, 以sendkey home, end 實作
     $body = $driver.FindElementByTagName("body")
@@ -172,7 +182,7 @@ function check-showjob ($check_item, $branch, $url) {
         "png_filepath"       = "$($result_path)\$($check_item)_$($branch)_$($date).png";
         "html_filepath"      = "$($result_path)\$($check_item)_$($branch)_$($date).html"
     }
-    write-debug $result
+    $result.GetEnumerator() | ForEach-Object { Write-Debug $_.Name $_.Value }
     return $result        
 }
 
@@ -253,7 +263,7 @@ function check-cyp2001 ($check_item, $branch, $url_login, $url_query, $account, 
         "png_filepath"       = "$($result_path)\$($check_item)_$($branch)_$($date).png";
         "html_filepath"      = "$($result_path)\$($check_item)_$($branch)_$($date).html"
     }
-    Write-Debug $result
+    $result.GetEnumerator() | ForEach-Object { Write-Debug $_.Name $_.Value }
     return $result
 }
 
