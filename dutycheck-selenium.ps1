@@ -162,7 +162,7 @@ function check-showjob ($check_item, $branch, $url) {
     start-sleep -second 2
 
     # 調整視窗大小, 用以全螢幕截圖
-    $driver.Manage().Window.Size = New-Object System.Drawing.Size(1920, 1180)
+    $driver.Manage().Window.Size = New-Object System.Drawing.Size(1100, 2048)
     
     # 從capture_area 判斷,網頁要捲動到的位置, 以sendkey home, end 實作
     $body = $driver.FindElementByTagName("body")
