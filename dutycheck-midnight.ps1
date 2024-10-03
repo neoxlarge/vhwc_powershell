@@ -350,9 +350,76 @@ function Convert-Html2Table ($htmlFilePath) {
 }
 
 
+
+function Convert-Html2HashTable_ShowJob {
+
+    <#
+    .SYNOPSIS
+    將包含批次作業執行資訊的 HTML 檔案轉換為 HashTable。
+    因為showjob 的html裡有2層table，所以需要特別處理
+
+    .DESCRIPTION
+    此函數讀取指定的 HTML 檔案，解析其中的表格資料（假設為批次作業執行資訊），
+    並將其轉換為 PowerShell HashTable 陣列。它使用表格中的 <th> 元素作為 HashTable 的鍵。
+
+    .PARAMETER HtmlFilePath
+    要解析的 HTML 檔案的完整路徑。
+
+    .EXAMPLE
+    $jobData = Convert-Html2HashTable_ShowJob -HtmlFilePath "C:\temp\batchjobs.html"
+    $jobData | Format-Table -AutoSize
+
+    #>
+    param (
+        [Parameter(Mandatory = $true)]
+        [string]$HtmlFilePath
+    )
+
+    # 檢查檔案是否存在
+    if (-not (Test-Path $HtmlFilePath)) {
+        throw "找不到檔案: $HtmlFilePath"
+    }
+
+    # 從檔案中讀取 HTML 內容
+    $HtmlContent = Get-Content -Path $HtmlFilePath -Raw
+
+    # 載入 HTML 內容
+    $html = New-Object -ComObject "HTMLFile"
+    $html.IHTMLDocument2_write($HtmlContent)
+
+    # 找到第二個表格（索引為 1，因為索引從 0 開始）
+    $table = $html.getElementsByTagName("table")[1]
+
+    # 提取表頭
+    $headers = @()
+    foreach ($th in $table.getElementsByTagName("th")) {
+        $headers += $th.innerText.Trim()
+    }
+
+    # 初始化一個空陣列來儲存結果
+    $results = @()
+
+    # 遍歷表格中的每一行（跳過表頭行）
+    foreach ($row in $table.rows | Select-Object -Skip 1) {
+        $rowData = @{}
+        
+        # 遍歷行中的每個單元格
+        for ($i = 0; $i -lt $headers.Count; $i++) {
+            $rowData[$headers[$i]] = $row.cells[$i].innerText.Trim()
+        }
+
+        # 將 HashTable 添加到結果陣列中
+        $results += $rowData
+    }
+
+    return $results
+}
+
 function Send-LineNotify {
     param (
-        [string]$token = "HdkeCg1k4nehNa8tEIrJKYrNOeNZMrs89LQTKbf1tbz",
+        #test CclWwNgG6qbD5qx8eO3Oi4ii9azHfolj17SCzIE9UyI
+        #notify HdkeCg1k4nehNa8tEIrJKYrNOeNZMrs89LQTKbf1tbz
+        [string]$token = "CclWwNgG6qbD5qx8eO3Oi4ii9azHfolj17SCzIE9UyI",
         [string]$message,
         [string]$imagePath,
         [bool]$notificationDisabled = $true  # 設置通知是否禁用的參數，預設為禁用
@@ -454,7 +521,8 @@ foreach ($key in $check_showjob.keys) {
     Send-LineNotify -message "$($result['check_item']) $($result['branch'])" -imagePath $result['png_filepath']
 
     # 檢查錯誤
-    $result_table = (convert-html2table -htmlFilePath $result['html_filepath']).Table1
+    #$result_table = (convert-html2table -htmlFilePath $result['html_filepath']).Table1
+    $result_table = Convert-Html2HashTable_ShowJob -htmlFilePath $result['html_filepath']
 
     # 把有錯誤,有誤,失敗字串的記錄選出來
     $error_talbe = @()
