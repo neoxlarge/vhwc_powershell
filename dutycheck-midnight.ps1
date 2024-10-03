@@ -371,7 +371,7 @@ function Convert-Html2HashTable_ShowJob {
 
     #>
     param (
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory=$true)]
         [string]$HtmlFilePath
     )
 
@@ -383,29 +383,45 @@ function Convert-Html2HashTable_ShowJob {
     # 從檔案中讀取 HTML 內容
     $HtmlContent = Get-Content -Path $HtmlFilePath -Raw
 
-    # 載入 HTML 內容
-    $html = New-Object -ComObject "HTMLFile"
-    $html.IHTMLDocument2_write($HtmlContent)
+    # 建立 XmlDocument 物件
+    $doc = New-Object System.Xml.XmlDocument
+    $doc.PreserveWhitespace = $true
+    
+    try {
+        # 載入 HTML 內容
+        $doc.LoadXml($HtmlContent)
+    }
+    catch {
+        # 如果載入失敗，嘗試修復 HTML
+        $HtmlContent = $HtmlContent -replace '(?s)<!--.*?-->', ''  # 移除註釋
+        $HtmlContent = $HtmlContent -replace '&(?!amp;|lt;|gt;|quot;|apos;)', '&amp;'  # 修復 & 符號
+        $doc.LoadXml("<root>$HtmlContent</root>")
+    }
 
-    # 找到第二個表格（索引為 1，因為索引從 0 開始）
-    $table = $html.getElementsByTagName("table")[1]
+    # 使用 XPath 找到第二個表格
+    $table = $doc.SelectSingleNode("//table[2]")
+    
+    if ($null -eq $table) {
+        throw "在 HTML 中找不到第二個表格"
+    }
 
     # 提取表頭
     $headers = @()
-    foreach ($th in $table.getElementsByTagName("th")) {
-        $headers += $th.innerText.Trim()
+    foreach ($th in $table.SelectNodes(".//th")) {
+        $headers += $th.InnerText.Trim()
     }
 
     # 初始化一個空陣列來儲存結果
     $results = @()
 
     # 遍歷表格中的每一行（跳過表頭行）
-    foreach ($row in $table.rows | Select-Object -Skip 1) {
+    foreach ($row in $table.SelectNodes(".//tr[position()>1]")) {
         $rowData = @{}
         
         # 遍歷行中的每個單元格
-        for ($i = 0; $i -lt $headers.Count; $i++) {
-            $rowData[$headers[$i]] = $row.cells[$i].innerText.Trim()
+        $cells = $row.SelectNodes(".//td")
+        for ($i = 0; $i -lt $headers.Count -and $i -lt $cells.Count; $i++) {
+            $rowData[$headers[$i]] = $cells[$i].InnerText.Trim()
         }
 
         # 將 HashTable 添加到結果陣列中
