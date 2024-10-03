@@ -385,7 +385,8 @@ function Convert-Html2HashTable_ShowJob {
 
     # 載入 HTML 內容
     $html = New-Object -ComObject "HTMLFile"
-    $html.open($HtmlContent)
+    $HtmlContent = [System.Text.Encoding]::Unicode.GetBytes($HtmlContent)
+    $html.write($HtmlContent)
     
 
     # 找到第二個表格（索引為 1，因為索引從 0 開始）
