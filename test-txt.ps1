@@ -1,320 +1,100 @@
-﻿
-function Convert-Html2Table2 ($htmlFilePath) {
-    # 將html檔案中的table轉換成hash table
-    # 參數: $htmlFilePath: html檔案的路徑
-    # 回傳: hash table
-
-    # 讀取HTML檔案內容
-    $html = Get-Content -Path $htmlFilePath -Raw -Encoding UTF8
-
-    # 使用正則表達式匹配表格內容
-    $tablePattern = "(?s)<table[^>]*>.*?</table>"
-    $rowPattern = "(?s)<tr[^>]*>(.*?)</tr>"
-    $cellPattern = "(?s)<t[hd][^>]*>(.*?)</t[hd]>"
-
-    $result = @{}
-    $tableMatches = [regex]::Matches($html, $tablePattern)
-
-    for ($i = 0; $i -lt $tableMatches.Count; $i++) {
-        $tableContent = $tableMatches[$i].Value
-        $rows = [regex]::Matches($tableContent, $rowPattern)
-
-        $headers = @()
-        $tableData = @()
-
-        for ($j = 0; $j -lt $rows.Count; $j++) {
-            $rowContent = $rows[$j].Groups[1].Value
-            $cells = [regex]::Matches($rowContent, $cellPattern)
-            
-            if ($j -eq 0) {
-                # 假設第一行是表頭
-                $headers = $cells | ForEach-Object { 
-                    $_.Groups[1].Value -replace '<.*?>', '' -replace '&nbsp;', ' ' -replace '^\s+|\s+$', '' 
-                }
-            }
-            else {
-                $rowData = @{}
-                for ($k = 0; $k -lt $headers.Count; $k++) {
-                    if ($k -lt $cells.Count) {
-                        $cellValue = $cells[$k].Groups[1].Value -replace '<.*?>', '' -replace '&nbsp;', ' ' -replace '^\s+|\s+$', ''
-                        $rowData[$headers[$k]] = $cellValue
-                    }
-                    else {
-                        $rowData[$headers[$k]] = $null
-                    }
-                }
-                $tableData += $rowData
-            }
-        }
-
-        $result["Table$($i+1)"] = $tableData
-    }
-
-    return $result
-}
-    
-
-function convert-html2table ($htmlFilePath) {
-    # 將html檔案中的table轉換成hash table
-    # 參數: $htmlFilePath: html檔案的路徑
-    # 回傳: hash table
-
-    # 讀取HTML檔案內容
-    $html = Get-Content -Path $htmlFilePath -Raw
-
-    # 使用正則表達式匹配表格內容
-    $tablePattern = "(?s)<table.*?>(.*?)</table>"
-    $rowPattern = "(?s)<tr.*?>(.*?)</tr>"
-    $cellPattern = "(?s)<t[hd].*?>(.*?)</t[hd]>"
-
-    $result = @{}
-    $tableMatches = [regex]::Matches($html, $tablePattern)
-
-    for ($i = 0; $i -lt $tableMatches.Count; $i++) {
-        $tableContent = $tableMatches[$i].Groups[1].Value
-        $rows = [regex]::Matches($tableContent, $rowPattern)
-
-        $headers = @()
-        $tableData = @()
-
-        for ($j = 0; $j -lt $rows.Count; $j++) {
-            $rowContent = $rows[$j].Groups[1].Value
-            $cells = [regex]::Matches($rowContent, $cellPattern)
-            
-            if ($j -eq 0) {
-                # 假設第一行是表頭
-                $headers = $cells | ForEach-Object { $_.Groups[1].Value.Trim() }
-            }
-            else {
-                $rowData = @{}
-                for ($k = 0; $k -lt $headers.Count; $k++) {
-                    if ($k -lt $cells.Count) {
-                        $rowData[$headers[$k]] = $cells[$k].Groups[1].Value.Trim()
-                    }
-                    else {
-                        $rowData[$headers[$k]] = $null
-                    }
-                }
-                $tableData += $rowData
-            }
-        }
-
-        $result["Table$($i+1)"] = $tableData
-    }
-
-    return $result
-}
-
-function Convert-Html2Table3 ($htmlFilePath) {
-    # 將html檔案中的table轉換成hash table
-    # 參數: $htmlFilePath: html檔案的路徑
-    # 回傳: hash table
-
-    # 讀取HTML檔案內容
-    $html = Get-Content -Path $htmlFilePath -Raw -Encoding UTF8
-
-    # 使用正則表達式匹配表格內容
-    $tablePattern = "(?s)<table[^>]*>.*?</table>"
-    $rowPattern = "(?s)<tr[^>]*>(.*?)</tr>"
-    $cellPattern = "(?s)<t[hd][^>]*>(.*?)</t[hd]>"
-
-    # 函數：清理HTML內容
-    function Clean-HtmlContent($content) {
-        # 處理特殊情況，如 <a> 標籤
-        $content = [regex]::Replace($content, '<a[^>]*>(.*?)</a>', '$1')
-        
-        # 移除其他HTML標籤
-        $content = $content -replace '<[^>]+>', ''
-        
-        # 替換HTML實體和清理空白
-        $content = $content -replace '&nbsp;', ' ' `
-            -replace '&lt;', '<' `
-            -replace '&gt;', '>' `
-            -replace '&amp;', '&' `
-            -replace '^\s+|\s+$', '' `
-            -replace '\s+', ' '
-        return $content
-    }
-
-    $result = @{}
-    $tableMatches = [regex]::Matches($html, $tablePattern)
-
-    for ($i = 0; $i -lt $tableMatches.Count; $i++) {
-        $tableContent = $tableMatches[$i].Value
-        $rows = [regex]::Matches($tableContent, $rowPattern)
-
-        $headers = @()
-        $tableData = @()
-
-        for ($j = 0; $j -lt $rows.Count; $j++) {
-            $rowContent = $rows[$j].Groups[1].Value
-            $cells = [regex]::Matches($rowContent, $cellPattern)
-            
-            if ($j -eq 0) {
-                # 假設第一行是表頭
-                $headers = $cells | ForEach-Object { 
-                    Clean-HtmlContent $_.Groups[1].Value
-                }
-            }
-            else {
-                $rowData = @{}
-                for ($k = 0; $k -lt $headers.Count; $k++) {
-                    if ($k -lt $cells.Count) {
-                        $cellValue = Clean-HtmlContent $cells[$k].Groups[1].Value
-                        $rowData[$headers[$k]] = $cellValue
-                    }
-                    else {
-                        $rowData[$headers[$k]] = $null
-                    }
-                }
-                $tableData += $rowData
-            }
-        }
-
-        $result["Table$($i+1)"] = $tableData
-    }
-
-    return $result
-}
-
-$html = Convert-Html2Table2 -htmlFilePath .\html\showjob_vhwc_202410031237.html
-$html.table1 | Format-List
+﻿$Username = "wmis-111-pc01\user"
+$Password = "Us2791072"
+$securePassword = ConvertTo-SecureString $Password -AsPlainText -Force
+$credential = New-Object System.Management.Automation.PSCredential($Username, $securePassword)
 
 
-# 從 HTML 檔案讀取表格資料
-$html = Get-Content ".\html\showjob_vhwc_202410031237.html"
+$remote = "172.20.1.4"
 
-# 使用 ConvertFrom-StringData 將表格資料轉換成雜湊表
-$hashtable = @{}
-$html | Select-String -Pattern '<td(.*?)>(.*?)</td>' -AllMatches | ForEach-Object {
-    $key = $_.Matches.Groups[2].Value.Trim()
-    $value = $_.Matches.Groups[3].Value.Trim()
-    $hashtable[$key] = $value
-}
+Get-WmiObject -ComputerName $remote -Credential $credential -class win32_process |Select-Object -Property processName,status,processid | Format-Table
 
-# 顯示雜湊表
-$hashtable | format-list
 
-function Convert-HtmlTableToHashtable {
-    param(
-        [string]$HtmlFilePath
-    )
-
-    # 從 HTML 檔案讀取表格資料
-    $html = Get-Content $HtmlFilePath
-
-    # 使用 ConvertFrom-StringData 將表格資料轉換成雜湊表
-    $hashtable = @{}
-    $header = $null
-    $i = 0
-    $tableFound = $false
-
-    $html | Select-String -Pattern '<td>(.*?)</td>' -AllMatches | ForEach-Object {
-        if ($_.Matches.Groups[1].Value.Trim() -eq 'gv1') {
-            $tableFound = $true
-            return
-        }
-        if ($tableFound) {
-            if ($i -eq 0) {
-                $header = $_.Matches.Groups[1].Value.Trim()
-            }
-            else {
-                $value = $_.Matches.Groups[1].Value.Trim()
-                $hashtable[$header] = $value
-                $i = 0 
-            }
-            $i++
-        }
-    }
-
-    # 傳回雜湊表
-    return $hashtable
-}
-$aa = Convert-HtmlTableToHashtable -HtmlFilePath .\html\showjob_vhcy_202410031237.html
 
 <#
-.SYNOPSIS
-    將包含批次作業執行資訊的 HTML 檔案轉換為 HashTable。
+$processes = Get-WmiObject -Class Win32_Process
 
-.DESCRIPTION
-    此函數讀取指定的 HTML 檔案，解析其中的表格資料（假設為批次作業執行資訊），
-    並將其轉換為 PowerShell HashTable 陣列。它使用表格中的 <th> 元素作為 HashTable 的鍵。
+foreach ($process in $processes) {
+    $cpuUsage = Get-WmiObject -Class Win32_PerfFormattedData_PerfProc_Process |
+                Where-Object { $_.IDProcess -eq $process.ProcessId } |
+                Select-Object -ExpandProperty PercentProcessorTime
 
-.PARAMETER HtmlFilePath
-    要解析的 HTML 檔案的完整路徑。
-
-.EXAMPLE
-    $jobData = Convert-Html2HashTable_ShowJob -HtmlFilePath "C:\temp\batchjobs.html"
-    $jobData | Format-Table -AutoSize
-
-.NOTES
-    作者: Assistant
-    版本: 1.0
-    最後更新: 2023-06-07
-#>
-function Convert-Html2HashTable_ShowJob {
-
-    <#
-    .SYNOPSIS
-    將包含批次作業執行資訊的 HTML 檔案轉換為 HashTable。
-
-    .DESCRIPTION
-    此函數讀取指定的 HTML 檔案，解析其中的表格資料（假設為批次作業執行資訊），
-    並將其轉換為 PowerShell HashTable 陣列。它使用表格中的 <th> 元素作為 HashTable 的鍵。
-
-    .PARAMETER HtmlFilePath
-    要解析的 HTML 檔案的完整路徑。
-
-    .EXAMPLE
-    $jobData = Convert-Html2HashTable_ShowJob -HtmlFilePath "C:\temp\batchjobs.html"
-    $jobData | Format-Table -AutoSize
-
-    #>
-    param (
-        [Parameter(Mandatory = $true)]
-        [string]$HtmlFilePath
-    )
-
-    # 檢查檔案是否存在
-    if (-not (Test-Path $HtmlFilePath)) {
-        throw "找不到檔案: $HtmlFilePath"
-    }
-
-    # 從檔案中讀取 HTML 內容
-    $HtmlContent = Get-Content -Path $HtmlFilePath -Raw
-
-    # 載入 HTML 內容
-    $html = New-Object -ComObject "HTMLFile"
-    $html.IHTMLDocument2_write($HtmlContent)
-
-    # 找到第二個表格（索引為 1，因為索引從 0 開始）
-    $table = $html.getElementsByTagName("table")[1]
-
-    # 提取表頭
-    $headers = @()
-    foreach ($th in $table.getElementsByTagName("th")) {
-        $headers += $th.innerText.Trim()
-    }
-
-    # 初始化一個空陣列來儲存結果
-    $results = @()
-
-    # 遍歷表格中的每一行（跳過表頭行）
-    foreach ($row in $table.rows | Select-Object -Skip 1) {
-        $rowData = @{}
+    if ($process.ThreadCount -gt 1000 -or 
+        $process.HandleCount -gt 10000 -or 
+        $process.WorkingSetSize / 1MB -gt 1000 -or 
+        $cpuUsage -gt 90) {
         
-        # 遍歷行中的每個單元格
-        for ($i = 0; $i -lt $headers.Count; $i++) {
-            $rowData[$headers[$i]] = $row.cells[$i].innerText.Trim()
-        }
-
-        # 將 HashTable 添加到結果陣列中
-        $results += $rowData
+        Write-Host "Possible problematic process detected:"
+        Write-Host "Name: $($process.Name)"
+        Write-Host "PID: $($process.ProcessId)"
+        Write-Host "Thread Count: $($process.ThreadCount)"
+        Write-Host "Handle Count: $($process.HandleCount)"
+        Write-Host "Memory Usage (MB): $([math]::Round($process.WorkingSetSize / 1MB, 2))"
+        Write-Host "CPU Usage (%): $cpuUsage"
+        Write-Host "------------------------"
     }
-
-    return $results
 }
 
 
+從 Win32_Process 類中的資料確實可以幫助你識別可能已經當機或出現問題的程序，但這通常需要結合其他信息和一些分析。以下是一些可以用來判斷程序是否可能當機的方法：
 
-Convert-Html2HashTable_ShowJob -HtmlFilePath .\html\showjob_vhcy_202410031220.html
+通過 ThreadCount 和 HandleCount：
+如果一個進程的線程數或句柄數異常高，可能表示程序出現了問題。
+檢查 WorkingSetSize：
+如果程序使用了異常大量的內存，可能表示存在內存洩漏或其他問題。
+分析 CPU 使用率：
+雖然 Win32_Process 本身不直接提供 CPU 使用率，但你可以通過比較兩個時間點的 KernelModeTime 和 UserModeTime 來計算 CPU 使用率。如果使用率持續很高，可能表示程序出現了問題。
+檢查 Status 屬性：
+雖然不是所有系統都實現了這個屬性，但如果可用，"Not Responding" 狀態可能表示程序已經凍結。
+結合 Win32_PerfFormattedData_PerfProc_Process：
+這個類提供了更多性能相關的信息，如 PercentProcessorTime，可以幫助判斷程序是否正常運行。
+
+下面是一個 PowerShell 腳本示例，可以幫助識別可能出現問題的進程：
+PowerShell Script: Monitor Problematic ProcessesClick to open code
+這個腳本會檢查所有運行中的進程，並根據以下條件標記可能有問題的進程：
+
+線程數超過 1000
+句柄數超過 10000
+內存使用超過 1GB
+CPU 使用率超過 90%
+
+請注意，這些閾值可能需要根據你的系統和應用程序特性進行調整。
+此外，單純依靠這些指標並不能百分之百確定一個程序是否當機。有時，一個正常運行的程序可能會短暫地出現高資源使用率。相反，一個已經凍結的程序可能沒有高資源使用率。因此，最好將這個腳本作為初步診斷工具，然後根據實際情況進行進一步的分析。
+你想要我解釋這個腳本的任何部分，或者討論如何進一步改進它嗎？
+
+
+
+當談到 Win32_Process 類中的 Status 屬性時，需要注意一些重要的點：
+
+首先，Status 屬性在 Win32_Process 類中實際上並不常用，很多系統可能不會實現它或不會提供有意義的值。
+在 WMI（Windows Management Instrumentation）文檔中，Status 屬性被列為一個繼承的屬性，理論上可以有多種可能的值。
+
+然而，由於這個屬性在實際使用中很少被賦予有意義的值，我們無法提供一個確定的、全面的可能值列表。理論上，一些可能的值可能包括：
+
+"OK"
+"Error"
+"Degraded"
+"Unknown"
+"Pred Fail"
+"Starting"
+"Stopping"
+"Service"
+"Stressed"
+"NonRecover"
+"No Contact"
+"Lost Comm"
+
+但是，我必須強調，在大多數情況下，當你嘗試獲取 Win32_Process 的 Status 屬性時，你可能會得到一個空值或 null。
+如果你想要更可靠地判斷進程的狀態，通常需要使用其他方法，例如：
+
+檢查進程是否響應（使用 Win32_PerfFormattedData_PerfProc_Process 類）
+監控 CPU 使用率、內存使用和線程數等指標
+使用專門的工具或 API 來檢查進程的健康狀況
+
+如果你真的需要使用 Status 屬性，我建議你先在你的特定環境中測試一下，看看是否能得到有意義的值。你可以使用以下 PowerShell 命令來檢查：
+powershellCopyGet-WmiObject Win32_Process | Select-Object Name, ProcessId, Status
+這會列出所有進程及其 Status 值（如果有的話）。但請記住，你很可能會看到大多數或所有進程的 Status 都是空白的。
+你是否希望我解釋如何使用其他方法來更可靠地判斷進程狀態？或者你有其他關於進程監控的問題嗎？
+
+
+
+#>
