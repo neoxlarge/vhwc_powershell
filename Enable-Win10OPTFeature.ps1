@@ -19,6 +19,9 @@ SMBv1/CIFS主要須啟用三項功能: "SMB1Protocol-Client","SMB1Protocol-Serve
 可以幫助系統管理員進行各種系統管理和維護任務。
 #>
 
+# 20241005 win10和win11的version都是10.開頭
+# FIXME: Wiin11無法完成安裝,原因不明待查.
+
 param($runadmin)
 
 function import-module_func ($name) {
@@ -46,6 +49,7 @@ function import-module_func ($name) {
 function Enable-SMBv1 {
 
     #Windows7預設己安裝.net framework 3, 不需要再裝
+       
     $check_win10 = (Get-WmiObject -Class Win32_OperatingSystem | Select-Object -Property Version).Version -like '10*'
 
     Write-Output "檢查SMBv1/CIFS是否啟用及測試連線172.20.1.14:"
