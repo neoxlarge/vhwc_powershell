@@ -1,10 +1,10 @@
-﻿$Username = "wmis-111-pc01\user"
-$Password = "Us2791072"
+﻿$Username = ".\opdvghtc"
+$Password = "acervghtc"
 $securePassword = ConvertTo-SecureString $Password -AsPlainText -Force
 $credential = New-Object System.Management.Automation.PSCredential($Username, $securePassword)
 
 
-$remote = "172.20.1.4"
+$remote = "172.20.200.41"
 
 Get-WmiObject -ComputerName $remote -Credential $credential -class win32_process |Select-Object -Property processName,status,processid | Format-Table
 

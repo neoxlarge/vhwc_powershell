@@ -12,8 +12,9 @@ $server_list = [ordered]@{
                         'hdste06prj.exe',
                         'hdste07prj.exe',
                         'hdstq09prj.exe',
-                        'hdstq10prj.exe');
-        'account' = 'user';
+                        'hdstq10prj.exe',
+                        'xxxx_test_xxx.exe');
+        'account' = 'opdvghtc';
         'password' = 'acervghtc'
     }
 }
@@ -21,17 +22,16 @@ $server_list = [ordered]@{
 $server= $server_list.transform1
 
 $Username = ".\$($server.account)"
-$Password = "$server.password"
+$Password = "$($server.password)"
 $securePassword = ConvertTo-SecureString $Password -AsPlainText -Force
 $credential = New-Object System.Management.Automation.PSCredential($Username, $securePassword)
 
 
 $processes = Get-WmiObject -ComputerName $server.ip -Credential $credential -class win32_process 
-
-$processes = Where-Object -InputObject $processes -FilterScript {$_.Name -in $server.processes}
+$processes = $processes |Where-Object -FilterScript {$_.Name -in $server.processes}
 
 # 1.檢查程式數量是否正確, 如果不對, 找出少那一個
 if ($processes.count -ne $server.processes.count) {
-    $missingProcesses = Compare-Object -ReferenceObject $server.processes -DifferenceObject $processes.Name -IncludeEqual -ExcludeDifferent 
-    Write-Host "Missing processes: $missingProcesses" -ForegroundColor Red
+    $missingProcesses = Compare-Object -ReferenceObject $server.processes -DifferenceObject $processes.Name #-IncludeEqual -ExcludeDifferent 
+    Write-Host "Missing processes: $($missingProcesses.inputobject)" -ForegroundColor Red
 }
