@@ -67,9 +67,12 @@ foreach ($process in $processes) {
         $datatable.Rows.Add($server.computername, $server.ip, (Get-Date), $process.name, $process.processid, $process.workingsetsize, $process.ThreadCount, $process.HandleCount, 'none') | Out-Null
     }
 
+    # 找出指定的程式, 並且按照resonseDateTime排序, 取出最新的2筆資料
+    $sortedtable = $datatable.Select( "processName = '$($process.name)'","resonseDateTime DESC")
+
     # 找出最新2筆資料, 如果 workingsetsize, threadcount , handlecount 數值都一樣, 
     # 表示程式可能當機了
-    $last2rows = $datatable | Sort-Object -Property resonseDateTime -Descending | Select-Object -First 2
+    $last2rows = $sortedtable | Select-Object -First 2
     
     $last2rows | Format-Table -AutoSize
     
