@@ -1,5 +1,6 @@
 # 檢查Server上的程式是否當機
 
+$DebugPreference = 'Continue'
 
 $server_list = [ordered]@{
     'transform1' = @{
@@ -57,12 +58,28 @@ foreach ($process in $processes) {
     # 在$cpuUsage中找到相同的processid
     $cpuUsage_match = $cpuUsage | Where-Object { $_.IDProcess -eq $process.processid }
     
+    # 如果找到, 就加入datatable
     if ($cpuUsage_match -ne $null) {
         $datatable.Rows.Add($server.computername, $server.ip, (Get-Date), $process.name, $process.processid, $process.workingsetsize, $process.ThreadCount, $process.HandleCount, $cpuUsage_match.PercentProcessorTime) | Out-Null
     }
     else {
+        # 如果沒找到, 就加入datatable, cpuUsage欄位填入'none'
         $datatable.Rows.Add($server.computername, $server.ip, (Get-Date), $process.name, $process.processid, $process.workingsetsize, $process.ThreadCount, $process.HandleCount, 'none') | Out-Null
     }
+
+    # 找出最新2筆資料, 如果 workingsetsize, threadcount , handlecount 數值都一樣, 
+    # 表示程式可能當機了
+    $last2rows = $datatable | Sort-Object -Property resonseDateTime -Descending | Select-Object -First 2
+    
+    $last2rows | Format-Table -AutoSize
+    
+    if (($last2rows.Count -eq 2) -and ($last2rows[0].processName -eq $last2rows[1].processName) -and ($last2rows[0].workingsetsize -eq $last2rows[1].workingsetsize) -and ($last2rows[0].ThreadCount -eq $last2rows[1].ThreadCount) -and ($last2rows[0].HandleCount -eq $last2rows[1].HandleCount)) {
+        Write-Host "Warning: $($last2rows[0].processName) on $($last2rows[0].computername) may be crashed." -ForegroundColor Yellow
+    }
+
+
+
+
 }
 
 
