@@ -86,8 +86,8 @@ foreach ($process in $processes) {
 }
 
 
-Clear-Host
-$datatable | format-table 
+
+#$datatable | format-table 
 Start-Sleep -s 60
 }
 while (
