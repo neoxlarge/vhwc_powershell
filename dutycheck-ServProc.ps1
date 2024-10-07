@@ -30,14 +30,14 @@ $credential = New-Object System.Management.Automation.PSCredential($Username, $s
  $datatable = New-Object System.Data.DataTable
  $datatable.Columns.add('computername', [string]) | Out-Null
  $datatable.Columns.add('ip', [string]) | Out-Null
- $datatable.Columns.add('resonseDateTime', [string]) | Out-Null
+ $datatable.Columns.add('resonseDateTime', [Datetime]) | Out-Null
  $datatable.Columns.add('processName', [string]) | Out-Null
  #$datatable.Columns.add('status', [string]) | Out-Null
  $datatable.Columns.add('processid', [string]) | Out-Null
- $datatable.Columns.add('workingsetsize', [string]) | Out-Null
- $datatable.Columns.add('ThreadCount', [string]) | Out-Null
- $datatable.Columns.add('HandleCount', [string]) | Out-Null
- $datatable.Columns.add('cpuUsage', [string]) | Out-Null
+ $datatable.Columns.add('workingsetsize', [int32]) | Out-Null
+ $datatable.Columns.add('ThreadCount', [int]) | Out-Null
+ $datatable.Columns.add('HandleCount', [int]) | Out-Null
+ $datatable.Columns.add('cpuUsage', [int]) | Out-Null
 
 do {
     
@@ -74,7 +74,7 @@ foreach ($process in $processes) {
     # 表示程式可能當機了
     $last2rows = $sortedtable | Select-Object -First 2
     
-    $last2rows | Format-Table -AutoSize
+    $last2rows | Format-Table -AutoSizes
     
     if (($last2rows.Count -eq 2) -and ($last2rows[0].processName -eq $last2rows[1].processName) -and ($last2rows[0].workingsetsize -eq $last2rows[1].workingsetsize) -and ($last2rows[0].ThreadCount -eq $last2rows[1].ThreadCount) -and ($last2rows[0].HandleCount -eq $last2rows[1].HandleCount)) {
         Write-Host "Warning: $($last2rows[0].processName) on $($last2rows[0].computername) may be crashed." -ForegroundColor Yellow
