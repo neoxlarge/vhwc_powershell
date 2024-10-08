@@ -4,6 +4,7 @@ $DebugPreference = 'Continue'
 
 $server_list = [ordered]@{
     'transform1' = @{
+        'title' = '檢驗科轉檔'
         'computername' = 'Blade64-Srv3-wc';
         'ip' = '172.20.200.41';
         'processes' = @('hdste02prj.exe',
@@ -17,7 +18,130 @@ $server_list = [ordered]@{
         'account' = 'opdvghtc';
         'password' = 'acervghtc'
     }
+
+    'transform2' = @{
+        'title' = '儀器轉檔(小豬程式)';
+        'computername' = 'wser-005-cloudmed';
+        'ip' = '172.20.1.5';
+        'processes' = @('ep.exe',
+                        '06-新舊his系統檢驗報告回傳程式APPPRJ .exe',
+                        'CTMRIUpload.exe',
+                        'NHI_EII_View.exe');
+        'account' = 'user';
+        'password' = 'tedpc017E'
+
+    }
+
+    'transform3' = @{
+        'title' = '傳保卡1.0 上傳程式';
+        'coputername' = 'wmis-111-pc01';
+        'ip' = '172.20.1.4';
+        'processes' = @('NHI_EII_View.exe',
+                        'IccPrj.exe',
+                        'PhrB0O0Prj.exe',
+                        'RegB090Prj.exe',
+                        'RegB092Prj.exe',
+                        'RegB093Prj.exe')
+        'account' = 'user';
+        'password' = 'Us2791072'             
+    }
+
+    'tranform4' = @{
+        'title' = '雲端批次下載';
+        'computername' = 'wadm-inx-pc02x';
+        'ip' = '172.20.5.147';
+        'processes' = @('IccPrj.exe',
+                        'HISLogin.exe',
+                        'HISSystem.exe')
+        'account' = 'user';
+        'password' = 'Us2791072'                
+    }
+
+    'tranform5' = @{
+        'title' = '急診通報';
+        'computername' = 'wadm-in';
+        'ip' = '172.20.200.49'
+        'processes' = @('ERClient.exe',
+                        'pycharm64.exe',
+                        'py.exe')
+        'account' = 'Activity!';
+        'password' = 'Activity!'                
+
+    }
+
+    'tranform6' = @{
+        'title' = '會?日結程式';
+        'computername' =  'unknown';
+        'ip' = '172.20.1.3';
+        'processes' = @('attprj.exe',
+                        'NisT010.exe')
+        'account' = 'Administrator';
+        'password' = '279!b4E'
+
+    }
+
+
+    'tranform7' = @{
+        'title' = '警消及榮民';
+        'computername' =  'clonet21';
+        'ip' = '172.20.200.225';
+        'processes' = @('Atcjob.exe',
+                       'AutoMailReport.exe',
+                       'PliVacSFTP.exe',
+                       'DrugAlcoholAddiction.exe',
+                       'cmd.exe')
+        'account' ='vgh00';
+        'password' = 'acervghtc'               
+    }
 }
+
+
+function Send-LineNotifyMessage {
+    [CmdletBinding()]
+    param (
+        
+        [string]$Token = "HdkeCg1k4nehNa8tEIrJKYrNOeNZMrs89LQTKbf1tbz", # Line Notify 存取權杖
+
+        [Parameter(Mandatory = $true)]
+        [string]$Message, # 要發送的訊息內容
+
+        [string]$StickerPackageId, # 要一併傳送的貼圖套件 ID
+
+        [string]$StickerId              # 要一併傳送的貼圖 ID
+    )
+
+    # Line Notify API 的 URI
+    $uri = "https://notify-api.line.me/api/notify"
+
+    # 設定 HTTP Header，包含 Line Notify 存取權杖
+    $headers = @{ "Authorization" = "Bearer $Token" }
+
+    # 設定要傳送的訊息內容
+    $payload = @{
+        "message" = $Message
+    }
+
+    # 如果要傳送貼圖，加入貼圖套件 ID 和貼圖 ID
+    if ($StickerPackageId -and $StickerId) {
+        $payload["stickerPackageId"] = $StickerPackageId
+        $payload["stickerId"] = $StickerId
+    }
+
+    try {
+        # 使用 Invoke-RestMethod 傳送 HTTP POST 請求
+        Invoke-RestMethod -Uri $uri -Method Post -Headers $headers -Body $payload
+
+        # 訊息成功傳送
+        Write-Output "訊息已成功傳送。"
+    }
+    catch {
+        # 發生錯誤，輸出錯誤訊息
+        Write-Error $_.Exception.Message
+    }
+}
+
+
+
 
 $server= $server_list.transform1
 
