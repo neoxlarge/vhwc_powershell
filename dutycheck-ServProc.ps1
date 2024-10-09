@@ -222,7 +222,7 @@ do {
         
                 if (($last2rows.Count -eq 2) -and ($last2rows[0].processName -eq $last2rows[1].processName) -and ($last2rows[0].workingsetsize -eq $last2rows[1].workingsetsize) -and ($last2rows[0].ThreadCount -eq $last2rows[1].ThreadCount) -and ($last2rows[0].HandleCount -eq $last2rows[1].HandleCount)) {
                     Write-Host "Warning: $($last2rows[0].processName) on $($last2rows[0].computername) may be crashed." -ForegroundColor Yellow
-                    Send-LineNotifyMessage -Message "🚨 $(get-date) `n項目:@($server_list[$server].title) `nip:$($last2rows[0].ip) `n$($last2rows[0].processName) 可能當機了" 
+                    Send-LineNotifyMessage -Message "🚨 $(get-date) `n項目:$($server_list[$server].title) `nip:$($last2rows[0].ip) `n$($last2rows[0].processName) 可能當機了" 
                 }
     
             }
