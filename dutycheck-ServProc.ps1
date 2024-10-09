@@ -65,7 +65,7 @@ $server_list = [ordered]@{
             'pycharm64.exe',
             'py.exe')
         'account'      = 'Administrator';
-        'password'     ='Acervghtc!'                
+        'password'     = 'Acervghtc!'                
 
     }
 
@@ -102,7 +102,7 @@ function Send-LineNotifyMessage {
     [CmdletBinding()]
     param (
         
-        [string]$Token = "HdkeCg1k4nehNa8tEIrJKYrNOeNZMrs89LQTKbf1tbz", # Line Notify 存取權杖
+        [string]$Token = "AVt3SxMcHhatY2fuG2j6HzKGdb5BOTmrfAlEiBolQOO", # Line Notify 存取權杖
 
         [Parameter(Mandatory = $true)]
         [string]$Message, # 要發送的訊息內容
@@ -187,6 +187,7 @@ do {
             if ($processes.count -ne $server_list[$server].processes.count) {
                 $missingProcesses = Compare-Object -ReferenceObject $server_list[$server].processes -DifferenceObject $processes.Name #-IncludeEqual -ExcludeDifferent 
                 Write-Host "Missing processes: $($missingProcesses.inputobject)" -ForegroundColor Red
+                Send-LineNotifyMessage -Message "$($server_list[$server].title): $($server_list[$server].ip) 缺少程式: $($missingProcesses.inputobject)" -StickerPackageId 1 -StickerId 100
             }
 
             # 連線到遠端電腦並取得指定程式的 CPU 使用率
@@ -220,6 +221,7 @@ do {
         
                 if (($last2rows.Count -eq 2) -and ($last2rows[0].processName -eq $last2rows[1].processName) -and ($last2rows[0].workingsetsize -eq $last2rows[1].workingsetsize) -and ($last2rows[0].ThreadCount -eq $last2rows[1].ThreadCount) -and ($last2rows[0].HandleCount -eq $last2rows[1].HandleCount)) {
                     Write-Host "Warning: $($last2rows[0].processName) on $($last2rows[0].computername) may be crashed." -ForegroundColor Yellow
+                    Send-LineNotifyMessage -Message "$($last2rows[0].computername): $($last2rows[0].processName) 可能當機了" -StickerPackageId 1 -StickerId 100
                 }
     
             }
@@ -229,6 +231,15 @@ do {
 
     }
 
+    # 當$datatable過大時可能佔過多記憶體, 只保留最新的1000筆資料.
+    
+    if ($datatable.Rows.Count -gt 1000) {
+        $datatable.Rows.RemoveAt(0) | Out-Null
+        Write-Debug "datatable.Rows.Count: $($datatable.Rows.Count)"
+
+    }
+
+    Write-Debug "datatable: $($datatable.Rows.count)"
 
     Start-Sleep -s 300
 }
