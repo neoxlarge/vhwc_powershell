@@ -1,10 +1,10 @@
-# ÀË¬dServer¤Wªºµ{¦¡¬O§_·í¾÷
+ï»¿# æª¢æŸ¥Serverä¸Šçš„ç¨‹å¼æ˜¯å¦ç•¶æ©Ÿ
 
 $DebugPreference = 'Continue'
 
 $server_list = [ordered]@{
     'transform1' = @{
-        'title'        = 'ÀËÅç¬ìÂàÀÉ'
+        'title'        = 'æª¢é©—ç§‘è½‰æª”'
         'computername' = 'Blade64-Srv3-wc';
         'ip'           = '172.20.200.41';
         'processes'    = @('hdste02prj.exe',
@@ -20,11 +20,11 @@ $server_list = [ordered]@{
     }
 
     'transform2' = @{
-        'title'        = '»ö¾¹ÂàÀÉ(¤p½Şµ{¦¡)';
+        'title'        = 'å„€å™¨è½‰æª”(å°è±¬ç¨‹å¼)';
         'computername' = 'wser-005-cloudmed';
         'ip'           = '172.20.1.5';
         'processes'    = @('ep.exe',
-            '06-·sÂÂhis¨t²ÎÀËÅç³ø§i¦^¶Çµ{¦¡APPPRJ .exe',
+            '06-æ–°èˆŠhisç³»çµ±æª¢é©—å ±å‘Šå›å‚³ç¨‹å¼APPPRJ .exe',
             'CTMRIUpload.exe',
             'NHI_EII_View.exe');
         'account'      = 'user';
@@ -33,7 +33,7 @@ $server_list = [ordered]@{
     }
 
     'transform3' = @{
-        'title'       = '¶Ç«O¥d1.0 ¤W¶Çµ{¦¡';
+        'title'       = 'å‚³ä¿å¡1.0 ä¸Šå‚³ç¨‹å¼';
         'coputername' = 'wmis-111-pc01';
         'ip'          = '172.20.1.4';
         'processes'   = @('NHI_EII_View.exe',
@@ -47,7 +47,7 @@ $server_list = [ordered]@{
     }
 
     'tranform4'  = @{
-        'title'        = '¶³ºİ§å¦¸¤U¸ü';
+        'title'        = 'é›²ç«¯æ‰¹æ¬¡ä¸‹è¼‰';
         'computername' = 'wadm-inx-pc02x';
         'ip'           = '172.20.5.147';
         'processes'    = @('IccPrj.exe',
@@ -58,7 +58,7 @@ $server_list = [ordered]@{
     }
 
     'tranform5'  = @{
-        'title'        = '«æ¶E³q³ø';
+        'title'        = 'æ€¥è¨ºé€šå ±';
         'computername' = 'wadm-in';
         'ip'           = '172.20.200.49'
         'processes'    = @('ERClient.exe',
@@ -70,7 +70,7 @@ $server_list = [ordered]@{
     }
 
     'tranform6'  = @{
-        'title'        = '·|?¤éµ²µ{¦¡';
+        'title'        = 'æœƒæŠ›æ—¥çµç¨‹å¼';
         'computername' = 'unknown';
         'ip'           = '172.20.1.3';
         'processes'    = @('attprj.exe',
@@ -82,7 +82,7 @@ $server_list = [ordered]@{
 
 
     'tranform7'  = @{
-        'title'        = 'Äµ®ø¤Îºa¥Á';
+        'title'        = 'è­¦æ¶ˆåŠæ¦®æ°‘';
         'computername' = 'clonet21';
         'ip'           = '172.20.200.225';
         'processes'    = @('Atcjob.exe',
@@ -102,42 +102,42 @@ function Send-LineNotifyMessage {
     [CmdletBinding()]
     param (
         
-        [string]$Token = "AVt3SxMcHhatY2fuG2j6HzKGdb5BOTmrfAlEiBolQOO", # Line Notify ¦s¨úÅv§ú
+        [string]$Token = "AVt3SxMcHhatY2fuG2j6HzKGdb5BOTmrfAlEiBolQOO", # Line Notify å­˜å–æ¬Šæ–
 
         [Parameter(Mandatory = $true)]
-        [string]$Message, # ­nµo°eªº°T®§¤º®e
+        [string]$Message, # è¦ç™¼é€çš„è¨Šæ¯å…§å®¹
 
-        [string]$StickerPackageId, # ­n¤@¨Ö¶Ç°eªº¶K¹Ï®M¥ó ID
+        [string]$StickerPackageId, # è¦ä¸€ä½µå‚³é€çš„è²¼åœ–å¥—ä»¶ ID
 
-        [string]$StickerId              # ­n¤@¨Ö¶Ç°eªº¶K¹Ï ID
+        [string]$StickerId              # è¦ä¸€ä½µå‚³é€çš„è²¼åœ– ID
     )
 
-    # Line Notify API ªº URI
+    # Line Notify API çš„ URI
     $uri = "https://notify-api.line.me/api/notify"
 
-    # ³]©w HTTP Header¡A¥]§t Line Notify ¦s¨úÅv§ú
+    # è¨­å®š HTTP Headerï¼ŒåŒ…å« Line Notify å­˜å–æ¬Šæ–
     $headers = @{ "Authorization" = "Bearer $Token" }
 
-    # ³]©w­n¶Ç°eªº°T®§¤º®e
+    # è¨­å®šè¦å‚³é€çš„è¨Šæ¯å…§å®¹
     $payload = @{
         "message" = $Message
     }
 
-    # ¦pªG­n¶Ç°e¶K¹Ï¡A¥[¤J¶K¹Ï®M¥ó ID ©M¶K¹Ï ID
+    # å¦‚æœè¦å‚³é€è²¼åœ–ï¼ŒåŠ å…¥è²¼åœ–å¥—ä»¶ ID å’Œè²¼åœ– ID
     if ($StickerPackageId -and $StickerId) {
         $payload["stickerPackageId"] = $StickerPackageId
         $payload["stickerId"] = $StickerId
     }
 
     try {
-        # ¨Ï¥Î Invoke-RestMethod ¶Ç°e HTTP POST ½Ğ¨D
+        # ä½¿ç”¨ Invoke-RestMethod å‚³é€ HTTP POST è«‹æ±‚
         Invoke-RestMethod -Uri $uri -Method Post -Headers $headers -Body $payload
 
-        # °T®§¦¨¥\¶Ç°e
-        Write-Output "°T®§¤w¦¨¥\¶Ç°e¡C"
+        # è¨Šæ¯æˆåŠŸå‚³é€
+        Write-Output "è¨Šæ¯å·²æˆåŠŸå‚³é€ã€‚"
     }
     catch {
-        # µo¥Í¿ù»~¡A¿é¥X¿ù»~°T®§
+        # ç™¼ç”ŸéŒ¯èª¤ï¼Œè¼¸å‡ºéŒ¯èª¤è¨Šæ¯
         Write-Error $_.Exception.Message
     }
 }
@@ -161,14 +161,14 @@ do {
 
     foreach ($server in $server_list.Keys ) {
 
-        #¥ıÀË¬dserverªº³s½u
+        #å…ˆæª¢æŸ¥serverçš„é€£ç·š
         $ping = Test-Connection -ComputerName $server_list[$server].ip -Count 1 -Quiet
         if ($ping) {
-            write-debug "$($server_list[$server].title): $($server_list[$server].ip) ³s½u¦¨¥\"
+            write-debug "$($server_list[$server].title): $($server_list[$server].ip) é€£ç·šæˆåŠŸ"
         }
         else {
-            Write-Debug "$($server_list[$server].title): $($server_list[$server].ip) ³s½u¥¢±Ñ"
-            # Send-LineNotifyMessage -Message "$($server_list[$server].title): $($server_list[$server].ip) ³s½u¥¢±Ñ" -StickerPackageId 1 -StickerId 100
+            Write-Debug "$($server_list[$server].title): $($server_list[$server].ip) é€£ç·šå¤±æ•—"
+            Send-LineNotifyMessage -Message "ğŸš¨ $(get-date) 'n$($server_list[$server].title): $($server_list[$server].ip) é€£ç·šå¤±æ•—" 
             continue
         }
 
@@ -179,49 +179,49 @@ do {
             $securePassword = ConvertTo-SecureString $Password -AsPlainText -Force
             $credential = New-Object System.Management.Automation.PSCredential($Username, $securePassword)
 
-            # ³s½u¨ì»·ºİ¹q¸£¨Ã¨ú±o°õ¦æ¤¤ªºµ{¦¡
-            Write-Debug "³s½u¨ì $($server_list[$server].ip) ¨Ã¨ú±o°õ¦æ¤¤ªºµ{¦¡..."
+            # é€£ç·šåˆ°é ç«¯é›»è…¦ä¸¦å–å¾—åŸ·è¡Œä¸­çš„ç¨‹å¼
+            Write-Debug "é€£ç·šåˆ° $($server_list[$server].ip) ä¸¦å–å¾—åŸ·è¡Œä¸­çš„ç¨‹å¼..."
             $processes = Get-WmiObject -ComputerName $server_list[$server].ip -Credential $credential -class win32_process 
             $processes = $processes | Where-Object -FilterScript { $_.Name -in $server_list[$server].processes } | Select-Object -Property processid, name, workingsetsize, ThreadCount, HandleCount
-            # 1.ÀË¬dµ{¦¡¼Æ¶q¬O§_¥¿½T, ¦pªG¤£¹ï, §ä¥X¤Ö¨º¤@­Ó
+            # 1.æª¢æŸ¥ç¨‹å¼æ•¸é‡æ˜¯å¦æ­£ç¢º, å¦‚æœä¸å°, æ‰¾å‡ºå°‘é‚£ä¸€å€‹
             if ($processes.count -ne $server_list[$server].processes.count) {
                 $missingProcesses = Compare-Object -ReferenceObject $server_list[$server].processes -DifferenceObject $processes.Name #-IncludeEqual -ExcludeDifferent 
                 Write-Host "Missing processes: $($missingProcesses.inputobject)" -ForegroundColor Red
-                Send-LineNotifyMessage -Message "$($server_list[$server].title): $($server_list[$server].ip) ¯Ê¤Öµ{¦¡: $($missingProcesses.inputobject)" -StickerPackageId 1 -StickerId 100
+                Send-LineNotifyMessage -Message "ğŸš¨ $(get-date) 'n$($server_list[$server].title): $($server_list[$server].ip) ç¼ºå°‘ç¨‹å¼: $($missingProcesses.inputobject)" 
             }
 
-            # ³s½u¨ì»·ºİ¹q¸£¨Ã¨ú±o«ü©wµ{¦¡ªº CPU ¨Ï¥Î²v
-            Write-Debug "³s½u¨ì $($server_list[$server].ip) ¨Ã¨ú±o«ü©wµ{¦¡ªº CPU ¨Ï¥Î²v..."
+            # é€£ç·šåˆ°é ç«¯é›»è…¦ä¸¦å–å¾—æŒ‡å®šç¨‹å¼çš„ CPU ä½¿ç”¨ç‡
+            Write-Debug "é€£ç·šåˆ° $($server_list[$server].ip) ä¸¦å–å¾—æŒ‡å®šç¨‹å¼çš„ CPU ä½¿ç”¨ç‡..."
             $cpuUsage = Get-WmiObject -Class Win32_PerfFormattedData_PerfProc_Process -ComputerName $server_list[$server].ip -Credential $credential |
             Where-Object { $_.IDProcess -in $processes.processid } 
 
             foreach ($process in $processes) {
-                write-debug "¥¿¦bÀË¬d $($process.name)..."
+                write-debug "æ­£åœ¨æª¢æŸ¥ $($process.name)..."
 
-                # ¦b$cpuUsage¤¤§ä¨ì¬Û¦Pªºprocessid
+                # åœ¨$cpuUsageä¸­æ‰¾åˆ°ç›¸åŒçš„processid
                 $cpuUsage_match = $cpuUsage | Where-Object { $_.IDProcess -eq $process.processid }
         
-                # ¦pªG§ä¨ì, ´N¥[¤Jdatatable
+                # å¦‚æœæ‰¾åˆ°, å°±åŠ å…¥datatable
                 if ($cpuUsage_match -ne $null) {
                     $datatable.Rows.Add($server_list[$server].computername, $server_list[$server].ip, (Get-Date), $process.name, $process.processid, $process.workingsetsize, $process.ThreadCount, $process.HandleCount, $cpuUsage_match.PercentProcessorTime) | Out-Null
                 }
                 else {
-                    # ¦pªG¨S§ä¨ì, ´N¥[¤Jdatatable, cpuUsageÄæ¦ì¶ñ¤J'none'
+                    # å¦‚æœæ²’æ‰¾åˆ°, å°±åŠ å…¥datatable, cpuUsageæ¬„ä½å¡«å…¥'none'
                     $datatable.Rows.Add($server_list[$server].computername, $server_list[$server].ip, (Get-Date), $process.name, $process.processid, $process.workingsetsize, $process.ThreadCount, $process.HandleCount, 'none') | Out-Null
                 }
     
-                # §ä¥X«ü©wªºµ{¦¡, ¨Ã¥B«ö·ÓresonseDateTime±Æ§Ç, ¨ú¥X³Ì·sªº2µ§¸ê®Æ
+                # æ‰¾å‡ºæŒ‡å®šçš„ç¨‹å¼, ä¸¦ä¸”æŒ‰ç…§resonseDateTimeæ’åº, å–å‡ºæœ€æ–°çš„2ç­†è³‡æ–™
                 $sortedtable = $datatable.Select( "processName = '$($process.name)'", "resonseDateTime DESC")
     
-                # 2.§ä¥X³Ì·s2µ§¸ê®Æ, ÀË¬d¦pªG workingsetsize, threadcount , handlecount ¼Æ­È³£¤@¼Ë, 
-                # ªí¥Üµ{¦¡¥i¯à·í¾÷¤F
+                # 2.æ‰¾å‡ºæœ€æ–°2ç­†è³‡æ–™, æª¢æŸ¥å¦‚æœ workingsetsize, threadcount , handlecount æ•¸å€¼éƒ½ä¸€æ¨£, 
+                # è¡¨ç¤ºç¨‹å¼å¯èƒ½ç•¶æ©Ÿäº†
                 $last2rows = $sortedtable | Select-Object -First 2
         
                 $last2rows | Format-Table 
         
                 if (($last2rows.Count -eq 2) -and ($last2rows[0].processName -eq $last2rows[1].processName) -and ($last2rows[0].workingsetsize -eq $last2rows[1].workingsetsize) -and ($last2rows[0].ThreadCount -eq $last2rows[1].ThreadCount) -and ($last2rows[0].HandleCount -eq $last2rows[1].HandleCount)) {
                     Write-Host "Warning: $($last2rows[0].processName) on $($last2rows[0].computername) may be crashed." -ForegroundColor Yellow
-                    Send-LineNotifyMessage -Message "$($last2rows[0].computername): $($last2rows[0].processName) ¥i¯à·í¾÷¤F" -StickerPackageId 1 -StickerId 100
+                    Send-LineNotifyMessage -Message "ğŸš¨ $(get-date) 'n$($last2rows[0].computername): $($last2rows[0].processName) å¯èƒ½ç•¶æ©Ÿäº†" 
                 }
     
             }
@@ -231,7 +231,7 @@ do {
 
     }
 
-    # ·í$datatable¹L¤j®É¥i¯à¦û¹L¦h°O¾ĞÅé, ¥u«O¯d³Ì·sªº1000µ§¸ê®Æ.
+    # ç•¶$datatableéå¤§æ™‚å¯èƒ½ä½”éå¤šè¨˜æ†¶é«”, åªä¿ç•™æœ€æ–°çš„1000ç­†è³‡æ–™.
     
     if ($datatable.Rows.Count -gt 1000) {
         $datatable.Rows.RemoveAt(0) | Out-Null
