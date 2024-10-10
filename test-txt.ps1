@@ -1,12 +1,13 @@
-﻿$Username = ".\opdvghtc"
-$Password = "acervghtc"
+﻿$Username = ".\user"
+$Password = "Us2791072"
 $securePassword = ConvertTo-SecureString $Password -AsPlainText -Force
 $credential = New-Object System.Management.Automation.PSCredential($Username, $securePassword)
 
 
-$remote = "172.20.200.41"
+$remote = "172.20.1.4"
 
-Get-WmiObject -ComputerName $remote -Credential $credential -class win32_process |Select-Object -Property processName,status,processid | Format-Table
+Get-WmiObject -ComputerName $remote -Credential $credential -class win32_process |
+Where-Object -FilterScript { $_.ProcessName -like "*" }|Select-Object -Property processName,status,processid | Format-Table
 
 
 

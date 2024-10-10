@@ -242,7 +242,7 @@ do {
 
     Write-Debug "datatable: $($datatable.Rows.count)"
 
-    Start-Sleep -s 300
+    Start-Sleep -s 900
 }
 while (
     $true<# Condition that stops the loop if it returns false #>
