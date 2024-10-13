@@ -344,7 +344,6 @@ $datatable.Columns.add('HandleCount', [int]) | Out-Null
 $datatable.Columns.add('cpuUsage', [int]) | Out-Null
 
 
-
 do {
     
     foreach ($server in $server_list.Keys ) {
@@ -352,27 +351,29 @@ do {
         #先檢查server的連線
         $ping = Test-Connection -ComputerName $server_list[$server].ip -Count 1 -Quiet
         if ($ping) {
-            write-debug "$($server_list[$server].title): $($server_list[$server].ip) 連線成功"
+            write-output "$($server_list[$server].title): $($server_list[$server].ip) 連線成功"
         }
         else {
-            Write-Debug "$($server_list[$server].title): $($server_list[$server].ip) 連線失敗"
+            Write-output "$($server_list[$server].title): $($server_list[$server].ip) 連線失敗"
             Send-LineNotifyMessage -Message "🚨 $(get-date) `n$($server_list[$server].title) ($($server_list[$server].ip)) 連線失敗" 
             #continue
         }
 
         if ($ping) {
 
+            # 建立連線的證書
             $Username = ".\$($server_list[$server].account)"
             $Password = "$($server_list[$server].password)"
             $securePassword = ConvertTo-SecureString $Password -AsPlainText -Force
             $credential = New-Object System.Management.Automation.PSCredential($Username, $securePassword)
 
             # 連線到遠端電腦並取得執行中的程式
-            Write-Debug "連線到 $($server_list[$server].ip) 並取得執行中的程式..."
+            Write-output "連線到 $($server_list[$server].ip) 並取得執行中的程式..."
             $processes = Get-WmiObject -ComputerName $server_list[$server].ip -Credential $credential -class win32_process 
-            $processes = $processes | Where-Object -FilterScript { $_.Name -in $server_list[$server].processes } | Select-Object -Property processid, name, workingsetsize, ThreadCount, HandleCount
+            $processes = $processes | Where-Object -FilterScript { $_.Name -in $server_list[$server].processes.keys } | Select-Object -Property processid, name, workingsetsize, ThreadCount, HandleCount
             
             # 1.檢查程式數量是否正確, 如果不對, 找出少那一個
+            # FIXME: 如果程式有重覆執行的情況, 如Iccprj.exe 有時會有2個同時存在的process. 可能會有問題.
             if ($processes.count -ne $server_list[$server].processes.keys.count) {
                 $missingProcesses = Compare-Object -ReferenceObject $server_list[$server].processes.keys -DifferenceObject $processes.Name #-IncludeEqual -ExcludeDifferent 
                 Write-Host "Missing processes: $($missingProcesses.inputobject)" -ForegroundColor Red
@@ -380,12 +381,12 @@ do {
             }
 
             # 連線到遠端電腦並取得指定程式的 CPU 使用率
-            Write-Debug "連線到 $($server_list[$server].ip) 並取得指定程式的 CPU 使用率..."
+            Write-Output "連線到 $($server_list[$server].ip) 並取得指定程式的 CPU 使用率..."
             $cpuUsage = Get-WmiObject -Class Win32_PerfFormattedData_PerfProc_Process -ComputerName $server_list[$server].ip -Credential $credential |
             Where-Object { $_.IDProcess -in $processes.processid } 
 
             foreach ($process in $processes) {
-                write-debug "正在檢查 $($process.name)..."
+                write-debug "正在檢查 $($processes.name)..."
 
                 # 在$cpuUsage中找到相同的processid
                 $cpuUsage_match = $cpuUsage | Where-Object { $_.IDProcess -eq $process.processid }
@@ -400,7 +401,7 @@ do {
                 }
     
                 # 找出指定的程式, 並且按照resonseDateTime排序, 取出最新的2筆資料
-                $sortedtable = $datatable.Select( "processName = '$($process.name)'", "resonseDateTime DESC")
+                $sortedtable = $datatable.Select( "processName = '$($process.name)' And 'ip' = '$($server_list[$server].ip) ", "resonseDateTime DESC")
     
                 # 2.找出最新2筆資料, 檢查如果 workingsetsize, threadcount , handlecount 數值都一樣, 
                 # 表示程式可能當機了
@@ -422,7 +423,7 @@ do {
 
     # 當$datatable過大時可能佔過多記憶體, 只保留最新的1000筆資料.
  
-    while ($datatable.Rows.count -qt 1000) {
+    while ($datatable.Rows.count -gt 1000) {
         $datatable.Rows.RemoveAt(0) | Out-Null
         Write-Debug "datatable.Rows.Count: $($datatable.Rows.Count)"
     }
@@ -431,5 +432,5 @@ do {
     Start-Sleep -s 900
 }
 while (
-    $true<# Condition that stops the loop if it returns false #>
+    $true
 )
