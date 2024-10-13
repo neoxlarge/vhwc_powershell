@@ -227,8 +227,21 @@ $server_list = [ordered]@{
         'title'        = '會抛日結程式';
         'computername' = 'unknown';
         'ip'           = '172.20.1.3';
-        'processes'    = @('attprj.exe',
-            'NisT010.exe')
+        'processes'    = @{
+            'attprj.exe'  = @{
+                'processname' = 'attprj.exe';
+                'port'        = $null
+                'runInterval' = '900'; #15分鐘
+                'runMonitor'  = $true
+            }
+
+            'NisT010.exe' = @{
+                'processname' = 'NisT010.exe';
+                'port'        = $null
+                'runInterval' = '900'; #15分鐘
+                'runMonitor'  = $true
+            }
+        }
         'account'      = 'Administrator';
         'password'     = '279!b4E'
 
@@ -239,12 +252,33 @@ $server_list = [ordered]@{
         'title'        = '警消及榮民眷資料下載及回報';
         'computername' = 'clinet21';
         'ip'           = '172.20.200.225';
-        'processes'    = @('Atcjob.exe',
-            'AutoMailReport.exe',
-            'PliVacSFTP.exe',
-            'DrugAlcoholAddiction.exe'
+        'processes'    = @{
+            'Atcjob.exe'               = @{
+                'processname' = 'Atcjob.exe';
+                'port'        = $null
+                'runInterval' = '900'; #15分鐘
+                'runMonitor'  = $true
+            }
+            'AutoMailReport.exe'       = @{
+                'processname' = 'AutoMailReport.exe';
+                'port'        = $null
+                'runInterval' = '900'; #15分鐘
+                'runMonitor'  = $true
+            }
+            'PliVacSFTP.exe'           = @{
+                'processname' = 'PliVacSFTP.exe';
+                'port'        = $null
+                'runInterval' = '900'; #15分鐘
+                'runMonitor'  = $true
+            }
+            'DrugAlcoholAddiction.exe' = @{
+                'processname' = 'DrugAlcoholAddiction.exe';
+                'port'        = $null
+                'runInterval' = '900'; #15分鐘
+                'runMonitor'  = $true
+            }
             #'cmd.exe'
-        )
+        }
         'account'      = 'vgh00';
         'password'     = 'acervghtc'               
     }
