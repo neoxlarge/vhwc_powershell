@@ -331,6 +331,7 @@ function Send-LineNotifyMessage {
     }
 }
 
+# 建位資料表
 $datatable = New-Object System.Data.DataTable
 $datatable.Columns.add('computername', [string]) | Out-Null
 $datatable.Columns.add('ip', [string]) | Out-Null
@@ -346,8 +347,6 @@ $datatable.Columns.add('cpuUsage', [int]) | Out-Null
 
 do {
     
-
-
     foreach ($server in $server_list.Keys ) {
 
         #先檢查server的連線
@@ -372,9 +371,10 @@ do {
             Write-Debug "連線到 $($server_list[$server].ip) 並取得執行中的程式..."
             $processes = Get-WmiObject -ComputerName $server_list[$server].ip -Credential $credential -class win32_process 
             $processes = $processes | Where-Object -FilterScript { $_.Name -in $server_list[$server].processes } | Select-Object -Property processid, name, workingsetsize, ThreadCount, HandleCount
+            
             # 1.檢查程式數量是否正確, 如果不對, 找出少那一個
-            if ($processes.count -ne $server_list[$server].processes.count) {
-                $missingProcesses = Compare-Object -ReferenceObject $server_list[$server].processes -DifferenceObject $processes.Name #-IncludeEqual -ExcludeDifferent 
+            if ($processes.count -ne $server_list[$server].processes.keys.count) {
+                $missingProcesses = Compare-Object -ReferenceObject $server_list[$server].processes.keys -DifferenceObject $processes.Name #-IncludeEqual -ExcludeDifferent 
                 Write-Host "Missing processes: $($missingProcesses.inputobject)" -ForegroundColor Red
                 Send-LineNotifyMessage -Message "🚨 $(get-date) `n項目: $($server_list[$server].title) `nip: $($server_list[$server].ip) `n缺少程式: $($missingProcesses.inputobject)" 
             }
@@ -421,14 +421,12 @@ do {
     }
 
     # 當$datatable過大時可能佔過多記憶體, 只保留最新的1000筆資料.
-    
-    if ($datatable.Rows.Count -gt 1000) {
+ 
+    while ($datatable.Rows.count -qt 1000) {
         $datatable.Rows.RemoveAt(0) | Out-Null
         Write-Debug "datatable.Rows.Count: $($datatable.Rows.Count)"
-
     }
 
-    Write-Debug "datatable: $($datatable.Rows.count)"
 
     Start-Sleep -s 900
 }
