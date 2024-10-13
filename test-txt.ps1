@@ -10,7 +10,11 @@ Get-WmiObject -ComputerName $remote -Credential $credential -class win32_process
 Where-Object -FilterScript { $_.ProcessName -like "*" }|Select-Object -Property processName,status,processid | Format-Table
 
 
+$cp = Get-WmiObject -Class win32_process
 
+$cp1 | Where-Object { $_.MainWindowTitle } | Select-Object ProcessName, MainWindowTitle
+
+Get-WmiObject -Class Win32_DesktopMonitor
 <#
 $processes = Get-WmiObject -Class Win32_Process
 

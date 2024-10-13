@@ -3,73 +3,227 @@
 $DebugPreference = 'Continue'
 
 $server_list = [ordered]@{
-    'transform1' = @{
-        'title'        = '檢驗科轉檔'
+    'check_process1' = @{
+        'title'        = '檢驗科轉檔';
         'computername' = 'Blade64-Srv3-wc';
         'ip'           = '172.20.200.41';
-        'processes'    = @('hdste02prj.exe',
-            'hdste03prj.exe',
-            'hdste04prj.exe',
-            'hdste05prj.exe',
-            'hdste06prj.exe',
-            'hdste07prj.exe',
-            'hdstq09prj.exe',
-            'hdstq10prj.exe');
+        'processes'    = @{
+            'hdste01prj.exe' = @{
+                'processname' = 'hdste01prj.exe';
+                'port'        = $null;
+                'runInterval' = '900'; #15分鐘
+                'runMonitor'  = $true;
+            }
+
+            'hdste02prj.exe' = @{
+                'processname' = 'hdste02prj.exe';
+                'port'        = $null;
+                'runInterval' = '900'; #15分鐘
+                'runMonitor'  = $true;
+            }
+
+            'hdste03prj.exe' = @{
+                'processname' = 'hdste03prj.exe';
+                'port'        = $null;
+                'runInterval' = '900'; #15分鐘
+                'runMonitor'  = $true;
+            }
+
+            'hdste04prj.exe' = @{
+                'processname' = 'hdste04prj.exe';
+                'port'        = $null;
+                'runInterval' = '900'; #15分鐘
+                'runMonitor'  = $true;
+            }
+
+            'hdste05prj.exe' = @{
+                'processname' = 'hdste05prj.exe';
+                'port'        = $null;
+                'runInterval' = '900'; #15分鐘
+                'runMonitor'  = $true;
+
+            }
+            
+            'hdste06prj.exe' = @{
+                'processname' = 'hdste06prj.exe'
+                'port'        = $null
+                'runInterval' = '900'; #15分鐘
+                'runMonitor'  = $true
+            }
+
+            'hdste07prj.exe' = @{
+                'processname' = 'hdste07prj.exe'
+                'port'        = $null
+                'runInterval' = '900'; #15分鐘
+                'runMonitor'  = $true
+            }
+
+            'hdstq09prj.exe' = @{
+                'processname' = 'hdstq09prj.exe';
+                'port'        = $null
+                'runInterval' = '900'; #15分鐘
+                'runMonitor'  = $true
+            }
+            'hdstq10prj.exe' = @{
+                'processname' = 'hdstq10prj.exe';
+                'port'        = $null
+                'runInterval' = '900'; #15分鐘
+                'runMonitor'  = $true
+            }
+        }
+            
         'account'      = 'opdvghtc';
         'password'     = 'acervghtc'
     }
 
-    'transform2' = @{
+    'check_process2' = @{
         'title'        = '儀器轉檔(小豬程式)';
         'computername' = 'wser-005-cloudmed';
         'ip'           = '172.20.1.5';
-        'processes'    = @('ep.exe',
-            '06-新舊his系統檢驗報告回傳程式APPPRJ .exe',
-            'CTMRIUpload.exe',
-            'NHI_EII_View.exe');
+        'processes'    = @{
+            'ep.exe'                        = @{
+                'processname' = 'ep.exe';
+                'port'        = $null
+                'runInterval' = '900'; #15分鐘
+                'runMonitor'  = $true;
+            }
+
+            '06-新舊his系統檢驗報告回傳程式APPPRJ .exe' = @{
+                'processname' = '06-新舊his系統檢驗報告回傳程式APPPRJ .exe';
+                'port'        = $null
+                'runInterval' = '900'; #15分鐘
+                'runMonitor'  = $true
+            }
+
+            'CTMRIUpload.exe'               = @{
+                'processname' = 'CTMRIUpload.exe';
+                'port'        = $null
+                'runInterval' = '900'; #15分鐘
+                'runMonitor'  = $true
+                   
+            }
+            
+            'NHI_EII_View.exe'              = @{
+                'processname' = 'NHI_EII_View.exe';
+                'port'        = $null
+                'runInterval' = '900'; #15分鐘
+                'runMonitor'  = $true
+            }
+        };
         'account'      = 'user';
         'password'     = 'tedpc017E'
 
     }
 
-    'transform3' = @{
+    'transform3'     = @{
         'title'       = '傳保卡1.0 上傳程式';
         'coputername' = 'wmis-111-pc01';
         'ip'          = '172.20.1.4';
-        'processes'   = @('NHI_EII_View.exe',
-            'IccPrj.exe',
-            'PhrB0O0Prj.exe',
-            'RegB090Prj.exe',
-            'RegB092Prj.exe',
-            'RegB093Prj.exe')
+        'processes'   = @{
+            'NHI_EII_View.exe' = @{
+                'processname' = 'NHI_EII_View.exe'
+                'port'        = $null
+                'runInterval' = '900'; #15分鐘
+                'runMonitor'  = $true
+            }
+            
+            'IccPrj.exe'       = @{
+                'processname' = 'IccPrj.exe';
+                'port'        = $null
+                'runInterval' = '900'; #15分鐘
+                'runMonitor'  = $true
+            }
+            'PhrB0O0Prj.exe'   = @{
+                'processname' = 'PhrB0O0Prj.exe';
+                'port'        = $null
+                'runInterval' = '900'; #15分鐘
+                'runMonitor'  = $true
+            }
+
+            'RegB090Prj.exe'   = @{
+                'processname' = 'RegB090Prj.exe';
+                'port'        = $null
+                'runInterval' = '900'; #15分鐘
+                'runMonitor'  = $true
+            }
+            'RegB092Prj.exe'   = @{
+                'processname' = 'RegB092Prj.exe';
+                'port'        = $null
+                'runInterval' = '900'; #15分鐘
+                'runMonitor'  = $true
+            }
+            'RegB093Prj.exe'   = @{
+                'processname' = 'RegB093Prj.exe';
+                'port'        = $null
+                'runInterval' = '900'; #15分鐘
+                'runMonitor'  = $true
+            }
+        }
         'account'     = 'user';
         'password'    = 'Us2791072'             
     }
 
-    'tranform4'  = @{
+    'tranform4'      = @{
         'title'        = '雲端批次下載';
         'computername' = 'wadm-inx-pc02x';
         'ip'           = '172.20.5.147';
-        'processes'    = @('IccPrj.exe',
-            'HISLogin.exe',
-            'HISSystem.exe')
+        'processes'    = @{
+            'IccPrj.exe'    = @{
+                'processname' = 'IccPrj.exe';
+                'port'        = $null
+                'runInterval' = '900'; #15分鐘
+                'runMonitor'  = $true
+
+            }
+
+            'HISLogin.exe'  = @{
+                'processname' = 'HISLogin.exe';
+                'port'        = $null
+                'runInterval' = '900'; #15分鐘
+                'runMonitor'  = $true
+            }
+            'HISSystem.exe' = @{
+                'processname' = 'HISSystem.exe';
+                'port'        = $null
+                'runInterval' = '900'; #15分鐘
+                'runMonitor'  = $true
+            }
+        }
         'account'      = 'user';
         'password'     = 'Us2791072'                
     }
 
-    'tranform5'  = @{
+    'tranform5'      = @{
         'title'        = '急診通報';
         'computername' = 'wadm-in';
         'ip'           = '172.20.200.49'
-        'processes'    = @('ERClient.exe',
-            'pycharm64.exe',
-            'py.exe')
+        'processes'    = @{
+            'ERClient.exe'  = @{
+                'processname' = 'ERClient.exe';
+                'port'        = $null
+                'runInterval' = '900'; #15分鐘
+                'runMonitor'  = $true
+            }
+            'pycharm64.exe' = @{
+                'processname' = 'pycharm64.exe';
+                'port'        = $null
+                'runInterval' = '900'; #15分鐘
+                'runMonitor'  = $true
+            }
+
+            'py.exe'        = @{
+                'processname' = 'py.exe';
+                'port'        = $null
+                'runInterval' = '900'; #15分鐘
+                'runMonitor'  = $true
+            }
+        }
         'account'      = 'Administrator';
         'password'     = 'Acervghtc!'                
 
     }
 
-    'tranform6'  = @{
+    'tranform6'      = @{
         'title'        = '會抛日結程式';
         'computername' = 'unknown';
         'ip'           = '172.20.1.3';
@@ -81,7 +235,7 @@ $server_list = [ordered]@{
     }
 
 
-    'tranform7'  = @{
+    'tranform7'      = @{
         'title'        = '警消及榮民眷資料下載及回報';
         'computername' = 'clinet21';
         'ip'           = '172.20.200.225';
@@ -90,7 +244,7 @@ $server_list = [ordered]@{
             'PliVacSFTP.exe',
             'DrugAlcoholAddiction.exe'
             #'cmd.exe'
-            )
+        )
         'account'      = 'vgh00';
         'password'     = 'acervghtc'               
     }
