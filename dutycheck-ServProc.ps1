@@ -371,7 +371,8 @@ do {
             Write-output "連線到 $($server_list[$server].ip) 並取得執行中的程式..."
             $processes = Get-WmiObject -ComputerName $server_list[$server].ip -Credential $credential -class win32_process 
             $processes = $processes | Where-Object -FilterScript { $_.Name -in $server_list[$server].processes.keys } | Select-Object -Property processid, name, workingsetsize, ThreadCount, HandleCount
-            
+            Write-Debug $processes.keys
+
             # 1.檢查程式數量是否正確, 如果不對, 找出少那一個
             # FIXME: 如果程式有重覆執行的情況, 如Iccprj.exe 有時會有2個同時存在的process. 可能會有問題.
             if ($processes.count -ne $server_list[$server].processes.keys.count) {
