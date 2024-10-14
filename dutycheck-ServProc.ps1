@@ -370,12 +370,15 @@ do {
             # 連線到遠端電腦並取得執行中的程式
             Write-output "連線到 $($server_list[$server].ip) 並取得執行中的程式..."
             $processes = Get-WmiObject -ComputerName $server_list[$server].ip -Credential $credential -class win32_process 
-            $processes = $processes | Where-Object -FilterScript { $_.Name -in $server_list[$server].processes.keys } | Select-Object -Property processid, name, workingsetsize, ThreadCount, HandleCount
+            $expectedProcesses = @($server_list[$server].processes.keys)
+            
+            $processes = $processes | Where-Object -FilterScript { $_.Name -in $expectedProcesses } | Select-Object -Property processid, name, workingsetsize, ThreadCount, HandleCount
+            $processes | Format-Table 
             
             # 1.檢查程式數量是否正確, 如果不對, 找出少那一個
             # FIXME: 如果程式有重覆執行的情況, 如Iccprj.exe 有時會有2個同時存在的process. 可能會有問題.
-            if ($processes.count -ne $server_list[$server].processes.keys.count) {
-                $missingProcesses = Compare-Object -ReferenceObject $server_list[$server].processes.keys -DifferenceObject $processes.Name #-IncludeEqual -ExcludeDifferent 
+            if ($processes.count -lt $server_list[$server].processes.keys.count) {
+                $missingProcesses = Compare-Object -ReferenceObject $expectedProcesses -DifferenceObject $processes.Name #-IncludeEqual -ExcludeDifferent 
                 Write-Host "Missing processes: $($missingProcesses.inputobject)" -ForegroundColor Red
                 Send-LineNotifyMessage -Message "🚨 $(get-date) `n項目: $($server_list[$server].title) `nip: $($server_list[$server].ip) `n缺少程式: $($missingProcesses.inputobject)" 
             }
@@ -386,23 +389,27 @@ do {
             Where-Object { $_.IDProcess -in $processes.processid } 
 
             foreach ($process in $processes) {
-                write-debug "正在檢查 $($processes.name)..."
+                write-debug "正在檢查 $($process.name)..."
 
                 # 在$cpuUsage中找到相同的processid
                 $cpuUsage_match = $cpuUsage | Where-Object { $_.IDProcess -eq $process.processid }
         
                 # 如果找到, 就加入datatable
                 if ($cpuUsage_match -ne $null) {
+                    write-debug "找到 $($process.name) 的 CPU 使用率"
                     $datatable.Rows.Add($server_list[$server].computername, $server_list[$server].ip, (Get-Date), $process.name, $process.processid, $process.workingsetsize, $process.ThreadCount, $process.HandleCount, $cpuUsage_match.PercentProcessorTime) | Out-Null
                 }
                 else {
+                    write-debug "找不到 $($process.name) 的 CPU 使用率"
                     # 如果沒找到, 就加入datatable, cpuUsage欄位填入'none'
                     $datatable.Rows.Add($server_list[$server].computername, $server_list[$server].ip, (Get-Date), $process.name, $process.processid, $process.workingsetsize, $process.ThreadCount, $process.HandleCount, 'none') | Out-Null
                 }
     
                 # 找出指定的程式, 並且按照resonseDateTime排序, 取出最新的2筆資料
-                $sortedtable = $datatable.Select( "processName = '$($process.name)' And 'ip' = '$($server_list[$server].ip) ", "resonseDateTime DESC")
-    
+                write-debug "processName = '$($process.name)' And 'ip' = '$($server_list[$server].ip)'"
+                $sortedtable = $datatable.Select( "processName = '$($process.name)' And ip = '$($server_list[$server].ip)' ", "resonseDateTime DESC")
+                
+                $sortedtable | Format-Table
                 # 2.找出最新2筆資料, 檢查如果 workingsetsize, threadcount , handlecount 數值都一樣, 
                 # 表示程式可能當機了
                 $last2rows = $sortedtable | Select-Object -First 2
