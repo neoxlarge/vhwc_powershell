@@ -1,6 +1,7 @@
 ﻿# 檢查Server上的程式是否當機
 
 $DebugPreference = 'Continue'
+$timestamp = get-date
 
 $server_list = [ordered]@{
     'check_process1' = @{
@@ -8,13 +9,7 @@ $server_list = [ordered]@{
         'computername' = 'Blade64-Srv3-wc';
         'ip'           = '172.20.200.41';
         'processes'    = @{
-            'hdste01prj.exe' = @{
-                'processname' = 'hdste01prj.exe';
-                'port'        = $null;
-                'runInterval' = '900'; #15分鐘
-                'runMonitor'  = $true;
-            }
-
+            
             'hdste02prj.exe' = @{
                 'processname' = 'hdste02prj.exe';
                 'port'        = $null;
@@ -41,7 +36,6 @@ $server_list = [ordered]@{
                 'port'        = $null;
                 'runInterval' = '900'; #15分鐘
                 'runMonitor'  = $true;
-
             }
             
             'hdste06prj.exe' = @{
@@ -100,7 +94,6 @@ $server_list = [ordered]@{
                 'port'        = $null
                 'runInterval' = '900'; #15分鐘
                 'runMonitor'  = $true
-                   
             }
             
             'NHI_EII_View.exe'              = @{
@@ -115,7 +108,7 @@ $server_list = [ordered]@{
 
     }
 
-    'transform3'     = @{
+    'check_process3'     = @{
         'title'       = '傳保卡1.0 上傳程式';
         'coputername' = 'wmis-111-pc01';
         'ip'          = '172.20.1.4';
@@ -127,12 +120,14 @@ $server_list = [ordered]@{
                 'runMonitor'  = $true
             }
             
+            <# iccprj.exe 是健字程式, 似乎不用監視它.
             'IccPrj.exe'       = @{
                 'processname' = 'IccPrj.exe';
                 'port'        = $null
                 'runInterval' = '900'; #15分鐘
                 'runMonitor'  = $true
-            }
+            } #>
+
             'PhrB0O0Prj.exe'   = @{
                 'processname' = 'PhrB0O0Prj.exe';
                 'port'        = $null
@@ -163,18 +158,19 @@ $server_list = [ordered]@{
         'password'    = 'Us2791072'             
     }
 
-    'tranform4'      = @{
+    'check_process4'      = @{
         'title'        = '雲端批次下載';
         'computername' = 'wadm-inx-pc02x';
         'ip'           = '172.20.5.147';
         'processes'    = @{
+
+            <# iccprj.exe 是健字程式, 似乎不用監視它.
             'IccPrj.exe'    = @{
                 'processname' = 'IccPrj.exe';
                 'port'        = $null
                 'runInterval' = '900'; #15分鐘
                 'runMonitor'  = $true
-
-            }
+            } #>
 
             'HISLogin.exe'  = @{
                 'processname' = 'HISLogin.exe';
@@ -193,7 +189,7 @@ $server_list = [ordered]@{
         'password'     = 'Us2791072'                
     }
 
-    'tranform5'      = @{
+    'check_process5'      = @{
         'title'        = '急診通報';
         'computername' = 'wadm-in';
         'ip'           = '172.20.200.49'
@@ -223,7 +219,7 @@ $server_list = [ordered]@{
 
     }
 
-    'tranform6'      = @{
+    'check_process6'      = @{
         'title'        = '會抛日結程式';
         'computername' = 'unknown';
         'ip'           = '172.20.1.3';
@@ -248,7 +244,7 @@ $server_list = [ordered]@{
     }
 
 
-    'tranform7'      = @{
+    'check_process7'      = @{
         'title'        = '警消及榮民眷資料下載及回報';
         'computername' = 'clinet21';
         'ip'           = '172.20.200.225';
@@ -335,7 +331,7 @@ function Send-LineNotifyMessage {
 $datatable = New-Object System.Data.DataTable
 $datatable.Columns.add('computername', [string]) | Out-Null
 $datatable.Columns.add('ip', [string]) | Out-Null
-$datatable.Columns.add('resonseDateTime', [Datetime]) | Out-Null
+$datatable.Columns.add('timestamp', [Datetime]) | Out-Null
 $datatable.Columns.add('processName', [string]) | Out-Null
 $datatable.Columns.add('processid', [string]) | Out-Null
 $datatable.Columns.add('workingsetsize', [long]) | Out-Null
@@ -370,14 +366,16 @@ do {
             # 連線到遠端電腦並取得執行中的程式
             Write-output "連線到 $($server_list[$server].ip) 並取得執行中的程式..."
             $processes = Get-WmiObject -ComputerName $server_list[$server].ip -Credential $credential -class win32_process 
+            # 過濾出清單中有在執行的程式
             $expectedProcesses = @($server_list[$server].processes.keys)
-            
             $processes = $processes | Where-Object -FilterScript { $_.Name -in $expectedProcesses } | Select-Object -Property processid, name, workingsetsize, ThreadCount, HandleCount
+            # 顯示列表
             $processes | Format-Table 
 
-            
             # 1.檢查程式數量是否正確, 如果不對, 找出少那一個
             # FIXME: 如果程式有重覆執行的情況, 如Iccprj.exe 有時會有2個同時存在的process. 可能會有問題.
+            # 所以只能多, 不能少.
+            Write-Output "檢查程式的數量是否符合: 執行中的程式數量: $($processes.count), 預期的程式數量: $($server_list[$server].processes.keys.count)"
             if ($processes.count -lt $server_list[$server].processes.keys.count) {
                 $missingProcesses = Compare-Object -ReferenceObject $expectedProcesses -DifferenceObject $processes.Name #-IncludeEqual -ExcludeDifferent 
                 Write-Host "Missing processes: $($missingProcesses.inputobject)" -ForegroundColor Red
@@ -390,25 +388,33 @@ do {
             Where-Object { $_.IDProcess -in $processes.processid } 
 
             foreach ($process in $processes) {
-                write-debug "正在檢查 $($process.name)..."
+                Write-Output "正在檢查 $($process.name)..."
 
                 # 在$cpuUsage中找到相同的processid
                 $cpuUsage_match = $cpuUsage | Where-Object { $_.IDProcess -eq $process.processid }
         
+                $sortedtable = $datatable.Select( "processName = '$($process.name)' And ip = '$($server_list[$server].ip)' ", "timestamp DESC")
+                write-debug "上一筆記錄時間: $($sortedtable[0].timestamp)"
+                write-debug "目前時間: $(get-date)"
+                $time_diff = (get-date) - $sortedtable[0].timestamp
+                write-debug "時間差(秒): $($time_diff.Seconds)"
+
                 # 如果找到, 就加入datatable
-                if ($cpuUsage_match -ne $null) {
+                $result = $cpuUsage_match -ne $null -and $time_diff.Seconds -gt $server_list[$server].processes[$process.name].interval
+                write-debug "檢查結果: $($result)"
+                if ($result) {
                     write-debug "找到 $($process.name) 的 CPU 使用率"
-                    $datatable.Rows.Add($server_list[$server].computername, $server_list[$server].ip, (Get-Date), $process.name, $process.processid, $process.workingsetsize, $process.ThreadCount, $process.HandleCount, $cpuUsage_match.PercentProcessorTime) | Out-Null
+                    $datatable.Rows.Add($server_list[$server].computername, $server_list[$server].ip, $timestamp, $process.name, $process.processid, $process.workingsetsize, $process.ThreadCount, $process.HandleCount, $cpuUsage_match.PercentProcessorTime) | Out-Null
                 }
                 else {
                     write-debug "找不到 $($process.name) 的 CPU 使用率"
                     # 如果沒找到, 就加入datatable, cpuUsage欄位填入'none'
-                    $datatable.Rows.Add($server_list[$server].computername, $server_list[$server].ip, (Get-Date), $process.name, $process.processid, $process.workingsetsize, $process.ThreadCount, $process.HandleCount, 'none') | Out-Null
+                    $datatable.Rows.Add($server_list[$server].computername, $server_list[$server].ip, $timestamp, $process.name, $process.processid, $process.workingsetsize, $process.ThreadCount, $process.HandleCount, 'none') | Out-Null
                 }
     
-                # 找出指定的程式, 並且按照resonseDateTime排序, 取出最新的2筆資料
-                write-debug "processName = '$($process.name)' And 'ip' = '$($server_list[$server].ip)'"
-                $sortedtable = $datatable.Select( "processName = '$($process.name)' And ip = '$($server_list[$server].ip)' ", "resonseDateTime DESC")
+                # 找出指定的程式, 並且按照timestamp排序, 取出最新的2筆資料
+                write-debug "processName = '$($process.name)' And ip = '$($server_list[$server].ip)'"
+                $sortedtable = $datatable.Select( "processName = '$($process.name)' And ip = '$($server_list[$server].ip)' ", "timestamp DESC")
                 
                 $sortedtable | Format-Table
                 # 2.找出最新2筆資料, 檢查如果 workingsetsize, threadcount , handlecount 數值都一樣, 
@@ -417,6 +423,8 @@ do {
         
                 $last2rows | Format-Table 
         
+                # 檢查時間間隔, 部分程式設定30分才動.
+
                 if (($last2rows.Count -eq 2) -and ($last2rows[0].processName -eq $last2rows[1].processName) -and ($last2rows[0].workingsetsize -eq $last2rows[1].workingsetsize) -and ($last2rows[0].ThreadCount -eq $last2rows[1].ThreadCount) -and ($last2rows[0].HandleCount -eq $last2rows[1].HandleCount)) {
                     Write-Host "Warning: $($last2rows[0].processName) on $($last2rows[0].computername) may be crashed." -ForegroundColor Yellow
                     Send-LineNotifyMessage -Message "🚨 $(get-date) `n項目:$($server_list[$server].title) `nip:$($last2rows[0].ip) `n$($last2rows[0].processName) 可能當機了" 
