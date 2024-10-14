@@ -374,6 +374,7 @@ do {
             
             $processes = $processes | Where-Object -FilterScript { $_.Name -in $expectedProcesses } | Select-Object -Property processid, name, workingsetsize, ThreadCount, HandleCount
             $processes | Format-Table 
+
             
             # 1.檢查程式數量是否正確, 如果不對, 找出少那一個
             # FIXME: 如果程式有重覆執行的情況, 如Iccprj.exe 有時會有2個同時存在的process. 可能會有問題.
