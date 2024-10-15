@@ -1,7 +1,7 @@
 ﻿# 檢查Server上的程式是否當機
 
 $DebugPreference = 'Continue'
-$timestamp = get-date
+
 
 $server_list = [ordered]@{
     'check_process1' = @{
@@ -78,7 +78,7 @@ $server_list = [ordered]@{
             'ep.exe'                        = @{
                 'processname' = 'ep.exe';
                 'port'        = $null
-                'runInterval' = '900'; #15分鐘
+                'runInterval' = '1800'; #30分鐘
                 'runMonitor'  = $true;
             }
 
@@ -252,7 +252,7 @@ $server_list = [ordered]@{
             'Atcjob.exe'               = @{
                 'processname' = 'Atcjob.exe';
                 'port'        = $null
-                'runInterval' = '900'; #15分鐘
+                'runInterval' = '1800'; #15分鐘
                 'runMonitor'  = $true
             }
             'AutoMailReport.exe'       = @{
@@ -341,7 +341,7 @@ $datatable.Columns.add('cpuUsage', [int]) | Out-Null
 
 
 do {
-    
+    $timestamp = get-date
     foreach ($server in $server_list.Keys ) {
 
         #先檢查server的連線
@@ -396,11 +396,11 @@ do {
                 $sortedtable = $datatable.Select( "processName = '$($process.name)' And ip = '$($server_list[$server].ip)' ", "timestamp DESC")
                 write-debug "上一筆記錄時間: $($sortedtable[0].timestamp)"
                 write-debug "目前時間: $(get-date)"
-                $time_diff = (get-date) - $sortedtable[0].timestamp
-                write-debug "時間差(秒): $($time_diff.Seconds)"
+                $time_diff = (get-date) - [datetime]$sortedtable[0].timestamp
+                write-debug "時間差(秒): $($time_diff.totalSeconds)"     
 
                 # 如果找到, 就加入datatable
-                $result = $cpuUsage_match -ne $null -and $time_diff.Seconds -gt $server_list[$server].processes[$process.name].interval
+                $result = ($cpuUsage_match -ne $null -and $time_diff.totalSeconds -gt $server_list[$server].processes[$process.name].runInterval) -or ($cpuUsage_match -ne $null -and $sortedtable[0].timestamp -eq $null)
                 write-debug "檢查結果: $($result)"
                 if ($result) {
                     write-debug "找到 $($process.name) 的 CPU 使用率"
