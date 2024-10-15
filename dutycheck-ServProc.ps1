@@ -1,5 +1,5 @@
 ﻿# 檢查Server上的程式是否當機
-
+start-transcript -path d:\mis\dutycheck_proc_log_$(get-date -format "yyyyMMddHHmm").txt -append
 $DebugPreference = 'Continue'
 
 
@@ -450,3 +450,4 @@ do {
 while (
     $true
 )
+
