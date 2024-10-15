@@ -409,7 +409,7 @@ do {
                 else {
                     write-debug "找不到 $($process.name) 的 CPU 使用率"
                     # 如果沒找到, 就加入datatable, cpuUsage欄位填入'none'
-                    $datatable.Rows.Add($server_list[$server].computername, $server_list[$server].ip, $timestamp, $process.name, $process.processid, $process.workingsetsize, $process.ThreadCount, $process.HandleCount, 'none') | Out-Null
+                    $datatable.Rows.Add($server_list[$server].computername, $server_list[$server].ip, $timestamp, $process.name, $process.processid, $process.workingsetsize, $process.ThreadCount, $process.HandleCount, -999) | Out-Null #有宣告int32型別, 無法填入$null, 改填-999
                 }
     
                 # 找出指定的程式, 並且按照timestamp排序, 取出最新的2筆資料
