@@ -690,14 +690,14 @@ $idsm_clients = @{
     'wdie-out-pc01'     = @{
         'ip'        = '172.20.2.138'
         'port'      = '2788'
-        'location'  = '營養室外包商'
+        'location'  = '營養室外 餐卡'
         'always_on' = $true
     }
     
-    'wreh-000-pc02'     = @{
+    'wdie-out-pc02'     = @{
         'ip'        = '172.20.2.150'
         'port'      = '2788'
-        'location'  = '營養室 餐卡, 出餐單'
+        'location'  = '營養室 出餐單'
         'always_on' = $true
     }
 }    
