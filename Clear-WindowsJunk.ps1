@@ -1,4 +1,4 @@
-#清理Windows的暫存和回收桶
+#清理Windows, chrome, edge, ie的暫存檔
 param($runadmin)
 
 
@@ -18,10 +18,10 @@ function Clear-WindowsJunk {
 
  
   Write-Output "清除系統暫存檔$($env:windir)\Temp\*"
-   Remove-Item -Path "$env:windir\Temp\*" -Recurse -Force -ErrorAction SilentlyContinue
+  Remove-Item -Path "$env:windir\Temp\*" -Recurse -Force -ErrorAction SilentlyContinue
 
  
-   Write-Output "清除Windows 更新期間生成的暫存檔"
+  Write-Output "清除Windows 更新期間生成的暫存檔"
   Remove-Item -Path "$env:windir\SoftwareDistribution\Download\*" -Recurse -Force -ErrorAction SilentlyContinue
 
   
@@ -75,7 +75,7 @@ function Clear-WindowsJunk {
       RunDll32.exe InetCpl.cpl,ClearMyTracksByProcess 4351
   #>
 
-Write-OutPut "清除Internet Explorer暫存檔和Cookies"
+  Write-OutPut "清除Internet Explorer暫存檔和Cookies"
   Start-Process -FilePath "RunDll32.exe" -ArgumentList "InetCpl.cpl,ClearMyTracksByProcess 8" -Wait
   Start-Process -FilePath "RunDll32.exe" -ArgumentList "InetCpl.cpl,ClearMyTracksByProcess 2" -Wait
 

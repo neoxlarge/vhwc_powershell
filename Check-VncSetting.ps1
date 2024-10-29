@@ -6,10 +6,10 @@
 param($runadmin)
 
 #管理者權限vhwcmis的證書.
-$Username = "vhwcmis"
-$Password = "Mis20190610"
-$securePassword = ConvertTo-SecureString $Password -AsPlainText -Force
-$credential = New-Object System.Management.Automation.PSCredential($Username, $securePassword)
+if(!$credential) {
+    $credential = Get-Credential -Message "請輸入管理者帳號密碼" -UserName "vhcy\vhwcmis" 
+}
+
 
 function Parse-IniFile {
 <#

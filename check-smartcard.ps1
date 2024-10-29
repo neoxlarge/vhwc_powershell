@@ -1,3 +1,5 @@
+# 有時候smartcard 服務會消失, 把smartcard服務加回去.
+
 function Check-SmartCard {
     $serviceName = "SCardSvr"
 
