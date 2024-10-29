@@ -1,4 +1,5 @@
-﻿# 系統備份檢查
+﻿# 值班檢查
+# 系統備份檢查
 # 請先連上172.20.1.122
 # 檢查項目
 # 1. 檢查檔案路徑是不正確, 檔名結尾有3種, 依當日轉換.
@@ -8,13 +9,14 @@
 # 200-033-hisdb-vghtc dmp產生時間為早上11點多, 早於這時會檢查到前一天的檔當而出現Fail判斷. 排程下午1點半執行.
 # 排程 powershell.exe -file d:\mis\vhwc_powershell\check-serverbackup.ps1
 
-
+# setting
+$line_token = "HdkeCg1k4nehNa8tEIrJKYrNOeNZMrs89LQTKbf1tbz"
 
 function Send-LineNotifyMessage {
     [CmdletBinding()]
     param (
         
-        [string]$Token = "HdkeCg1k4nehNa8tEIrJKYrNOeNZMrs89LQTKbf1tbz", # Line Notify 存取權杖
+        [string]$Token, # Line Notify 存取權杖
 
         [Parameter(Mandatory = $true)]
         [string]$Message, # 要發送的訊息內容
@@ -314,7 +316,7 @@ foreach ($r in $check_report.keys) {
     $send_msg += $msg
 }
  
-Send-LineNotifyMessage -Message $send_msg
+Send-LineNotifyMessage -Message $send_msg -Token $line_token
 
 Remove-PSDrive -Name $psdname
 

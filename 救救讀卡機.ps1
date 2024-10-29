@@ -1,3 +1,5 @@
+# 20241029, 和 remove-hiddendevice.ps1 是一樣的, 但這個每隔一小時清理一次 USB 相關的設備.
+#
 #從裝置管理員中移除隱藏的設備
 #
 #只會移除ScmarCard ,SmartCardReader和SmartCardFilter, USB, Keyboard等USB和讀卡機相關的隱藏的設備.
@@ -105,7 +107,7 @@ function remove-HiddenDevice {
 
   $pnputil_version = Get-ItemPropertyValue -Path $pnputil_path -name VersionInfo
   
-  Write-Host "HELP THE CARD READER:" 
+  Write-Host "救救讀卡機:" 
 
   Write-Output "$($pnputil_version.Filename) : $($pnputil_version.FileVersion)"
  
@@ -132,7 +134,6 @@ function remove-HiddenDevice {
       }
 
     }
-  
   
     Start-Sleep -Seconds 3600
 

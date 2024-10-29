@@ -4,18 +4,14 @@ function import-module_func ($name) {
     #此function會檢查本機上是否有要載入的模組. 如果沒有, 就連線到wcdc2.vhcy.gov.tw上下載. 可能Win7沒有內建該模組. 
     $result = get-module -ListAvailable $name
 
-    $Username = "vhwcmis"
-    $Password = "Mis20190610"
-    $securePassword = ConvertTo-SecureString $Password -AsPlainText -Force
-    $credential = New-Object System.Management.Automation.PSCredential($Username, $securePassword)
-
     if ($result -ne $null) {
-
         Import-Module -Name $name -ErrorAction Stop
-
     }
     else {
-
+        # 準備連線到wcdc2.vhcy.gov.tw上下載模組
+        if (!$credential) {
+            $credential = Get-Credential -UserName "vhcy\vhwcmis" -Message "請輸入vhwcmis密碼"
+        }
         $rsession = New-PSSession -ComputerName wcdc2.vhcy.gov.tw -Credential $credential
         Import-Module $name -PSSession $rsession -ErrorAction Stop
         Disconnect-PSSession -Session $rsession | Out-Null
