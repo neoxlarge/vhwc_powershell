@@ -22,6 +22,7 @@ $DebugPreference = "Continue"
 
 # line notify token
 $line_apikey = "XkxO98qPwgpqoYQXsSsoSu94yHGA0TV9pZSVRkeZpqk"
+#$line_apikey = "6cBRGGp4QZ1Wo0NFJb9eTh8JtaARergSfrkfLhmlY33"
 
 # 定時的時間
 $timer_hours = @(8..17) #8點到17點
