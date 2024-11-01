@@ -1,4 +1,5 @@
-﻿# 檢查主機系綷LOG備份
+﻿# 值班檢查
+# 檢查主機系統LOG備份
 # 檢查4個log檔:
 # 1.檢查檔案路徑是否正確, 檔名以當日日期產生.
 # 2.檢查log內容, 待合固定的格式就pass. 有其他訊息就當fail, 並將訊息傳line.
@@ -7,6 +8,8 @@
 # 1.檢查\\172.20.1.122\log\ntp-log\allntp-ntpsync-yyyyMMdd.txt
 # 2.檢查IP下有 "校時結束" 字串, 表pass.
 
+# setting
+$line_token = "HdkeCg1k4nehNa8tEIrJKYrNOeNZMrs89LQTKbf1tbz"
 
 #檢查主機系綷LOG備份
 ################################################################################################################################################
@@ -44,7 +47,7 @@ function Send-LineNotifyMessage {
     [CmdletBinding()]
     param (
         
-        [string]$Token = "HdkeCg1k4nehNa8tEIrJKYrNOeNZMrs89LQTKbf1tbz", # Line Notify 存取權杖
+        [string]$Token, # Line Notify 存取權杖
 
         [Parameter(Mandatory = $true)]
         [string]$Message, # 要發送的訊息內容
@@ -175,7 +178,7 @@ foreach ($Key in $serverlog_checklist.keys) {
     
 }
 
-Send-LineNotifyMessage -Message $send_msg
+Send-LineNotifyMessage -Message $send_msg -Token $line_token
 
 #ntp-log 檢查
 ##########################################################################################################################################
@@ -230,7 +233,7 @@ foreach ($re in $ntp_result.keys) {
     
     if ($counter -eq $group -or ($re -eq $ntp_result.keys.count - 1)) {
         
-        Send-LineNotifyMessage -Message $($msg_title + $msgs)
+        Send-LineNotifyMessage -Message $($msg_title + $msgs) -Token $LineNotifyToken
         Start-Sleep -s 1
         $counter = 0
         $msgs = ""

@@ -194,11 +194,6 @@ Import-Module ((Split-Path $PSCommandPath) + "\check-VncSetting.ps1")
 Check-VncSetting
 Check-VncService
 
-#20231115 removed
-#檢查firewall 有無開啟5900 5800 埠.
-#Import-Module ((Split-Path $PSCommandPath) + "\check-firewallport.ps1")
-#check-Firewallport
-
 #檢查firewall 有無開啟VNC程式通過.
 Import-Module ((Split-Path $PSCommandPath) + "\check-firewallsettings.ps1")
 check-FirewallRuleSettings
