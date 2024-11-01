@@ -22,6 +22,7 @@ $DebugPreference = "Continue"
 
 # line notify token
 $line_apikey = "XkxO98qPwgpqoYQXsSsoSu94yHGA0TV9pZSVRkeZpqk"
+#$line_apikey = "6cBRGGp4QZ1Wo0NFJb9eTh8JtaARergSfrkfLhmlY33"
 
 # 定時的時間
 $timer_hours = @(8..17) #8點到17點
@@ -690,14 +691,14 @@ $idsm_clients = @{
     'wdie-out-pc01'     = @{
         'ip'        = '172.20.2.138'
         'port'      = '2788'
-        'location'  = '營養室外包商'
+        'location'  = '營養室外 餐卡'
         'always_on' = $true
     }
     
-    'wreh-000-pc02'     = @{
+    'wdie-out-pc02'     = @{
         'ip'        = '172.20.2.150'
         'port'      = '2788'
-        'location'  = '營養室 餐卡, 出餐單'
+        'location'  = '營養室 出餐單'
         'always_on' = $true
     }
 }    
