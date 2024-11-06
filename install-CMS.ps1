@@ -51,7 +51,7 @@ function install-CMS {
     ### 依文件要求,安裝前應關閉防毒軟體, 所以比防毒先安裝
 
     $software_name = "NHIServiSignAdapterSetup"
-    $software_path = "\\172.20.1.122\share\software\00newpc\05-CMS_CGServiSignAdapterSetup\CMS_CGServiSignAdapterSetup"
+    $software_path = "\\172.20.5.187\mis\05-CMS_CGServiSignAdapterSetup\CMS_CGServiSignAdapterSetup"
     $software_exec = "NHIServiSignAdapterSetup.exe"
     
     $all_installed_program = get-installedprogramlist

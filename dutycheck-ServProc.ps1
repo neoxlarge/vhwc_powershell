@@ -1,4 +1,6 @@
-﻿# 檢查Server上的程式是否當機
+﻿# 20241106, 實測結果為不實用, 部分程式在cpu, memory等上沒有變化. 無法看出是否有異常.
+
+# 檢查Server上的程式是否當機
 start-transcript -path d:\mis\dutycheck_proc_log_$(get-date -format "yyyyMMddHHmm").txt -append
 $DebugPreference = 'Continue'
 
