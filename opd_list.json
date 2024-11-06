@@ -1,0 +1,70 @@
+{
+    "opd101": {
+        "no": "101",
+        "name": "wnur-opd-pc01",
+        "ip": "172.20.9.1",
+        "virturl_NHIcard": "False"
+    },
+    "opd103": {
+        "no": "103",
+        "name": "wnur-opd-pc02",
+        "ip": "172.20.9.2",
+        "virturl_NHIcard": "False"
+    },
+    "opd105": {},
+    "opd106": {
+        "no": "106",
+        "name": "wnur-opd-pc04",
+        "ip": "172.20.9.4",
+        "virturl_NHIcard": "False"
+    },
+    "opd107": {
+        "no": "107",
+        "name": "wnur-opd-pc07",
+        "ip": "172.20.9.7",
+        "virturl_NHIcard": "False"
+    },
+    "opd108": {
+        "no": "108",
+        "name": "wnur-opd-pc06",
+        "ip": "172.20.9.6",
+        "virturl_NHIcard": "False"
+    },
+    "opd109": {
+        "no": "109",
+        "name": "wnur-opd-pc05",
+        "ip": "172.20.9.5",
+        "virturl_NHIcard": "False"
+    },
+    "opd201": {
+        "no": "201",
+        "name": "wnur-opd-pc23",
+        "ip": "172.20.12.23",
+        "virturl_NHIcard": "False"
+    },
+    "opd205": {
+        "no": "205",
+        "name": "wnur-opd-pc21",
+        "ip": "172.20.12.21",
+        "virturl_NHIcard": "False"
+    },
+    "opd206": {
+        "no": "206",
+        "name": "wnur-opd-pc22",
+        "ip": "172.20.12.22",
+        "virturl_NHIcard": "False"
+    },
+    "erx": {},
+    "wreh": {
+        "no": "wreh",
+        "name": "wrch-000-pc01",
+        "ip": "172.20.17.61",
+        "virturl_NHIcard": "False"
+    },
+    "wmis": {
+        "no": "wmis",
+        "name": "wmis-000-pc05",
+        "ip": "172.20.5.185",
+        "virturl_NHIcard": "True"
+    }
+}

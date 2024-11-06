@@ -82,7 +82,7 @@ function check_comx1 ($ini_path) {
     $log_file = "\\172.20.1.14\update\0001-中榮系統環境設定\set_csdllini.log"
 
     #電腦名稱限制條件
-    $rule = "wmis-*"
+    $rule = "wnur-*"
     if ($env:COMPUTERNAME -like $rule) {
         $is_computername_rule = $true
     }

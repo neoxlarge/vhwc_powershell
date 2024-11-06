@@ -54,7 +54,7 @@ function Uninstall-Software {
             # MSI ¨ø¸ü
             write-output "misexec²¾°£: $($software.DisplayName)"
             $uninstallString = $software.UninstallString.Split(" ")[1].replace("I", "X")
-            $process = Start-Process -FilePath "msiexec.exe" -ArgumentList "$uninstallString /passive" -Credential $credential -PassThru
+            $process = Start-Process -FilePath "msiexec.exe" -ArgumentList "$uninstallString /passive /norestart" -Credential $credential -PassThru
         }
         elseif ($software.QuietUninstallString) {
             # ¨Ï¥Î¦wÀR¨ø¸ü¦r²Å¦ê
