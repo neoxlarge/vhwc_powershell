@@ -50,7 +50,7 @@ function install-HCA {
     ### 找出軟體是否己安裝
 
     $software_name = "HCAServiSignAdapterSetup"
-    $software_path = "\\172.20.1.122\share\software\00newpc\05-HCAServiSign醫事卡解鎖"
+    $software_path = "\\172.20.5.187\mis\05-HCAServiSign醫事卡解鎖"
     $software_exec = "HCAServiSignAdapterSetup.exe"
 
     $all_installed_program = get-installedprogramlist

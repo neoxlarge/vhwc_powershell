@@ -1,4 +1,9 @@
 ﻿<#
+值班截圖, 使用chrome 和 selenuim 網頁爬蟲的方式截圖.
+這為主要程式, ducycheck-midnight_timer.ps1 為定時器的程式, 灣橋的本機無法截圖, 
+所以要用定器時把程式丟到嘉義遠端桌面主機去執行.
+暫存檔會放在遠端桌面主機上的d:\mis\dutycheck\
+
 selenium 使用方法
 https://github.com/adamdriscoll/selenium-powershell
 https://www.zenrows.com/blog/selenium-powershell#interaction-automation

@@ -6,7 +6,7 @@
 param($runadmin)
 
 #管理者權限vhwcmis的證書.
-if(!$credential) {
+if(!$check_admin) {
     $credential = Get-Credential -Message "請輸入管理者帳號密碼" -UserName "vhcy\vhwcmis" 
 }
 
